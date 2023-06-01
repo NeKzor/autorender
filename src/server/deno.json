@@ -1,0 +1,17 @@
+{
+    "tasks": {
+        "dev": "deno run --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,./,/tmp/ --allow-write=log/server,demos/,videos/,/tmp/ --allow-net=127.0.0.1:8001,127.0.0.1:3307 --watch main.ts",
+        "prod": "deno run --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,./,/tmp/ --allow-write=log/server,demos/,videos/,/tmp/ --allow-net=127.0.0.1:8834,127.0.0.1:3307 main.ts",
+        "test": "deno test --allow-net --allow-read --allow-env",
+        "pending": "deno run --allow-net --allow-read --allow-env tasks/pending.ts"
+    },
+    "fmt": {
+        "options": {
+            "useTabs": false,
+            "lineWidth": 120,
+            "indentWidth": 4,
+            "singleQuote": true,
+            "proseWrap": "preserve"
+        }
+    }
+}

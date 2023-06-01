@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# File name for generating SSL certificates (dev-only)
+site=autorender.portal2.local
+
+# Configuration files:
+#   .env            -> used by docker
+#   src/bot/.env    -> used by the bot    (mounted by docker)
+#   src/client/.env -> used by the client (mounted by docker)
+#   src/server/.env -> used by the server (mounted by docker)
+
+create_config_and_env()
+{
+    echo "[+] creating .env files"
+
+    cp -n .env.example .env
+    cp -n src/bot/.env.example src/bot/.env
+    cp -n src/client/.env.example src/client/.env
+    cp -n src/server/.env.example src/server/.env
+}
+
+# Other mounted volumes.
+#   docker/volumes/mysql -> database used by the server
+
+create_volumes()
+{
+    echo "[+] creating volumes in docker/volumes"
+
+    mkdir -p docker/volumes
+}
+
+# Self-signed certificate for development only.
+
+create_ssl_cert()
+{
+    if [ -f "docker/ssl/$site.crt" ];
+    then
+        echo "[+] skipped generating certificate"
+        return
+    fi
+
+    if ! command -v mkcert &> /dev/null ;
+    then
+        echo "[-] mkcert does not seem to be installed. failed to generate ssl certificates"
+    else
+        echo "[+] generating certificate in docker/ssl"
+
+        mkdir -p "docker/ssl"
+
+        if ! err=$(mkcert -cert-file docker/ssl/$site.crt -key-file docker/ssl/$site.key $site 2>&1) ;
+        then
+            echo $err
+        fi
+    fi
+}
+
+# Development server only.
+
+setup_dev()
+{
+    echo "[+] setup for development..."
+
+    create_config_and_env
+    create_logs
+    create_volumes
+    #create_ssl_cert
+
+    echo "[+] done"
+}
+
+# Prodcution server only.
+
+setup_prod()
+{
+    echo "[+] setup for production..."
+
+    create_config_and_env
+    create_logs
+    create_volumes
+
+    echo "[+] done"
+}
+
+case $1 in
+dev)    setup_dev ;;
+prod)   setup_prod ;;
+* )     echo "usage: ./setup <dev|prod|perm>" ;;
+esac
