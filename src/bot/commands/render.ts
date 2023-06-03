@@ -77,7 +77,7 @@ createCommand({
       body.append("requested_by_id", requestedById);
 
       const response = await fetch(
-        "http://127.0.0.1:8001/api/v1/videos/render",
+        "http://autorender.portal2.local:8001/api/v1/videos/render",
         {
           method: "PUT",
           headers: {

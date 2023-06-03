@@ -10,15 +10,23 @@ import "https://deno.land/std@0.177.0/dotenv/load.ts";
 import {
   Application,
   Context,
+  Middleware,
   Router,
   Status,
-} from "https://deno.land/x/oak@v12.5.0/mod.ts";
+} from "https://deno.land/x/oak@v12.2.0/mod.ts";
 import {
   ResponseBody,
   ResponseBodyFunction,
-} from "https://deno.land/x/oak@v12.5.0/response.ts";
+} from "https://deno.land/x/oak@v12.2.0/response.ts";
+import {
+  CookieStore,
+  Session,
+} from "https://deno.land/x/oak_sessions@v4.1.4/mod.ts";
+import {
+  RateLimiter,
+  MapStore,
+} from "https://deno.land/x/oak_rate_limit@v0.1.1/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
-import { refresh } from "https://deno.land/x/refresh@1.0.0/mod.ts";
 import { logger } from "./logger.ts";
 import { index } from "./app/index.tsx";
 import b2CloudStorage from "npm:b2-cloud-storage";
@@ -27,11 +35,36 @@ import {
   AccessToken,
   PendingStatus,
   Video,
+  DiscordUser,
+  UserPermissions,
+  User,
+  AuditType,
+  AuditSource,
 } from "./models.ts";
 import { basename, join } from "https://deno.land/std@0.190.0/path/mod.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 import * as _bcrypt_worker from "https://deno.land/x/bcrypt@v0.4.1/src/worker.ts";
 import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
+import { AppState as ReactAppState } from "./app/AppState.ts";
+
+const SERVER_HOST = Deno.env.get("SERVER_HOST") ?? "127.0.0.1";
+const SERVER_PORT = parseInt(Deno.env.get("SERVER_PORT") ?? "8001", 10);
+const SERVER_SSL_CERT = Deno.env.get("SERVER_SSL_CERT");
+const SERVER_SSL_KEY = Deno.env.get("SERVER_SSL_KEY");
+const IS_HTTPS = SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none";
+const MAX_VIDEOS_PER_REQUEST = 3;
+const AUTORENDER_V1 = "autorender-v1";
+const DISCORD_AUTHORIZE_LINK = (() => {
+  const url = new URLSearchParams();
+  url.set("client_id", Deno.env.get("DISCORD_CLIENT_ID") ?? "");
+  url.set("redirect_uri", Deno.env.get("DISCORD_REDIRECT_URI") ?? "");
+  url.set("response_type", "code");
+  url.set("scope", "identify");
+  return `https://discord.com/api/oauth2/authorize?${url.toString()}`;
+})();
+const BOT_AUTH_TOKEN_HASH = await bcrypt.hash(
+  Deno.env.get("BOT_AUTH_TOKEN") ?? ""
+);
 
 const db = await new Client().connect({
   hostname: Deno.env.get("DB_HOST") ?? "127.0.0.1",
@@ -41,12 +74,26 @@ const db = await new Client().connect({
   db: Deno.env.get("DB_NAME") ?? "p2render",
 });
 
-const MAX_VIDEOS_PER_REQUEST = 3;
-const AUTORENDER_V1 = "autorender-v1";
+const store = new CookieStore(Deno.env.get("COOKIE_SECRET_KEY") ?? "", {
+  cookieSetDeleteOptions: {
+    expires: new Date(Date.now() + (86400000 * 30)),
+    sameSite: IS_HTTPS ? 'lax' : 'none',
+    secure: IS_HTTPS,
+  }
+});
+const useSession = Session.initMiddleware(store);
 
-const BOT_AUTH_TOKEN_HASH = await bcrypt.hash(
-  Deno.env.get("BOT_AUTH_TOKEN") ?? ""
-);
+const requiresAuth: Middleware<AppState> = (ctx) => {
+  if (!ctx.state.session.get("user")) {
+    return ctx.throw(Status.Unauthorized);
+  }
+};
+
+const useRateLimiter = await RateLimiter({
+  store: new MapStore(),
+  windowMs: 1000,
+  max: 10,
+});
 
 let discordBot: WebSocket | null = null;
 
@@ -68,6 +115,10 @@ await logger.initFileLogger("log/server", {
   maxBackupCount: 7,
 });
 
+const hasPermission = (ctx: Context, permission: UserPermissions) => {
+  return ctx.state.session.get("user").permissions & permission;
+};
+
 const Ok = (
   ctx: Context,
   body: ResponseBody | ResponseBodyFunction,
@@ -84,37 +135,54 @@ const Err = (ctx: Context, status: Status, message: string) => {
   ctx.response.body = { status, message };
 };
 
-const apiV1 = new Router();
+const apiV1 = new Router<AppState>();
 
 apiV1
   // Incoming render request containing the demo file.
   .put("/videos/render", async (ctx) => {
+    const authUser = ctx.state.session.get("user");
+
+    if (authUser) {
+      if (!hasPermission(ctx, UserPermissions.CreateVideos)) {
+        return ctx.throw(Status.Unauthorized);
+      }
+      if (!hasPermission(ctx, UserPermissions.CreateVideos)) {
+        return ctx.throw(Status.Unauthorized);
+      }
+    }
+
+    if (!authUser) {
+      const [authType, authToken] = (
+        ctx.request.headers.get("Authorization") ?? ""
+      ).split(" ");
+
+      if (authType !== "Bearer") {
+        return ctx.throw(Status.BadRequest);
+      }
+
+      if (!(await bcrypt.compare(authToken, BOT_AUTH_TOKEN_HASH))) {
+        return ctx.throw(Status.Unauthorized);
+      }
+    }
+
     if (!ctx.request.hasBody) {
       return ctx.throw(Status.UnsupportedMediaType);
     }
 
-    // TODO: allow render from web platform
-
-    const [authType, authToken] = (
-      ctx.request.headers.get("Authorization") ?? ""
-    ).split(" ");
-
-    if (authType !== "Bearer") {
-      return ctx.throw(Status.BadRequest);
-    }
-
-    if (!(await bcrypt.compare(authToken, BOT_AUTH_TOKEN_HASH))) {
-      return ctx.throw(Status.Unauthorized);
-    }
-
     const body = ctx.request.body({ type: "form-data" });
-    const reader = body.value;
-    const data = await reader.read({
+    const data = await body.value.read({
       customContentTypes: {
         "application/octet-stream": "dem",
       },
       outPath: "./demos",
     });
+
+    const requestedByName = authUser
+      ? authUser.username
+      : data.fields.requested_by_name;
+    const requestedById = authUser
+      ? authUser.discord_id
+      : data.fields.requested_by_id;
 
     const file = data.files?.at(0);
     if (!file?.filename) {
@@ -147,8 +215,8 @@ apiV1
       [
         data.fields.title,
         data.fields.comment,
-        data.fields.requested_by_name,
-        data.fields.requested_by_id,
+        requestedByName,
+        requestedById,
         data.fields.render_options,
         file.originalName,
         filePath,
@@ -156,131 +224,30 @@ apiV1
       ]
     );
 
+    await db.execute(
+      `insert into audit_logs (
+            title
+          , audit_type
+          , source
+          , source_user_id
+        ) values (
+            ?
+          , ?
+          , ?
+          , ?
+        )`,
+      [
+        `Created new video ${result.lastInsertId} for Discord user ${requestedByName}`,
+        AuditType.Info,
+        AuditSource.User,
+        authUser?.user_id ?? null,
+      ]
+    );
+
     Ok(ctx, { inserted: result.affectedRows });
   })
-  // Pending videos for clients.
-  .get("/videos/pending", async (ctx) => {
-    // TODO: authentication
-
-    const videos = await db.execute(
-      `select video_id from videos where pending = ? limit ?`,
-      [PendingStatus.RequiresRender, MAX_VIDEOS_PER_REQUEST]
-    );
-    Ok(ctx, { result: videos.rows });
-  })
-  // Download pending demo file.
-  .get("/videos/pending/:video_id(\\d+)", async (ctx) => {
-    // TODO: authentication
-    const videoId = Number(ctx.params.video_id);
-
-    const updated = await db.execute(
-      `update videos set pending = ? where video_id = ? and pending = ?`,
-      [PendingStatus.StartedRender, videoId, PendingStatus.RequiresRender]
-    );
-
-    if (updated.affectedRows !== 0) {
-      return ctx.throw(Status.NotFound);
-    }
-
-    const { rows } = await db.execute(
-      `select file_path from videos where video_id = ?`,
-      [videoId]
-    );
-
-    const video = rows?.at(0) as Video | undefined;
-    if (!video) {
-      return ctx.throw(Status.NotFound);
-    }
-
-    ctx.send({ path: video.file_path, root: "." });
-  })
-  // Client finished a render, upload it.
-  .put("/videos/upload/:video_id(\\d+)", async (ctx) => {
-    const { rows } = await db.execute(
-      `select * from videos where video_id = ?`,
-      [Number(ctx.params.video_id)]
-    );
-
-    const video = rows?.at(0) as Video | undefined;
-    if (!video) {
-      return ctx.throw(Status.NotFound);
-    }
-
-    const body = ctx.request.body({ type: "form-data" });
-    const reader = body.value;
-    const data = await reader.read({
-      customContentTypes: {
-        "application/octet-stream": "dem",
-      },
-    });
-
-    const file = data.files?.at(0);
-    if (!file?.filename) {
-      return ctx.throw(Status.BadRequest);
-    }
-
-    try {
-      const results = await new Promise((resolve, reject) => {
-        b2.uploadFile(
-          file.filename,
-          {
-            bucketId: "p2render",
-            fileName: `${video.video_id}.dem`,
-            contentType: "application/octet-stream",
-            onUploadProgress: (update: {
-              percent: number;
-              bytesCopied: number;
-              bytesTotal: number;
-              bytesDispatched: number;
-            }) => {
-              console.log(
-                `Upload: ${update.percent}% (${update.bytesDispatched}/${update.bytesTotal}`
-              );
-            },
-          },
-          (err: Error, results: unknown) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(results);
-            }
-          }
-        );
-      });
-
-      console.log({ results });
-
-      // TODO: update links
-      // TODO: thumbnail
-
-      await db.execute(
-        `update videos
-            set pending = ?
-            , video_url = ?
-            , thumb_url = ?
-            , rendered_at = current_timestamp()
-            where video_id = ?`,
-        [PendingStatus.FinishedRender, "", "", video.video_id]
-      );
-
-      if (discordBot) {
-        const notification = {
-          video_id: video.video_id,
-          title: video.title,
-          requested_by_id: video.requested_by_id,
-        };
-
-        discordBot.send(JSON.stringify({ type: "upload", data: notification }));
-      }
-
-      Ok(ctx, { uploaded: true });
-    } catch (err) {
-      console.error(err);
-      ctx.throw(Status.InternalServerError);
-    }
-  })
-  // Viewed a video.
-  .put("/videos/:video_id(\\d+)/view", async (ctx) => {
+  // Get video views and increment.
+  .post("/videos/:video_id(\\d+)/views", useRateLimiter as any, async (ctx) => {
     const { rows } = await db.execute(
       `select video_id, views from videos where video_id = ?`,
       [Number(ctx.params.video_id)]
@@ -297,32 +264,83 @@ apiV1
 
     Ok(ctx, video);
   })
+  // Create a new access token for a client application.
+  .post("/application/new", requiresAuth, async (ctx) => {
+    if (!hasPermission(ctx, UserPermissions.CreateTokens)) {
+      return ctx.throw(Status.Unauthorized);
+    }
+
+    const userId = ctx.state.session.get("user")!.user_id;
+
+    const { token_name } = ctx.request.body({
+      type: "json",
+    }).value as any;
+
+    const inserted = await db.execute(
+      `insert into access_tokens (
+          user_id
+        , token_name
+        , token_key
+        , permissions
+      ) values (
+          ?
+        , ?
+        , ?
+        , ?
+      )`,
+      [
+        userId,
+        token_name,
+        await bcrypt.hash(crypto.randomUUID()),
+        AccessPermission.CreateVideos | AccessPermission.WriteVideos,
+      ]
+    );
+
+    const { rows } = await db.execute(
+      `select * from access_tokens where access_token_id = ?`,
+      [inserted.lastInsertId]
+    );
+    const accessToken = rows?.at(0);
+
+    await db.execute(
+      `insert into audit_logs (
+            title
+          , audit_type
+          , source
+          , source_user_id
+        ) values (
+            ?
+          , ?
+          , ?
+          , ?
+        )`,
+      [
+        `Created access token ${accessToken.access_token_id} for user ${userId}`,
+        AuditType.Info,
+        AuditSource.User,
+        userId,
+      ]
+    );
+
+    Ok(ctx, accessToken);
+  })
   .get("/(.*)", (ctx) => {
     Err(ctx, Status.NotFound, "Route not found :(");
   });
 
-const router = new Router();
+const router = new Router<AppState>();
 
 const isHotReloadEnabled = Deno.env.get("HOT_RELOAD")?.toLowerCase() === "yes";
 if (isHotReloadEnabled) {
-  const refreshMiddleware = refresh();
+  let reload = true;
 
-  router.get("/_r", (ctx) => {
+  router.get("/__hot_reload", (ctx) => {
     if (ctx.isUpgradable) {
-      const response = refreshMiddleware(
-        new Request(ctx.request.url, {
-          headers: new Headers(ctx.request.headers),
-        })
-      );
-
-      if (response) {
-        ctx.response.body = response.body;
-        for (const [headerName, headerValue] of response.headers) {
-          ctx.response.headers.set(headerName, headerValue);
-        }
-        ctx.response.status = response.status;
-        ctx.upgrade();
-      }
+        const ws = ctx.upgrade();
+        ws.onmessage = () => {
+          ws.send(reload ? 'yes' : 'no');
+          reload = false;
+        };
     }
   });
 }
@@ -653,11 +671,133 @@ router.get("/connect/client", async (ctx) => {
     clients.delete(clientId);
   };
 });
-router.get("/(.*)", async (ctx) => {
-  ctx.response.body = await index(ctx.request.url.pathname.toString());
+
+router.get("/login/discord/authorize", useSession, async (ctx) => {
+  const code = ctx.request.url.searchParams.get("code");
+  if (!code) {
+    //return ctx.throw(Status.BadRequest);
+    return ctx.response.redirect("/");
+  }
+
+  // Discord OAuth2
+  //    https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
+
+  const data = {
+    grant_type: "authorization_code",
+    client_id: Deno.env.get("DISCORD_CLIENT_ID") ?? "",
+    client_secret: Deno.env.get("DISCORD_CLIENT_SECRET") ?? "",
+    code,
+    redirect_uri: Deno.env.get("DISCORD_REDIRECT_URI") ?? "",
+  };
+
+  const oauthResponse = await fetch(
+    "https://discord.com/api/v10/oauth2/token",
+    {
+      method: "POST",
+      headers: {
+        "User-Agent": AUTORENDER_V1,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: Object.entries(data)
+        .map(
+          ([key, value]) =>
+            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+        )
+        .join("&"),
+    }
+  );
+
+  if (!oauthResponse.ok) {
+    //return ctx.throw(Status.Unauthorized);
+    return ctx.response.redirect("/");
+  }
+
+  const { access_token } = await oauthResponse.json();
+
+  // Fetch user data:
+  //    https://discord.com/developers/docs/resources/user#get-current-user
+
+  const usersResponse = await fetch("https://discord.com/api/users/@me", {
+    headers: {
+      authorization: `Bearer ${access_token}`,
+    },
+  });
+
+  const discordUser = (await usersResponse.json()) as DiscordUser;
+
+  const { rows } = await db.execute(
+    `select * from users where discord_id = ?`,
+    [discordUser.id]
+  );
+
+  let user: User | undefined = rows?.at(0);
+  if (!user) {
+    await db.execute(
+      `insert into users (
+            username
+          , discord_id
+          , discord_avatar
+          , permissions
+        ) values (
+            ?
+          , ?
+          , ?
+          , ?
+        )`,
+      [
+        `${discordUser.username}#${discordUser.discriminator}`, // TODO: fix this once hte new username system rolls out
+        discordUser.id,
+        discordUser.avatar,
+        UserPermissions.ListVideos,
+      ]
+    );
+
+    const { rows } = await db.execute(
+      `select * from users where discord_id = ?`,
+      [discordUser.id]
+    );
+    user = rows?.at(0);
+  }
+
+  if (!user) {
+    //return ctx.throw(Status.InternalServerError);
+    return ctx.response.redirect("/");
+  }
+
+  ctx.state.session.set("user", user);
+  ctx.response.redirect("/");
+});
+router.get("/users/@me", useSession, requiresAuth, (ctx) => {
+  Ok(ctx, ctx.state.session.get("user"));
+});
+router.get("/logout", useSession, async (ctx) => {
+  await ctx.state.session.deleteSession();
+  await ctx.cookies.delete('session');
+  await ctx.cookies.delete('session_data');
+  ctx.response.redirect("/");
+});
+router.get("/(.*)", useSession, async (ctx) => {
+  const initialState: ReactAppState = {
+    user: ctx.state.session.get("user") ?? null,
+    discordAuthorizeLink: DISCORD_AUTHORIZE_LINK,
+  };
+
+  ctx.response.body = await index(
+    ctx.request.url.pathname.toString(),
+    initialState
+  );
+  ctx.response.headers.set("content-type", "text/html");
 });
 
-const app = new Application();
+type AppState = {
+  session: Session & { get(key: "user"): User | undefined };
+};
+
+const app = new Application<AppState>();
+
+app.addEventListener("error", (ev) => {
+  console.error(ev.error);
+});
 
 app.use(oakCors());
 app.use(async (ctx, next) => {
@@ -672,26 +812,21 @@ app.use(async (ctx, next) => {
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-const hostname = Deno.env.get("SERVER_HOST") ?? "127.0.0.1";
-const port = parseInt(Deno.env.get("SERVER_PORT") ?? "8001", 10);
-const cert = Deno.env.get("SERVER_SSL_CERT");
-const key = Deno.env.get("SERVER_SSL_KEY");
-
-console.log(`server listening at http://${hostname}:${port}`);
+console.log(`server listening at http://${SERVER_HOST}:${SERVER_PORT}`);
 
 await app.listen(
-  cert !== "none" && key !== "none"
+  SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none"
     ? {
-        hostname,
-        port,
+        hostname: SERVER_HOST,
+        port: SERVER_PORT,
         secure: true,
-        cert,
-        key,
+        cert: SERVER_SSL_CERT,
+        key: SERVER_SSL_KEY,
         alpnProtocols: ["h2", "http/1.1"],
       }
     : {
-        hostname,
-        port,
+        hostname: SERVER_HOST,
+        port: SERVER_PORT,
         secure: false,
       }
 );

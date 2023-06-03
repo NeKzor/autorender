@@ -9,7 +9,7 @@ import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
 console.log("Running worker thread...");
 
 const connect = () => {
-  const ws = new WebSocket("ws://127.0.0.1:8001/connect/bot", [
+  const ws = new WebSocket("ws://autorender.portal2.local:8001/connect/bot", [
     "autorender-v1",
     Deno.env.get("BOT_AUTH_TOKEN") ?? '',
   ]);

@@ -1,5 +1,6 @@
 .vscode/
-py-bot/
+docker/compose/
+log/
 steam.ts
 
 # Logs

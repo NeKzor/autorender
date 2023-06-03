@@ -6,14 +6,17 @@
 
 import * as React from "https://esm.sh/react@18.2.0";
 import Footer from "../components/Footer.tsx";
+import { useLocation } from "https://esm.sh/react-router-dom@6.11.2";
 
-const NotFound = () => {
+const Profile = () => {
+  const location = useLocation();
+
   return (
     <>
-      <div>404 - Page not found :(</div>
+      <div>{location.pathname}</div>
       <Footer />
     </>
   );
 };
 
-export default NotFound;
+export default Profile;

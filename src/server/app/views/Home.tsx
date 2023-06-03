@@ -5,20 +5,31 @@
  */
 
 import * as React from "https://esm.sh/react@18.2.0";
-
-const url = new URLSearchParams();
-url.set("client_id", Deno.env.get("DISCORD_CLIENT_ID") ?? "");
-url.set("redirect_uri", Deno.env.get("DISCORD_REDIRECT_URI") ?? "");
-url.set("response_type", "code");
-url.set("scope", "identify");
-
-const discordAuthorizeLink = `https://discord.com/api/oauth2/authorize?${url.toString()}`;
+import { AppStateContext } from "../AppState.ts";
+import Footer from "../components/Footer.tsx";
 
 const Home = () => {
+  const state = React.useContext(AppStateContext);
+
+  if (!state?.user) {
+    return (
+      <>
+        <div>
+          <a href={state?.discordAuthorizeLink}>Login with Discord</a>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
   return (
-    <div>
-      <a href={discordAuthorizeLink}>Login with Discord</a>
-    </div>
+    <>
+      <div>Hey {state.user.username}!</div>
+      <div>
+        <a href="/logout">Logout</a>
+      </div>
+      <Footer />
+    </>
   );
 };
 
