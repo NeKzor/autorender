@@ -5,14 +5,15 @@
  */
 
 import "https://deno.land/std@0.190.0/dotenv/load.ts";
-import { Client } from "https://deno.land/x/mysql@v2.11.0/mod.ts";
 import "https://deno.land/std@0.177.0/dotenv/load.ts";
 import {
   Application,
   Context,
+  CookiesSetDeleteOptions,
   Middleware,
   Router,
   Status,
+  Request as OakRequest,
 } from "https://deno.land/x/oak@v12.2.0/mod.ts";
 import {
   ResponseBody,
@@ -46,6 +47,12 @@ import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 import * as _bcrypt_worker from "https://deno.land/x/bcrypt@v0.4.1/src/worker.ts";
 import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
 import { AppState as ReactAppState } from "./app/AppState.ts";
+import { db } from "./db.ts";
+import {
+  createStaticHandler,
+  createStaticRouter,
+} from "https://esm.sh/react-router-dom@6.11.2/server";
+import routes from "./app/Routes.tsx";
 
 const SERVER_HOST = Deno.env.get("SERVER_HOST") ?? "127.0.0.1";
 const SERVER_PORT = parseInt(Deno.env.get("SERVER_PORT") ?? "8001", 10);
@@ -66,22 +73,18 @@ const BOT_AUTH_TOKEN_HASH = await bcrypt.hash(
   Deno.env.get("BOT_AUTH_TOKEN") ?? ""
 );
 
-const db = await new Client().connect({
-  hostname: Deno.env.get("DB_HOST") ?? "127.0.0.1",
-  port: parseInt(Deno.env.get("DB_PORT") ?? "3306", 10),
-  username: Deno.env.get("DB_USER") ?? "p2render",
-  password: Deno.env.get("DB_PASS") ?? "p2render",
-  db: Deno.env.get("DB_NAME") ?? "p2render",
-});
+const cookieOptions: CookiesSetDeleteOptions = {
+  expires: new Date(Date.now() + 86400000 * 30),
+  sameSite: "lax",
+  secure: IS_HTTPS,
+};
 
 const store = new CookieStore(Deno.env.get("COOKIE_SECRET_KEY") ?? "", {
-  cookieSetDeleteOptions: {
-    expires: new Date(Date.now() + (86400000 * 30)),
-    sameSite: IS_HTTPS ? 'lax' : 'none',
-    secure: IS_HTTPS,
-  }
+  cookieSetDeleteOptions: cookieOptions,
 });
-const useSession = Session.initMiddleware(store);
+const useSession = Session.initMiddleware(store, {
+  cookieSetOptions: cookieOptions,
+});
 
 const requiresAuth: Middleware<AppState> = (ctx) => {
   if (!ctx.state.session.get("user")) {
@@ -336,11 +339,11 @@ if (isHotReloadEnabled) {
 
   router.get("/__hot_reload", (ctx) => {
     if (ctx.isUpgradable) {
-        const ws = ctx.upgrade();
-        ws.onmessage = () => {
-          ws.send(reload ? 'yes' : 'no');
-          reload = false;
-        };
+      const ws = ctx.upgrade();
+      ws.onmessage = () => {
+        ws.send(reload ? "yes" : "no");
+        reload = false;
+      };
     }
   });
 }
@@ -770,22 +773,73 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
 router.get("/users/@me", useSession, requiresAuth, (ctx) => {
   Ok(ctx, ctx.state.session.get("user"));
 });
+router.get("/users/:user_id(\\+d)", useSession, requiresAuth, async (ctx) => {
+  const { rows } = await db.execute(`select * from users where user_id = ?`, [
+    Number(ctx.params.user_id),
+  ]);
+
+  const user = rows?.at(0);
+  if (!user) {
+    return ctx.throw(Status.NotFound);
+  }
+
+  Ok(ctx, user);
+});
 router.get("/logout", useSession, async (ctx) => {
   await ctx.state.session.deleteSession();
-  await ctx.cookies.delete('session');
-  await ctx.cookies.delete('session_data');
+  await ctx.cookies.delete("session");
+  await ctx.cookies.delete("session_data");
   ctx.response.redirect("/");
 });
+
+const handler = createStaticHandler(routes);
+
+const createFetchRequest = (req: OakRequest) => {
+  const headers = new Headers();
+
+  for (const [key, values] of Object.entries(req.headers)) {
+    if (values) {
+      if (Array.isArray(values)) {
+        for (const value of values) {
+          headers.append(key, value);
+        }
+      } else {
+        headers.set(key, values);
+      }
+    }
+  }
+
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    //init.body = req.body;
+  }
+
+  //const controller = new AbortController();
+  //req.on("close", () => controller.abort());
+
+  return new Request(req.url.href, {
+    method: req.method,
+    headers,
+    //signal: controller.signal,
+  });
+};
+
 router.get("/(.*)", useSession, async (ctx) => {
   const initialState: ReactAppState = {
     user: ctx.state.session.get("user") ?? null,
     discordAuthorizeLink: DISCORD_AUTHORIZE_LINK,
   };
 
-  ctx.response.body = await index(
-    ctx.request.url.pathname.toString(),
-    initialState
-  );
+  const fetchRequest = createFetchRequest(ctx.request);
+  const context = await handler.query(fetchRequest);
+
+  if (context instanceof Response) {
+    ctx.response.status = context.status;
+    return ctx.response.redirect(context.headers.get("Location") ?? "/");
+  }
+
+  const router = createStaticRouter(handler.dataRoutes, context);
+
+  ctx.response.body = await index(router, context, initialState);
   ctx.response.headers.set("content-type", "text/html");
 });
 

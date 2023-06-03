@@ -1,12 +1,12 @@
-# autorender.nekz.me
+# autorender
 
-Render any Portal 2 demo file to a video with: `/render <file>`
+Convert any Portal 2 demo file into a video with: `/render <attachment>`
 
 [Invite the bot to your server!]
 
 [Invite the bot to your server!]: https://discord.com/oauth2/authorize?&client_id=1112876563881537607&scope=bot&permissions=3072
 
-## What's different from autorender.portal2.sr?
+## Features
 
 - Render any demo On-Demand with a single command in a Discord server!
 - Render any workshop map. Powered by [mirror.nekz.me]
@@ -29,41 +29,88 @@ Discord Client 3 --|                           |-- ...
              ... --|
 ```
 
+## Storage
+
+```
+             Bot
+          Sends demo
+              |
+            Server
+     Stores and sends demo
+              |
+        Render Client
+     Renders demo to video
+              |
+            Server
+         Deletes demo
+         Uploads video
+              |
+          Backblaze
+        Stores video
+              |
+         Server (Web)
+  Links video to Backblaze URL
+```
+
 ## Local Development
 
-Requirements:
+### Requirements
 
 - [deno runtime]
-- [Discord Bot Application Token]
-- Discord OAuth Application Token
-- [Backblaze Account]
-- [Docker Engine] | [Reference](https://docs.docker.com/compose/reference/)
-- [mkcert]
+- [Discord Bot Application]
+- [Discord OAuth2 Application]
+- [Backblaze Bucket]
+- [Docker Engine]
+- [mkcert] (optional)
 
 [deno runtime]: https://deno.com/runtime
-[Discord Bot Application Token]: https://discord.com/developers/applications
-[Backblaze Account]: https://www.backblaze.com
+[Discord Bot Application]: https://discord.com/developers/applications
+[Discord OAuth2 Application]: https://discord.com/developers/applications
+[Backblaze Bucket]: https://www.backblaze.com
 [Docker Engine]: https://docs.docker.com/engine/install
 [mkcert]: https://github.com/FiloSottile/mkcert
 
-Steps:
+### Setup
 
-- Project setup with `chmod +x setup && ./setup dev`
-- Configure the generated `src/server/.env` file:
-  - `DISCORD_CLIENT_ID` Discord application client ID
-  - `BOT_AUTH_TOKEN` Randomly generated shared password between bot and server
-  - `B2_KEY_ID` Backblaze application key ID
-  - `B2_KEY_NAME`Backblaze application key name
-  - `B2_APP_KEY`Backblaze application key
-- Configure the generated `src/client/.env` file:
-  - `API_KEY` API application token for accessing the server
-- Configure the generated `src/bot/.env` file:
-  - `DISCORD_BOT_TOKEN` Discord bot token
-  - `DISCORD_BOT_ID` Discord bot client ID
-  - `BOT_AUTH_TOKEN` Randomly generated shared password between bot and server
-- Build the server image once with `docker compose build`
-- Start the containers with `docker compose up`
-- Add the host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts`
+Generate files with: `chmod +x setup && ./setup dev`
+
+Configure all generated `.env` files.
+
+### src/server/.env
+
+|Variable|Description|
+|---|---|
+|HOT_RELOAD|Automatic page reload when the server reloads. Should only be used for development!|
+|DISCORD_CLIENT_ID|Client ID of the Discord OAuth2 application.|
+|DISCORD_CLIENT_SECRET|Client secret of the Discord OAuth2 application.|
+|DISCORD_REDIRECT_URI|OAuth redirect URI of the Discord OAuth2 application.|
+|BOT_AUTH_TOKEN|Generated token which is shared between the server and the bot.|
+|COOKIE_SECRET_KEY|Secret used to encrypt/decrypt session cookies.|
+|B2_BUCKET_ID|Bucket ID from Backblaze.|
+|B2_KEY_ID|Key ID from Backblaze.|
+|B2_KEY_NAME|Key name from Backblaze.|
+|B2_APP_KEY|App key from Backblaze.|
+
+### src/client/.env
+
+|Variable|Description|
+|---|---|
+|API_KEY|Access token for autorender server.|
+|GAME_DIR|Directory path of the game.|
+
+### src/bot/.env
+
+|Variable|Description|
+|---|---|
+|DISCORD_BOT_TOKEN|Token of the Discord bot application.|
+|DISCORD_BOT_ID|Client ID of the Discord bot application.|
+|BOT_AUTH_TOKEN|Generated token which is shared between the server and the bot.|
+
+### Build & Run
+
+- Build the server image once with: `docker compose build`
+- Start all containers with: `docker compose up`
+- Add a host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts`
 
 The server should now be available at: `http://autorender.portal2.local`
 
@@ -77,8 +124,12 @@ The server should now be available at: `http://autorender.portal2.local`
 
 ## Credits
 
-- @PortalRex for idea and motivation
-- @mlugg for `autorender.portal2.sr` (used as a reference)
+- [PortalRex] for idea and motivation
+- [mlugg] for [autorender.portal2.sr]
+
+[PortalRex]: https://github.com/PortalRex
+[mlugg]: https://github.com/mlugg
+[autorender.portal2.sr]: https://autorender.portal2.sr
 
 ## License
 

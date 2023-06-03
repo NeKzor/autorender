@@ -26,6 +26,12 @@ const Home = () => {
     <>
       <div>Hey {state.user.username}!</div>
       <div>
+        <a href={`/profile/${state.user.user_id}`}>Profile</a>
+      </div>
+      <div>
+        <a href="/tokens">Tokens</a>
+      </div>
+      <div>
         <a href="/logout">Logout</a>
       </div>
       <Footer />
