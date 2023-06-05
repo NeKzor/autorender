@@ -9,6 +9,7 @@ CREATE TABLE users (
     discord_avatar VARCHAR(1024) NOT NULL,
     donation_link VARCHAR(1024),
     permissions INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id),
     UNIQUE KEY(username),
     UNIQUE KEY(discord_id),
@@ -20,9 +21,10 @@ DROP TABLE IF EXISTS access_tokens;
 CREATE TABLE access_tokens (
     access_token_id BIGINT NOT NULL AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
-    token_name VARCHAR(64) NOT NULL,
+    token_name VARCHAR(32) NOT NULL,
     token_key VARCHAR(64) NOT NULL,
-    permissions VARCHAR(64) NOT NULL DEFAULT 0,
+    permissions INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (access_token_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     UNIQUE KEY(user_id, token_name)
@@ -36,7 +38,7 @@ CREATE TABLE videos (
     comment VARCHAR(128),
     requested_by_name VARCHAR(64) NOT NULL,
     requested_by_id VARCHAR(64) NOT NULL,
-    requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     render_options VARCHAR(1024),
     file_name VARCHAR(64),
     file_path VARCHAR(4096),
@@ -62,6 +64,7 @@ DROP TABLE IF EXISTS likes;
 CREATE TABLE likes (
     user_id BIGINT,
     video_id BIGINT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (video_id) REFERENCES videos(video_id)
 );
@@ -71,6 +74,7 @@ DROP TABLE IF EXISTS bookmarks;
 CREATE TABLE bookmarks (
     user_id BIGINT,
     video_id BIGINT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (video_id) REFERENCES videos(video_id)
 );

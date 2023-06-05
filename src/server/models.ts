@@ -31,6 +31,7 @@ export interface User {
   discord_avatar: string;
   donation_link: string;
   permissions: UserPermissions;
+  created_at: number;
 }
 
 /**
@@ -53,7 +54,7 @@ export interface AccessToken {
   token_name: string;
   token_key: string;
   permissions: AccessPermission;
-  created_at: string;
+  created_at: number;
 }
 
 /**
@@ -83,7 +84,7 @@ export interface Video {
   comment: string;
   requested_by_name: string;
   requested_by_id: string;
-  requested_at: number;
+  created_at: number;
   render_options: string;
   file_name: string;
   file_path: string;
@@ -105,6 +106,7 @@ export interface Video {
 export interface Like {
   user_id: number;
   video_id: number;
+  created_at: number;
 }
 
 /**
@@ -113,6 +115,7 @@ export interface Like {
 export interface Bookmark {
   user_id: number;
   video_id: number;
+  created_at: number;
 }
 
 /**

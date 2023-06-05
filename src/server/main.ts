@@ -147,12 +147,7 @@ apiV1
       if (!hasPermission(ctx, UserPermissions.CreateVideos)) {
         return ctx.throw(Status.Unauthorized);
       }
-      if (!hasPermission(ctx, UserPermissions.CreateVideos)) {
-        return ctx.throw(Status.Unauthorized);
-      }
-    }
-
-    if (!authUser) {
+    } else {
       const [authType, authToken] = (
         ctx.request.headers.get("Authorization") ?? ""
       ).split(" ");
@@ -791,7 +786,7 @@ router.get("/logout", useSession, async (ctx) => {
   ctx.response.redirect("/");
 });
 
-router.get("/(.*)", useSession, async (ctx) => {
+const routeToApp = async (ctx: Context) => {
   const request = await createFetchRequest(ctx.request);
   const user = ctx.state.session.get("user") ?? null;
 
@@ -803,8 +798,9 @@ router.get("/(.*)", useSession, async (ctx) => {
   const context = await routeHandler.query(request, { requestContext });
 
   if (context instanceof Response) {
+    const location = context.headers.get("Location") ?? "/";
     ctx.response.status = context.status;
-    return ctx.response.redirect(context.headers.get("Location") ?? "/");
+    return ctx.response.redirect(location);
   }
 
   const matchedPath = context.matches.at(0)?.route?.path;
@@ -821,7 +817,12 @@ router.get("/(.*)", useSession, async (ctx) => {
 
   ctx.response.body = await index(router, context, initialState);
   ctx.response.headers.set("content-type", "text/html");
-});
+};
+
+router.post("/tokens/:access_token_id(\\d+)", useSession, routeToApp);
+router.post("/tokens/:access_token_id(\\d+/delete)", useSession, routeToApp);
+router.post("/tokens/new", useSession, routeToApp);
+router.get("/(.*)", useSession, routeToApp);
 
 type AppState = {
   session: Session & { get(key: "user"): User | undefined };

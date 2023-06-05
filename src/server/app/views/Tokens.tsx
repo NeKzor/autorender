@@ -6,18 +6,28 @@
 
 import * as React from "https://esm.sh/react@18.2.0";
 import Footer from "../components/Footer.tsx";
+import { useLoaderData } from "../Routes.ts";
+import { AccessToken } from "../../models.ts";
 
 const Tokens = () => {
+  const tokens = useLoaderData<AccessToken[]>();
+
   return (
     <>
       <ul>
-        <li>
-          <a href="/tokens/test">Test Token</a>
-        </li>
+        {tokens.map((token) => {
+          return (
+            <li>
+              <a href={`/tokens/${token.access_token_id}`}>
+                {token.token_name}
+              </a>
+            </li>
+          );
+        })}
       </ul>
-      <form>
-        <button formaction="/tokens/new">Create New</button>
-      </form>
+      <a href="/tokens/create">
+        <button>Create New</button>
+      </a>
       <Footer />
     </>
   );
