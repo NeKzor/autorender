@@ -5,18 +5,33 @@
  */
 
 import * as React from "https://esm.sh/react@18.2.0";
-import { useLoaderData } from "https://esm.sh/react-router-dom@6.11.2";
 import Footer from "../components/Footer.tsx";
+import { DataLoader, PageMeta, json, useLoaderData } from "../Routes.ts";
+import { User } from "../../models.ts";
 
-const Profile = () => {
-  const data = useLoaderData();
+type LoaderData = User | null;
+
+export const meta: PageMeta = () => {
+  return {
+    title: "Profile",
+  };
+};
+
+export const loader: DataLoader = async ({ params, context }) => {
+  const { rows } = await context.db.execute<User>(
+    `select * from users where user_id = ?`,
+    [params.user_id]
+  );
+  return json<LoaderData>(rows?.at(0) ?? null);
+};
+
+export const Profile = () => {
+  const data = useLoaderData<LoaderData>();
 
   return (
     <>
-      <div>{data?.username ?? 'unknown'}</div>
+      <div>{data?.username ?? 'profile not found :('}</div>
       <Footer />
     </>
   );
 };
-
-export default Profile;

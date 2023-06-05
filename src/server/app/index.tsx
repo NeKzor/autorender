@@ -30,15 +30,13 @@ export const index = (
       bootstrapScriptContent:
         Deno.env.get("HOT_RELOAD")?.toLowerCase() === "yes"
           ? `(() => {
-  let ws = null;
-  let timer = null;
-  let message = null;
+  let ws, to, iv = null;
   const hotReload = () => {
       ws?.close();
       ws = new WebSocket(location.origin.replace('http', 'ws') + '/__hot_reload');
-      ws.onopen = () => message = setInterval(() => ws.send('reload?'), 500);
+      ws.onopen = () => iv = setInterval(() => ws.send('reload?'), 500);
       ws.onmessage = (event) => event.data === 'yes' && location.reload();
-      ws.onclose = () => clearTimeout(message) || clearTimeout(timer) || (timer = setTimeout(() => hotReload(), 500));
+      ws.onclose = () => clearInterval(iv) || clearTimeout(to) || (to = setTimeout(() => hotReload(), 500));
   };
   hotReload();
 })();`

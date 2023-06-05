@@ -51,7 +51,7 @@ const App = ({ initialState, nonce, children }: AppProps) => {
           property="og:description"
           content="Render, share and view demo renders."
         />
-        <title>{domain}</title>
+        <title>{state.meta.title + ' | ' + domain}</title>
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"

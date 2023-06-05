@@ -50,8 +50,7 @@ const Privacy = () => {
           video.
         </li>
         <li>
-          Videos are then uploaded and stored our Third Party service
-          "Backblaze" (https://backblaze.com).
+          Videos are then uploaded and stored on "Backblaze" (https://backblaze.com).
         </li>
         <li>
           Feel free to also read the Privacy Notice of Backblaze at:

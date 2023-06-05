@@ -1,8 +1,16 @@
+/*
+ * Copyright (c) 2023, NeKz
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import * as React from "https://esm.sh/react@18.2.0";
 import { User } from "../models.ts";
+import { RouteMeta } from "./Routes.ts";
 
 export interface AppState {
   user: User | null;
+  meta: RouteMeta;
   discordAuthorizeLink: string;
 }
 

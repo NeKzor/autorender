@@ -13,7 +13,6 @@ import {
   Middleware,
   Router,
   Status,
-  Request as OakRequest,
 } from "https://deno.land/x/oak@v12.2.0/mod.ts";
 import {
   ResponseBody,
@@ -49,10 +48,9 @@ import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
 import { AppState as ReactAppState } from "./app/AppState.ts";
 import { db } from "./db.ts";
 import {
-  createStaticHandler,
   createStaticRouter,
 } from "https://esm.sh/react-router-dom@6.11.2/server";
-import routes from "./app/Routes.tsx";
+import { RequestContext, createFetchRequest, routeHandler, routes } from "./app/Routes.ts";
 
 const SERVER_HOST = Deno.env.get("SERVER_HOST") ?? "127.0.0.1";
 const SERVER_PORT = parseInt(Deno.env.get("SERVER_PORT") ?? "8001", 10);
@@ -250,6 +248,7 @@ apiV1
     Ok(ctx, { inserted: result.affectedRows });
   })
   // Get video views and increment.
+  // deno-lint-ignore no-explicit-any
   .post("/videos/:video_id(\\d+)/views", useRateLimiter as any, async (ctx) => {
     const { rows } = await db.execute(
       `select video_id, views from videos where video_id = ?`,
@@ -299,7 +298,7 @@ apiV1
       ]
     );
 
-    const { rows } = await db.execute(
+    const { rows } = await db.execute<AccessToken>(
       `select * from access_tokens where access_token_id = ?`,
       [inserted.lastInsertId]
     );
@@ -318,7 +317,7 @@ apiV1
           , ?
         )`,
       [
-        `Created access token ${accessToken.access_token_id} for user ${userId}`,
+        `Created access token ${accessToken!.access_token_id} for user ${userId}`,
         AuditType.Info,
         AuditSource.User,
         userId,
@@ -728,12 +727,12 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
 
   const discordUser = (await usersResponse.json()) as DiscordUser;
 
-  const { rows } = await db.execute(
+  const { rows } = await db.execute<User>(
     `select * from users where discord_id = ?`,
     [discordUser.id]
   );
 
-  let user: User | undefined = rows?.at(0);
+  let user = rows?.at(0);
   if (!user) {
     await db.execute(
       `insert into users (
@@ -755,7 +754,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
       ]
     );
 
-    const { rows } = await db.execute(
+    const { rows } = await db.execute<User>(
       `select * from users where discord_id = ?`,
       [discordUser.id]
     );
@@ -792,52 +791,33 @@ router.get("/logout", useSession, async (ctx) => {
   ctx.response.redirect("/");
 });
 
-const handler = createStaticHandler(routes);
-
-const createFetchRequest = (req: OakRequest) => {
-  const headers = new Headers();
-
-  for (const [key, values] of Object.entries(req.headers)) {
-    if (values) {
-      if (Array.isArray(values)) {
-        for (const value of values) {
-          headers.append(key, value);
-        }
-      } else {
-        headers.set(key, values);
-      }
-    }
-  }
-
-  if (req.method !== "GET" && req.method !== "HEAD") {
-    //init.body = req.body;
-  }
-
-  //const controller = new AbortController();
-  //req.on("close", () => controller.abort());
-
-  return new Request(req.url.href, {
-    method: req.method,
-    headers,
-    //signal: controller.signal,
-  });
-};
-
 router.get("/(.*)", useSession, async (ctx) => {
-  const initialState: ReactAppState = {
-    user: ctx.state.session.get("user") ?? null,
-    discordAuthorizeLink: DISCORD_AUTHORIZE_LINK,
+  const request = await createFetchRequest(ctx.request);
+  const user = ctx.state.session.get("user") ?? null;
+
+  const requestContext: RequestContext = {
+    user,
+    db,
   };
 
-  const fetchRequest = createFetchRequest(ctx.request);
-  const context = await handler.query(fetchRequest);
+  const context = await routeHandler.query(request, { requestContext });
 
   if (context instanceof Response) {
     ctx.response.status = context.status;
     return ctx.response.redirect(context.headers.get("Location") ?? "/");
   }
 
-  const router = createStaticRouter(handler.dataRoutes, context);
+  const matchedPath = context.matches.at(0)?.route?.path;
+  const matchedRoute = routes.find((route) => route.path === matchedPath);
+  const meta =  matchedRoute?.meta ? matchedRoute.meta() : { title: '' };
+
+  const initialState: ReactAppState = {
+    user,
+    meta,
+    discordAuthorizeLink: DISCORD_AUTHORIZE_LINK,
+  };
+
+  const router = createStaticRouter(routeHandler.dataRoutes, context);
 
   ctx.response.body = await index(router, context, initialState);
   ctx.response.headers.set("content-type", "text/html");
