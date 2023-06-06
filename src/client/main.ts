@@ -4,20 +4,29 @@
  * SPDX-License-Identifier: MIT
  */
 
+import "https://deno.land/std@0.177.0/dotenv/load.ts";
 import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
 import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
 import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
 import { Video } from "../server/models.ts";
+import { AutorenderDataType, AutorenderMessages } from "./protocol.ts";
 
-const GAME_DIR = Deno.env.get("GAME_DIR") ?? "";
-const AUTORENDER_DIR = join(GAME_DIR, "autorender/");
-const AUTORENDER_CFG = Deno.env.get("AUTORENDER_CFG") ?? "";
-//const AUTORENDER_TIMEOUT_BASE = parseInt(Deno.env.get("AUTORENDER_TIMEOUT_BASE") ?? "30");
-const DUMMY_DEMO = Deno.env.get("DUMMY_DEMO") ?? "";
+const GAME_DIR = Deno.env.get("GAME_DIR")!;
+const GAME_MOD = Deno.env.get("GAME_MOD")!;
+const GAME_EXE = Deno.env.get("GAME_EXE")!;
+
+const AUTORENDER_FOLDER_NAME = Deno.env.get("AUTORENDER_FOLDER_NAME")!;
+const AUTORENDER_PROTOCOL = Deno.env.get("AUTORENDER_PROTOCOL")!;
+const AUTORENDER_CFG = Deno.env.get("AUTORENDER_CFG")!;
+const AUTORENDER_CONNECT_URI = Deno.env.get("AUTORENDER_CONNECT_URI")!;
+const AUTORENDER_DIR = join(GAME_DIR, GAME_MOD, AUTORENDER_FOLDER_NAME);
+//const AUTORENDER_TIMEOUT_BASE = parseInt(Deno.env.get("AUTORENDER_TIMEOUT_BASE")!);
+const AUTORENDER_CHECK_INTERVAL = 1_000;
 
 try {
   await Deno.mkdir(AUTORENDER_DIR);
   console.log(`created autorender directory in ${GAME_DIR}`);
+  // deno-lint-ignore no-empty
 } catch {}
 
 enum ClientStatus {
@@ -36,9 +45,9 @@ const state: ClientState = {
 };
 
 const connect = () => {
-  const ws = new WebSocket("ws://127.0.0.1:8001/connect/client", [
-    "autorender-v1",
-    Deno.env.get("API_KEY") ?? "",
+  const ws = new WebSocket(AUTORENDER_CONNECT_URI, [
+    AUTORENDER_PROTOCOL,
+    Deno.env.get("AUTORENDER_API_KEY")!,
   ]);
 
   let check: number | null = null;
@@ -49,8 +58,8 @@ const connect = () => {
     ws.send(JSON.stringify({ type: "status" }));
 
     check = setTimeout(() => {
-      ws.send(JSON.stringify({ type: "videos" }));
-    }, 1000);
+      ws.send(JSON.stringify({ type: "videos", data: { game: GAME_MOD } }));
+    }, AUTORENDER_CHECK_INTERVAL);
   };
 
   ws.onmessage = async (message) => {
@@ -78,10 +87,10 @@ const connect = () => {
           new Uint8Array(demo)
         );
       } else {
-        const { type, data } = JSON.parse(message.data);
+        const { type, data } = JSON.parse(message.data) as AutorenderMessages;
 
         switch (type) {
-          case "videos": {
+          case AutorenderDataType.Videos: {
             if (data.length) {
               state.videos = [];
 
@@ -95,7 +104,10 @@ const connect = () => {
                   try {
                     Deno.remove(filename);
                   } catch (err) {
-                    console.error(`failed to remove file ${filename}:`, err.toString());
+                    console.error(
+                      `failed to remove file ${filename}:`,
+                      err.toString()
+                    );
                   }
                 }
               }
@@ -109,55 +121,19 @@ const connect = () => {
               }
 
               check = setTimeout(() => {
-                ws.send(JSON.stringify({ type: "videos" }));
-              }, 1000);
+                ws.send(
+                  JSON.stringify({ type: "videos", data: { game: GAME_MOD } })
+                );
+              }, AUTORENDER_CHECK_INTERVAL);
             }
 
             break;
           }
-          case "start": {
+          case AutorenderDataType.Start: {
             try {
               state.status = ClientStatus.Rendering;
 
-              // TODO: what's the point of a "dummy" demo?
-              const autoexec = [
-                "plugin_load sar",
-                "sar_fast_load_preset full",
-                "sar_disable_no_focus_sleep 1",
-                `exec ${AUTORENDER_CFG}`,
-                ...state.videos.map(
-                  ({ video_id }, idx) =>
-                    `sar_alias r_${idx} "playdemo autorender/${video_id}; sar_alias r_next r_${
-                      idx + 1
-                    }"`
-                ),
-                //`sar_alias r_${state.videos.length} "playdemo demos/${DUMMY_DEMO}; sar_alias r_next quit`,
-                "sar_alias r_next r_0",
-                "sar_on_demo_stop r_next",
-                //`playdemo demos/${DUMMY_DEMO}`,
-              ];
-
-              await Deno.writeTextFile(
-                join(GAME_DIR, "cfg", "autoexec.cfg"),
-                autoexec.join("\n")
-              );
-
-              const command = new Deno.Command(join(GAME_DIR, "portal2"), {
-                args: [
-                  "portal2",
-                  "-game",
-                  "portal2",
-                  "-novid",
-                  "-vulkan",
-                  "-windowed",
-                  "-w",
-                  "1280",
-                  "-h",
-                  "720",
-                  "+mat_motion_blur_enabled",
-                  "0",
-                ],
-              });
+              const command = await launchGame();
 
               // TODO: timeout based on demo time
               //const timeoutAt = start + 1 * 1_000 + (RENDER_TIMEOUT_BASE * 1_000);
@@ -207,7 +183,7 @@ const connect = () => {
 
             break;
           }
-          case "error": {
+          case AutorenderDataType.Error: {
             console.error(`error code: ${data.status}`);
             break;
           }
@@ -233,9 +209,106 @@ const connect = () => {
       clearTimeout(check);
     }
 
-    await delay(1000);
+    await delay(AUTORENDER_CHECK_INTERVAL);
     connect();
   };
 };
 
-connect();
+//connect();
+
+const launchGame = async () => {
+  if (!state.videos.length) {
+    throw new Error("no videos available");
+  }
+
+  const getDemoName = ({ video_id }: Video) => {
+    return join(AUTORENDER_FOLDER_NAME, video_id.toString());
+  };
+
+  const playdemo = (video: Video, index: number, videos: Video[]) => {
+    const demoName = getDemoName(video);
+    const isLastVideo = index == videos.length - 1;
+    const nextCommand = isLastVideo ? 'hwait 300 plugin_unload sar' : `autorender_video_${index + 1}`;
+
+    return (
+      `sar_alias autorender_video_${index} "playdemo ${demoName};` +
+      `sar_alias autorender_queue ${nextCommand}"`
+    );
+  };
+
+  const usesQueue = state.videos.length > 1;
+  const nextCommand = usesQueue ? "autorender_queue" : "hwait 300 plugin_unload sar";
+
+  const autoexec = [
+    `exec ${AUTORENDER_CFG}`,
+    ...state.videos.slice(1).map(playdemo),
+    ...(usesQueue ? ["sar_alias autorender_queue autorender_video_0"] : []),
+    `sar_on_demo_stop ${nextCommand}`,
+    `playdemo ${getDemoName(state.videos.at(0)!)}`,
+  ];
+
+  await Deno.writeTextFile(
+    join(GAME_DIR, "portal2", "cfg", "autoexec.cfg"),
+    autoexec.join("\n")
+  );
+
+  const getCommand = () => {
+    const command = join(GAME_DIR, GAME_EXE);
+
+    switch (Deno.build.os) {
+      case "windows":
+        return [command, GAME_EXE];
+      case "linux":
+        return ["/bin/bash", command];
+      default: {
+        throw new Error("unsupported operating system");
+      }
+    }
+  };
+
+  const [command, argv0] = getCommand();
+
+  return new Deno.Command(command, {
+    args: [
+      argv0,
+      "-game",
+      GAME_MOD,
+      "-novid",
+      "-vulkan",
+      "-windowed",
+      "-w",
+      "1280",
+      "-h",
+      "720",
+    ],
+  });
+};
+
+state.videos = [{ video_id: 1 } as Video];
+//state.videos = [{ video_id: 1 } as Video, { video_id: 2 } as Video];
+//state.videos = [{ video_id: 1 } as Video, { video_id: 2 } as Video, { video_id: 3 } as Video];
+
+const command = await launchGame();
+
+let gameProcess: Deno.ChildProcess | null = null;
+console.log("spawning process..");
+
+Deno.addSignalListener("SIGINT", () => {
+  console.log("exiting...");
+
+  try {
+    gameProcess?.kill();
+  } catch (err) {
+    console.error(err);
+  }
+
+  Deno.exit();
+});
+
+gameProcess = command.spawn();
+console.log("spawned");
+
+console.log("output");
+const { code } = await gameProcess.output();
+
+console.log('game exited', { code });

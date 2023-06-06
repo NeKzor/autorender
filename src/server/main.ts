@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-import "https://deno.land/std@0.190.0/dotenv/load.ts";
 import "https://deno.land/std@0.177.0/dotenv/load.ts";
 import {
   Application,
@@ -819,6 +818,7 @@ const routeToApp = async (ctx: Context) => {
   ctx.response.headers.set("content-type", "text/html");
 };
 
+router.get("/favicon.ico", (ctx) => ctx.response.status = Status.NotFound);
 router.post("/tokens/:access_token_id(\\d+)", useSession, routeToApp);
 router.post("/tokens/:access_token_id(\\d+/delete)", useSession, routeToApp);
 router.post("/tokens/new", useSession, routeToApp);

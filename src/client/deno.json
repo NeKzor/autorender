@@ -1,0 +1,15 @@
+{
+    "tasks": {
+        "start": "deno run --allow-env --allow-read=.env,.env.defaults,.env.example,log/client --allow-write=log/client --allow-net=127.0.0.1:8834 main.ts",
+        "test": "deno test --allow-net --allow-read --allow-env"
+    },
+    "fmt": {
+        "options": {
+            "useTabs": false,
+            "lineWidth": 120,
+            "indentWidth": 4,
+            "singleQuote": true,
+            "proseWrap": "preserve"
+        }
+    }
+}

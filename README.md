@@ -2,18 +2,12 @@
 
 Convert any Portal 2 demo file into a video with: `/render <attachment>`
 
-[Invite the bot to your server!]
-
-[Invite the bot to your server!]: https://discord.com/oauth2/authorize?&client_id=1112876563881537607&scope=bot&permissions=3072
-
 ## Features
 
-- Render any demo On-Demand with a single command in a Discord server!
+- Render any demo On-Demand in a Discord server!
 - Render any workshop map. Powered by [mirror.nekz.me]
 - Works without being bound to `board.portal2.sr`
 - Render files directly in a web platform
-- Demo validation
-- Can easily be ported to other Source Engine games
 - Written in 100% TypeScript + Deno
 - Hosted inside Docker containers
 
@@ -57,15 +51,13 @@ Discord Client 3 --|                           |-- ...
 ### Requirements
 
 - [deno runtime]
-- [Discord Bot Application]
-- [Discord OAuth2 Application]
+- [Discord Application]
 - [Backblaze Bucket]
 - [Docker Engine]
 - [mkcert] (optional)
 
 [deno runtime]: https://deno.com/runtime
-[Discord Bot Application]: https://discord.com/developers/applications
-[Discord OAuth2 Application]: https://discord.com/developers/applications
+[Discord Application]: https://discord.com/developers/applications
 [Backblaze Bucket]: https://www.backblaze.com
 [Docker Engine]: https://docs.docker.com/engine/install
 [mkcert]: https://github.com/FiloSottile/mkcert
@@ -74,7 +66,14 @@ Discord Client 3 --|                           |-- ...
 
 Generate files with: `chmod +x setup && ./setup dev`
 
-Configure all generated `.env` files.
+### Install & Run Server
+
+- Configure `src/server/.env` file
+- Build the server image once with: `docker compose build`
+- Start all containers with: `docker compose up`
+- Add a host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts`
+
+The server should now be available at: `http://autorender.portal2.local`
 
 ### src/server/.env
 
@@ -91,28 +90,38 @@ Configure all generated `.env` files.
 |B2_KEY_NAME|Key name from Backblaze.|
 |B2_APP_KEY|App key from Backblaze.|
 
-### src/client/.env
+### Install & Run Client
+
+- Install [SourceAutoRecord]
+- Copy `autorender.cfg` into the game's `cfg` directory
+- Log into `http://autorecord.portal2.local` with your Discord account
+- Generate a new token in the platform
+- Copy generated token into the `src/client/.env` file as `AUTORENDER_API_KEY`
+- Run from the client folder `src/client` the command `deno task start`
+
+[SourceAutoRecord]: https://sar.portal2.sr
+
+#### src/client/.env
 
 |Variable|Description|
 |---|---|
-|API_KEY|Access token for autorender server.|
 |GAME_DIR|Directory path of the game.|
+|GAME_EXE|The binary or script to execute: `portal2.exe` (Windows) `portal2.sh` (Linux).|
+|AUTORENDER_API_KEY|Access token for autorender server.|
 
-### src/bot/.env
+### Install & Run Bot
+
+- Copy the bot credentials of the Discord application into the `src/bot/.env` file
+- Configure `BOT_AUTH_TOKEN` with the same password that is shared with the server
+- Run from the bot folder `src/bot` the command `deno task start`
+
+#### src/bot/.env
 
 |Variable|Description|
 |---|---|
 |DISCORD_BOT_TOKEN|Token of the Discord bot application.|
 |DISCORD_BOT_ID|Client ID of the Discord bot application.|
 |BOT_AUTH_TOKEN|Generated token which is shared between the server and the bot.|
-
-### Build & Run
-
-- Build the server image once with: `docker compose build`
-- Start all containers with: `docker compose up`
-- Add a host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts`
-
-The server should now be available at: `http://autorender.portal2.local`
 
 ### Caveats
 
@@ -124,12 +133,14 @@ The server should now be available at: `http://autorender.portal2.local`
 
 ## Credits
 
-- [PortalRex] for idea and motivation
-- [mlugg] for [autorender.portal2.sr]
+- [@PortalRex] for idea and motivation
+- [@mlugg] for [autorender.portal2.sr]
+- [p2sr/SourceAutoRecord] for rendering commands
 
-[PortalRex]: https://github.com/PortalRex
-[mlugg]: https://github.com/mlugg
+[@PortalRex]: https://github.com/PortalRex
+[@mlugg]: https://github.com/mlugg
 [autorender.portal2.sr]: https://autorender.portal2.sr
+[p2sr/SourceAutoRecord]: https://github.com/p2sr/SourceAutoRecord
 
 ## License
 
