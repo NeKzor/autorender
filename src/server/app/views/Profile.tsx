@@ -19,8 +19,8 @@ export const meta: PageMeta = () => {
 
 export const loader: DataLoader = async ({ params, context }) => {
   const { rows } = await context.db.execute<User>(
-    `select * from users where user_id = ?`,
-    [params.user_id]
+    `select * from users where username = ?`,
+    [params.username]
   );
   return json<LoaderData>(rows?.at(0) ?? null);
 };

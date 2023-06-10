@@ -46,13 +46,16 @@ import * as _bcrypt_worker from "https://deno.land/x/bcrypt@v0.4.1/src/worker.ts
 import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
 import { AppState as ReactAppState } from "./app/AppState.ts";
 import { db } from "./db.ts";
+import { createStaticRouter } from "https://esm.sh/react-router-dom@6.11.2/server";
 import {
-  createStaticRouter,
-} from "https://esm.sh/react-router-dom@6.11.2/server";
-import { RequestContext, createFetchRequest, routeHandler, routes } from "./app/Routes.ts";
+  RequestContext,
+  createFetchRequest,
+  routeHandler,
+  routes,
+} from "./app/Routes.ts";
 
-const SERVER_HOST = Deno.env.get("SERVER_HOST") ?? "127.0.0.1";
-const SERVER_PORT = parseInt(Deno.env.get("SERVER_PORT") ?? "8001", 10);
+const SERVER_HOST = Deno.env.get("SERVER_HOST")!;
+const SERVER_PORT = parseInt(Deno.env.get("SERVER_PORT")!, 10);
 const SERVER_SSL_CERT = Deno.env.get("SERVER_SSL_CERT");
 const SERVER_SSL_KEY = Deno.env.get("SERVER_SSL_KEY");
 const IS_HTTPS = SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none";
@@ -60,14 +63,14 @@ const MAX_VIDEOS_PER_REQUEST = 3;
 const AUTORENDER_V1 = "autorender-v1";
 const DISCORD_AUTHORIZE_LINK = (() => {
   const url = new URLSearchParams();
-  url.set("client_id", Deno.env.get("DISCORD_CLIENT_ID") ?? "");
-  url.set("redirect_uri", Deno.env.get("DISCORD_REDIRECT_URI") ?? "");
+  url.set("client_id", Deno.env.get("DISCORD_CLIENT_ID")!);
+  url.set("redirect_uri", Deno.env.get("DISCORD_REDIRECT_URI")!);
   url.set("response_type", "code");
   url.set("scope", "identify");
   return `https://discord.com/api/oauth2/authorize?${url.toString()}`;
 })();
-const BOT_AUTH_TOKEN_HASH = await bcrypt.hash(
-  Deno.env.get("BOT_AUTH_TOKEN") ?? ""
+const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
+  Deno.env.get("AUTORENDER_BOT_TOKEN")!
 );
 
 const cookieOptions: CookiesSetDeleteOptions = {
@@ -76,7 +79,7 @@ const cookieOptions: CookiesSetDeleteOptions = {
   secure: IS_HTTPS,
 };
 
-const store = new CookieStore(Deno.env.get("COOKIE_SECRET_KEY") ?? "", {
+const store = new CookieStore(Deno.env.get("COOKIE_SECRET_KEY")!, {
   cookieSetDeleteOptions: cookieOptions,
 });
 const useSession = Session.initMiddleware(store, {
@@ -99,8 +102,8 @@ let discordBot: WebSocket | null = null;
 
 const b2 = new b2CloudStorage({
   auth: {
-    accountId: Deno.env.get("B2_KEY_ID") ?? "",
-    applicationKey: Deno.env.get("B2_APP_KEY") ?? "",
+    accountId: Deno.env.get("B2_KEY_ID")!,
+    applicationKey: Deno.env.get("B2_APP_KEY")!,
   },
 });
 
@@ -139,7 +142,7 @@ const apiV1 = new Router<AppState>();
 
 apiV1
   // Incoming render request containing the demo file.
-  .put("/videos/render", async (ctx) => {
+  .put("/videos/render", useSession, async (ctx) => {
     const authUser = ctx.state.session.get("user");
 
     if (authUser) {
@@ -155,7 +158,7 @@ apiV1
         return ctx.throw(Status.BadRequest);
       }
 
-      if (!(await bcrypt.compare(authToken, BOT_AUTH_TOKEN_HASH))) {
+      if (!(await bcrypt.compare(decodeURIComponent(authToken), AUTORENDER_BOT_TOKEN_HASH))) {
         return ctx.throw(Status.Unauthorized);
       }
     }
@@ -186,6 +189,9 @@ apiV1
 
     const filePath = join("./demos", basename(file.filename));
     await Deno.copyFile(file.filename, filePath);
+
+    console.log({ fields: data.fields });
+    console.log({ title: data.fields.title });
 
     const result = await db.execute(
       `insert into videos (
@@ -261,7 +267,7 @@ apiV1
     Ok(ctx, video);
   })
   // Create a new access token for a client application.
-  .post("/application/new", requiresAuth, async (ctx) => {
+  .post("/application/new", useSession, requiresAuth, async (ctx) => {
     if (!hasPermission(ctx, UserPermissions.CreateTokens)) {
       return ctx.throw(Status.Unauthorized);
     }
@@ -311,7 +317,9 @@ apiV1
           , ?
         )`,
       [
-        `Created access token ${accessToken!.access_token_id} for user ${userId}`,
+        `Created access token ${
+          accessToken!.access_token_id
+        } for user ${userId}`,
         AuditType.Info,
         AuditSource.User,
         userId,
@@ -359,7 +367,12 @@ router.get("/connect/bot", async (ctx) => {
     return ctx.throw(Status.NotAcceptable);
   }
 
-  if (!(await bcrypt.compare(authToken, BOT_AUTH_TOKEN_HASH))) {
+  if (
+    !(await bcrypt.compare(
+      decodeURIComponent(authToken),
+      AUTORENDER_BOT_TOKEN_HASH
+    ))
+  ) {
     return ctx.throw(Status.Unauthorized);
   }
 
@@ -420,18 +433,22 @@ router.get("/connect/client", async (ctx) => {
     return ctx.throw(Status.NotAcceptable);
   }
 
-  const authTokenHash = await bcrypt.hash(authToken);
-  const { rows } = await db.execute(
-    `select permissions from access_tokens where token = ?`,
-    [authTokenHash]
+  const { rows } = await db.execute<
+    Pick<
+      AccessToken,
+      "access_token_id" | "user_id" | "token_name" | "permissions"
+    >
+  >(
+    `select access_token_id, user_id, token_name, permissions from access_tokens where token_key = ?`,
+    [decodeURIComponent(authToken)]
   );
-  const accessToken = rows?.at(0) as AccessToken | undefined;
 
+  const accessToken = rows?.at(0);
   if (!accessToken) {
     return ctx.throw(Status.Unauthorized);
   }
 
-  const clientId = `${accessToken.user_id}-${accessToken.token_name}`;
+  const clientId = `${accessToken.access_token_id}-${accessToken.user_id}-${accessToken.token_name}`;
   const ws = ctx.upgrade();
 
   ws.onopen = () => {
@@ -570,6 +587,14 @@ router.get("/connect/client", async (ctx) => {
             if (accessToken.permissions & AccessPermission.WriteVideos) {
               const videoId = Number(data.video_id);
 
+              console.log([
+                PendingStatus.StartedRender,
+                accessToken.user_id,
+                accessToken.token_name,
+                videoId,
+                PendingStatus.RequiresRender,
+              ]);
+
               const updated = await db.execute(
                 `update videos
                  set pending = ?
@@ -680,10 +705,10 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
 
   const data = {
     grant_type: "authorization_code",
-    client_id: Deno.env.get("DISCORD_CLIENT_ID") ?? "",
-    client_secret: Deno.env.get("DISCORD_CLIENT_SECRET") ?? "",
+    client_id: Deno.env.get("DISCORD_CLIENT_ID")!,
+    client_secret: Deno.env.get("DISCORD_CLIENT_SECRET")!,
     code,
-    redirect_uri: Deno.env.get("DISCORD_REDIRECT_URI") ?? "",
+    redirect_uri: Deno.env.get("DISCORD_REDIRECT_URI")!,
   };
 
   const oauthResponse = await fetch(
@@ -721,13 +746,25 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
 
   const discordUser = (await usersResponse.json()) as DiscordUser;
 
-  const { rows } = await db.execute<User>(
-    `select * from users where discord_id = ?`,
+  const {
+    rows: [{ user_id }],
+  } = await db.execute<Pick<User, "user_id">>(
+    `select user_id from users where discord_id = ?`,
     [discordUser.id]
   );
 
-  let user = rows?.at(0);
-  if (!user) {
+  if (user_id) {
+    await db.execute(
+      `update users set username = ?, discord_avatar = ? where user_id = ?`,
+      [
+        discordUser.discriminator !== "0"
+          ? `${discordUser.username}#${discordUser.discriminator}`
+          : discordUser.username,
+        discordUser.avatar,
+        user_id,
+      ]
+    );
+  } else {
     await db.execute(
       `insert into users (
             username
@@ -741,19 +778,20 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
           , ?
         )`,
       [
-        `${discordUser.username}#${discordUser.discriminator}`, // TODO: fix this once hte new username system rolls out
+        discordUser.discriminator !== "0"
+          ? `${discordUser.username}#${discordUser.discriminator}`
+          : discordUser.username,
         discordUser.id,
         discordUser.avatar,
         UserPermissions.ListVideos,
       ]
     );
-
-    const { rows } = await db.execute<User>(
-      `select * from users where discord_id = ?`,
-      [discordUser.id]
-    );
-    user = rows?.at(0);
   }
+
+  const [user] = await db.query<User>(
+    `select * from users where discord_id = ?`,
+    [discordUser.id]
+  );
 
   if (!user) {
     //return ctx.throw(Status.InternalServerError);
@@ -804,7 +842,7 @@ const routeToApp = async (ctx: Context) => {
 
   const matchedPath = context.matches.at(0)?.route?.path;
   const matchedRoute = routes.find((route) => route.path === matchedPath);
-  const meta =  matchedRoute?.meta ? matchedRoute.meta() : { title: '' };
+  const meta = matchedRoute?.meta ? matchedRoute.meta() : { title: "" };
 
   const initialState: ReactAppState = {
     user,
@@ -818,7 +856,7 @@ const routeToApp = async (ctx: Context) => {
   ctx.response.headers.set("content-type", "text/html");
 };
 
-router.get("/favicon.ico", (ctx) => ctx.response.status = Status.NotFound);
+router.get("/favicon.ico", (ctx) => (ctx.response.status = Status.NotFound));
 router.post("/tokens/:access_token_id(\\d+)", useSession, routeToApp);
 router.post("/tokens/:access_token_id(\\d+/delete)", useSession, routeToApp);
 router.post("/tokens/new", useSession, routeToApp);

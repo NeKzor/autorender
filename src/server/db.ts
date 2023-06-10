@@ -17,7 +17,7 @@ export type ExecuteResult<T> = Omit<MysqlExecuteResult, "rows"> & {
 export interface Database extends Omit<Client, "connect" | "query" | "execute">  {
   connect(config: ClientConfig): Promise<Database>;
   // deno-lint-ignore no-explicit-any
-  query<T, P extends any[] = any[]>(sql: string, params?: P): Promise<T>;
+  query<T, P extends any[] = any[]>(sql: string, params?: P): Promise<T[]>;
   // deno-lint-ignore no-explicit-any
   execute<T, P extends any[] = any[]>(sql: string, params?: P): Promise<ExecuteResult<T>>;
 }

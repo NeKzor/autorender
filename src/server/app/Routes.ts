@@ -102,7 +102,7 @@ export const routes: Route<RequestContext>[] = [
     }),
   },
   {
-    path: "/profile/:user_id",
+    path: "/profile/:username",
     Component: ProfileView.Profile,
     meta: ProfileView.meta,
     loader: ProfileView.loader,

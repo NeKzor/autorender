@@ -23,6 +23,8 @@ const AUTORENDER_DIR = join(GAME_DIR, GAME_MOD, AUTORENDER_FOLDER_NAME);
 //const AUTORENDER_TIMEOUT_BASE = parseInt(Deno.env.get("AUTORENDER_TIMEOUT_BASE")!);
 const AUTORENDER_CHECK_INTERVAL = 1_000;
 
+const usesOnRenderer = true; // TODO: upstream sar_on_renderer feature
+
 try {
   await Deno.mkdir(AUTORENDER_DIR);
   console.log(`created autorender directory in ${GAME_DIR}`);
@@ -47,7 +49,7 @@ const state: ClientState = {
 const connect = () => {
   const ws = new WebSocket(AUTORENDER_CONNECT_URI, [
     AUTORENDER_PROTOCOL,
-    Deno.env.get("AUTORENDER_API_KEY")!,
+    encodeURIComponent(Deno.env.get("AUTORENDER_API_KEY")!),
   ]);
 
   let check: number | null = null;
@@ -135,14 +137,31 @@ const connect = () => {
 
               const command = await launchGame();
 
+              let gameProcess: Deno.ChildProcess | null = null;
+              console.log("spawning process..");
+
+              Deno.addSignalListener("SIGINT", () => {
+                console.log("exiting...");
+
+                try {
+                  gameProcess?.kill();
+                } catch (err) {
+                  console.error(err);
+                }
+
+                Deno.exit();
+              });
+
+              gameProcess = command.spawn();
+              console.log("spawned");
+
+              console.log("output");
+              const { code } = await gameProcess.output();
+
+              console.log("game exited", { code });
+
               // TODO: timeout based on demo time
               //const timeoutAt = start + 1 * 1_000 + (RENDER_TIMEOUT_BASE * 1_000);
-
-              const { code, stdout, stderr } = await command.output();
-
-              console.log({ code });
-              console.log("stderr", new TextDecoder().decode(stderr));
-              console.log("stdout", new TextDecoder().decode(stdout));
 
               for (const { video_id } of state.videos) {
                 try {
@@ -214,8 +233,6 @@ const connect = () => {
   };
 };
 
-//connect();
-
 const launchGame = async () => {
   if (!state.videos.length) {
     throw new Error("no videos available");
@@ -225,10 +242,14 @@ const launchGame = async () => {
     return join(AUTORENDER_FOLDER_NAME, video_id.toString());
   };
 
+  const exitCommand = "wait 300;exit";
+
   const playdemo = (video: Video, index: number, videos: Video[]) => {
     const demoName = getDemoName(video);
     const isLastVideo = index == videos.length - 1;
-    const nextCommand = isLastVideo ? 'hwait 300 plugin_unload sar' : `autorender_video_${index + 1}`;
+    const nextCommand = isLastVideo
+      ? exitCommand
+      : `autorender_video_${index + 1}`;
 
     return (
       `sar_alias autorender_video_${index} "playdemo ${demoName};` +
@@ -237,13 +258,16 @@ const launchGame = async () => {
   };
 
   const usesQueue = state.videos.length > 1;
-  const nextCommand = usesQueue ? "autorender_queue" : "hwait 300 plugin_unload sar";
+  const nextCommand = usesQueue ? "autorender_queue" : exitCommand;
+  const eventCommand = usesOnRenderer
+    ? "sar_on_renderer_finish"
+    : "sar_on_demo_stop";
 
   const autoexec = [
     `exec ${AUTORENDER_CFG}`,
     ...state.videos.slice(1).map(playdemo),
     ...(usesQueue ? ["sar_alias autorender_queue autorender_video_0"] : []),
-    `sar_on_demo_stop ${nextCommand}`,
+    `${eventCommand} ${nextCommand}`,
     `playdemo ${getDemoName(state.videos.at(0)!)}`,
   ];
 
@@ -284,31 +308,37 @@ const launchGame = async () => {
   });
 };
 
-state.videos = [{ video_id: 1 } as Video];
-//state.videos = [{ video_id: 1 } as Video, { video_id: 2 } as Video];
-//state.videos = [{ video_id: 1 } as Video, { video_id: 2 } as Video, { video_id: 3 } as Video];
+const testRender = async () => {
+  state.videos = [{ video_id: 1 } as Video];
+  //state.videos = [{ video_id: 1 } as Video, { video_id: 2 } as Video];
+  //state.videos = [{ video_id: 1 } as Video, { video_id: 2 } as Video, { video_id: 3 } as Video];
 
-const command = await launchGame();
+  const command = await launchGame();
 
-let gameProcess: Deno.ChildProcess | null = null;
-console.log("spawning process..");
+  let gameProcess: Deno.ChildProcess | null = null;
+  console.log("spawning process..");
 
-Deno.addSignalListener("SIGINT", () => {
-  console.log("exiting...");
+  Deno.addSignalListener("SIGINT", () => {
+    console.log("exiting...");
 
-  try {
-    gameProcess?.kill();
-  } catch (err) {
-    console.error(err);
-  }
+    try {
+      gameProcess?.kill();
+    } catch (err) {
+      console.error(err);
+    }
 
-  Deno.exit();
-});
+    Deno.exit();
+  });
 
-gameProcess = command.spawn();
-console.log("spawned");
+  gameProcess = command.spawn();
+  console.log("spawned");
 
-console.log("output");
-const { code } = await gameProcess.output();
+  console.log("output");
+  const { code } = await gameProcess.output();
 
-console.log('game exited', { code });
+  console.log("game exited", { code });
+};
+
+//await testRender();
+
+connect();

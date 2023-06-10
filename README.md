@@ -83,7 +83,7 @@ The server should now be available at: `http://autorender.portal2.local`
 |DISCORD_CLIENT_ID|Client ID of the Discord OAuth2 application.|
 |DISCORD_CLIENT_SECRET|Client secret of the Discord OAuth2 application.|
 |DISCORD_REDIRECT_URI|OAuth redirect URI of the Discord OAuth2 application.|
-|BOT_AUTH_TOKEN|Generated token which is shared between the server and the bot.|
+|AUTORENDER_BOT_TOKEN|Generated token which is shared between the server and the bot.|
 |COOKIE_SECRET_KEY|Secret used to encrypt/decrypt session cookies.|
 |B2_BUCKET_ID|Bucket ID from Backblaze.|
 |B2_KEY_ID|Key ID from Backblaze.|
@@ -112,7 +112,7 @@ The server should now be available at: `http://autorender.portal2.local`
 ### Install & Run Bot
 
 - Copy the bot credentials of the Discord application into the `src/bot/.env` file
-- Configure `BOT_AUTH_TOKEN` with the same password that is shared with the server
+- Configure `AUTORENDER_BOT_TOKEN` with the same password that is shared with the server
 - Run from the bot folder `src/bot` the command `deno task start`
 
 #### src/bot/.env
@@ -121,7 +121,7 @@ The server should now be available at: `http://autorender.portal2.local`
 |---|---|
 |DISCORD_BOT_TOKEN|Token of the Discord bot application.|
 |DISCORD_BOT_ID|Client ID of the Discord bot application.|
-|BOT_AUTH_TOKEN|Generated token which is shared between the server and the bot.|
+|AUTORENDER_BOT_TOKEN|Generated token which is shared between the server and the bot.|
 
 ### Caveats
 

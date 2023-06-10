@@ -82,7 +82,7 @@ createCommand({
           method: "PUT",
           headers: {
             "User-Agent": "autorender-bot v1.0",
-            Authorization: `Bearer ${Deno.env.get('BOT_AUTH_TOKEN')}`,
+            Authorization: `Bearer ${encodeURIComponent(Deno.env.get('AUTORENDER_BOT_TOKEN')!)}`,
           },
           body,
         }

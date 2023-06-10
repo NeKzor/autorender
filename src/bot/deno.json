@@ -1,0 +1,15 @@
+{
+    "tasks": {
+        "start": "deno run --allow-env --allow-read=.env,.env.defaults,.env.example,log/bot,./ --allow-write=log/bot,fileloader.ts --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-c.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,autorender.portal2.local:8001 main.ts",
+        "start:dev": "deno run --allow-env --allow-read=.env,.env.defaults,.env.example,log/bot,./ --allow-write=log/bot,fileloader.ts --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-c.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,autorender.portal2.local:8001 main.ts --watch"
+    },
+    "fmt": {
+        "options": {
+            "useTabs": false,
+            "lineWidth": 120,
+            "indentWidth": 4,
+            "singleQuote": true,
+            "proseWrap": "preserve"
+        }
+    }
+}

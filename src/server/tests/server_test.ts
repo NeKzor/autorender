@@ -32,7 +32,7 @@ console.log(`running tests for ${uri}`);
 //         method: 'PUT',
 //         headers: {
 //             'User-Agent': userAgent,
-//             'Authorization': `Bearer ${Deno.env.get('BOT_AUTH_TOKEN')}`,
+//             'Authorization': `Bearer ${Deno.env.get('AUTORENDER_BOT_TOKEN')}`,
 //         },
 //         body,
 //     });
