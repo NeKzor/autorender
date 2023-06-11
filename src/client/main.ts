@@ -8,8 +8,9 @@ import "https://deno.land/std@0.177.0/dotenv/load.ts";
 import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
 import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
 import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
-import { Video } from "../server/models.ts";
+import { logger } from "./logger.ts";
 import { AutorenderDataType, AutorenderMessages } from "./protocol.ts";
+import { Video } from "../server/models.ts";
 
 const GAME_DIR = Deno.env.get("GAME_DIR")!;
 const GAME_MOD = Deno.env.get("GAME_MOD")!;
@@ -27,7 +28,7 @@ const usesOnRenderer = true; // TODO: upstream sar_on_renderer feature
 
 try {
   await Deno.mkdir(AUTORENDER_DIR);
-  console.log(`created autorender directory in ${GAME_DIR}`);
+  logger.info(`created autorender directory in ${GAME_DIR}`);
   // deno-lint-ignore no-empty
 } catch {}
 
@@ -37,11 +38,13 @@ enum ClientStatus {
 }
 
 interface ClientState {
+  toDownload: number;
   videos: Video[];
   status: ClientStatus;
 }
 
 const state: ClientState = {
+  toDownload: 0,
   videos: [],
   status: ClientStatus.Idle,
 };
@@ -54,18 +57,24 @@ const connect = () => {
 
   let check: number | null = null;
 
-  ws.onopen = () => {
-    console.log("Connected to server");
-
-    ws.send(JSON.stringify({ type: "status" }));
+  const fetchNextVideos = () => {
+    if (check !== null) {
+      clearTimeout(check);
+    }
 
     check = setTimeout(() => {
       ws.send(JSON.stringify({ type: "videos", data: { game: GAME_MOD } }));
     }, AUTORENDER_CHECK_INTERVAL);
   };
 
+  ws.onopen = () => {
+    logger.info("Connected to server");
+
+    fetchNextVideos();
+  };
+
   ws.onmessage = async (message) => {
-    console.log("Server:", { message });
+    logger.info("Server:", { message });
 
     if (state.status === ClientStatus.Rendering) {
       return console.warn("got message during rendering... should not happen");
@@ -74,26 +83,33 @@ const connect = () => {
     try {
       if (message.data instanceof Blob) {
         const buffer = await message.data.arrayBuffer();
-        const view = new DataView(buffer, 0);
-        const length = view.getInt32(0);
-        const payload = buffer.slice(4, length);
-        const demo = buffer.slice(length);
+        const view = new DataView(buffer);
 
-        const video = JSON.parse(new TextDecoder().decode(payload)) as Video;
-        console.log("downloaded demo", { video });
+        const length = Number(view.getUint32(0));
+        const payload = buffer.slice(4, length + 4);
+        const demo = buffer.slice(length + 4);
+        const decoded = new TextDecoder().decode(payload);
 
+        logger.info('decoded payload:', decoded);
+
+        const video = JSON.parse(decoded) as Video;
         state.videos.push(video);
 
         await Deno.writeFile(
           join(AUTORENDER_DIR, `${video.video_id}.dem`),
           new Uint8Array(demo)
         );
+
+        if (state.videos.length === state.toDownload) {
+          ws.send(JSON.stringify({ type: "downloaded", data: { count: state.toDownload } }));
+        }
       } else {
         const { type, data } = JSON.parse(message.data) as AutorenderMessages;
 
         switch (type) {
           case AutorenderDataType.Videos: {
             if (data.length) {
+              state.toDownload = data.length;
               state.videos = [];
 
               for await (const file of Deno.readDir(AUTORENDER_DIR)) {
@@ -118,15 +134,7 @@ const connect = () => {
                 ws.send(JSON.stringify({ type: "demo", data: { video_id } }));
               }
             } else {
-              if (check !== null) {
-                clearTimeout(check);
-              }
-
-              check = setTimeout(() => {
-                ws.send(
-                  JSON.stringify({ type: "videos", data: { game: GAME_MOD } })
-                );
-              }, AUTORENDER_CHECK_INTERVAL);
+              fetchNextVideos();
             }
 
             break;
@@ -138,10 +146,10 @@ const connect = () => {
               const command = await launchGame();
 
               let gameProcess: Deno.ChildProcess | null = null;
-              console.log("spawning process..");
+              logger.info("spawning process..");
 
               Deno.addSignalListener("SIGINT", () => {
-                console.log("exiting...");
+                logger.info("exiting...");
 
                 try {
                   gameProcess?.kill();
@@ -153,12 +161,12 @@ const connect = () => {
               });
 
               gameProcess = command.spawn();
-              console.log("spawned");
+              logger.info("spawned");
 
-              console.log("output");
+              logger.info("output");
               const { code } = await gameProcess.output();
 
-              console.log("game exited", { code });
+              logger.info("game exited", { code });
 
               // TODO: timeout based on demo time
               //const timeoutAt = start + 1 * 1_000 + (RENDER_TIMEOUT_BASE * 1_000);
@@ -167,7 +175,7 @@ const connect = () => {
                 try {
                   const buffer = new Buffer();
                   const videoId = new Uint8Array(8);
-                  new DataView(videoId).setBigUint64(0, BigInt(video_id));
+                  new DataView(videoId.buffer).setBigUint64(0, BigInt(video_id));
 
                   await buffer.write(videoId);
                   await buffer.write(
@@ -195,15 +203,15 @@ const connect = () => {
               state.videos = [];
               state.status = ClientStatus.Idle;
 
-              check = setTimeout(() => {
-                ws.send(JSON.stringify({ type: "videos" }));
-              }, 1000);
+              fetchNextVideos();
             }
 
             break;
           }
           case AutorenderDataType.Error: {
             console.error(`error code: ${data.status}`);
+
+            fetchNextVideos();
             break;
           }
           default: {
@@ -218,11 +226,13 @@ const connect = () => {
       ws.send(
         JSON.stringify({ type: "error", data: { message: err.toString() } })
       );
+
+      fetchNextVideos();
     }
   };
 
   ws.onclose = async () => {
-    console.log("Disconnected from server");
+    logger.info("Disconnected from server");
 
     if (check !== null) {
       clearTimeout(check);
@@ -316,10 +326,10 @@ const testRender = async () => {
   const command = await launchGame();
 
   let gameProcess: Deno.ChildProcess | null = null;
-  console.log("spawning process..");
+  logger.info("spawning process..");
 
   Deno.addSignalListener("SIGINT", () => {
-    console.log("exiting...");
+    logger.info("exiting...");
 
     try {
       gameProcess?.kill();
@@ -331,12 +341,12 @@ const testRender = async () => {
   });
 
   gameProcess = command.spawn();
-  console.log("spawned");
+  logger.info("spawned");
 
-  console.log("output");
+  logger.info("output");
   const { code } = await gameProcess.output();
 
-  console.log("game exited", { code });
+  logger.info("game exited", { code });
 };
 
 //await testRender();

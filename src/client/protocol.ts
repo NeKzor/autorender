@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023, NeKz
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
 import { Video } from "../server/models.ts";
 
 export enum AutorenderDataType {

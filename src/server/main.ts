@@ -158,7 +158,12 @@ apiV1
         return ctx.throw(Status.BadRequest);
       }
 
-      if (!(await bcrypt.compare(decodeURIComponent(authToken), AUTORENDER_BOT_TOKEN_HASH))) {
+      if (
+        !(await bcrypt.compare(
+          decodeURIComponent(authToken),
+          AUTORENDER_BOT_TOKEN_HASH
+        ))
+      ) {
         return ctx.throw(Status.Unauthorized);
       }
     }
@@ -189,9 +194,6 @@ apiV1
 
     const filePath = join("./demos", basename(file.filename));
     await Deno.copyFile(file.filename, filePath);
-
-    console.log({ fields: data.fields });
-    console.log({ title: data.fields.title });
 
     const result = await db.execute(
       `insert into videos (
@@ -383,11 +385,11 @@ router.get("/connect/bot", async (ctx) => {
   discordBot = ctx.upgrade();
 
   discordBot.onopen = () => {
-    console.log("Bot connected");
+    logger.info("Bot connected");
   };
 
   discordBot.onmessage = (message) => {
-    console.log("Bot:", message.data);
+    logger.info("Bot:", message.data);
 
     const { type } = JSON.parse(message.data);
 
@@ -408,7 +410,7 @@ router.get("/connect/bot", async (ctx) => {
   };
 
   discordBot.onclose = () => {
-    console.log("Bot disconnected");
+    logger.info("Bot disconnected");
     discordBot = null;
   };
 });
@@ -452,7 +454,7 @@ router.get("/connect/client", async (ctx) => {
   const ws = ctx.upgrade();
 
   ws.onopen = () => {
-    console.log("Client connected");
+    logger.info(`Client ${clientId} connected`);
 
     clients.set(clientId, {
       demosToSend: MAX_VIDEOS_PER_REQUEST,
@@ -460,7 +462,7 @@ router.get("/connect/client", async (ctx) => {
   };
 
   ws.onmessage = async (message) => {
-    console.log("Client:", message.data);
+    console.log(clientId, message.data);
 
     try {
       if (message.data instanceof Blob) {
@@ -499,7 +501,7 @@ router.get("/connect/client", async (ctx) => {
                   bytesTotal: number;
                   bytesDispatched: number;
                 }) => {
-                  console.log(
+                  logger.info(
                     `Uploading ${tempFile} - ${update.percent}% (${update.bytesDispatched}/${update.bytesTotal}`
                   );
                 },
@@ -548,7 +550,7 @@ router.get("/connect/client", async (ctx) => {
             })
           );
         } catch (err) {
-          console.error(err);
+          logger.error(err);
 
           ws.send(
             JSON.stringify({
@@ -560,7 +562,7 @@ router.get("/connect/client", async (ctx) => {
           try {
             Deno.remove(tempFile);
           } catch (err) {
-            console.error("failed to remove temporary file:", err.toString());
+            logger.error("failed to remove temporary file:", err.toString());
           }
         }
       } else {
@@ -569,33 +571,30 @@ router.get("/connect/client", async (ctx) => {
         switch (type) {
           case "videos": {
             if (accessToken.permissions & AccessPermission.CreateVideos) {
-              const { rows } = await db.execute(
+              const videos = await db.query<Pick<Video, "video_id">>(
                 `select video_id from videos where pending = ? limit ?`,
                 [PendingStatus.RequiresRender, MAX_VIDEOS_PER_REQUEST]
               );
 
-              const videos = rows ?? [];
               ws.send(JSON.stringify({ type: "videos", data: videos }));
-
-              clients.set(clientId, {
-                demosToSend: videos.length,
-              });
+            } else {
+              ws.send(
+                JSON.stringify({
+                  type: "error",
+                  data: {
+                    status: Status.Unauthorized,
+                    message: "create videos permission required",
+                  },
+                })
+              );
             }
             break;
           }
           case "demo": {
             if (accessToken.permissions & AccessPermission.WriteVideos) {
-              const videoId = Number(data.video_id);
+              const videoId = data.video_id;
 
-              console.log([
-                PendingStatus.StartedRender,
-                accessToken.user_id,
-                accessToken.token_name,
-                videoId,
-                PendingStatus.RequiresRender,
-              ]);
-
-              const updated = await db.execute(
+              const update = await db.execute(
                 `update videos
                  set pending = ?
                    , rendered_by = ?
@@ -611,27 +610,30 @@ router.get("/connect/client", async (ctx) => {
                 ]
               );
 
-              if (updated.affectedRows !== 0) {
+              if (update.affectedRows === 0) {
                 ws.send(
                   JSON.stringify({
                     type: "error",
-                    data: { status: Status.NotFound },
+                    data: { status: Status.NotFound, message: "update failed" },
                   })
                 );
                 break;
               }
 
-              const { rows } = await db.execute(
-                `select file_path from videos where video_id = ?`,
-                [videoId]
-              );
+              const [{ file_path, ...video }] = await db.query<
+                Pick<Video, "video_id" | "file_path">
+              >(`select video_id, file_path from videos where video_id = ?`, [
+                videoId,
+              ]);
 
-              const video = rows?.at(0) as Video | undefined;
               if (!video) {
                 ws.send(
                   JSON.stringify({
                     type: "error",
-                    data: { status: Status.NotFound },
+                    data: {
+                      status: Status.NotFound,
+                      message: "video not found",
+                    },
                   })
                 );
                 break;
@@ -640,14 +642,38 @@ router.get("/connect/client", async (ctx) => {
               const buffer = new Buffer();
               const payload = new TextEncoder().encode(JSON.stringify(video));
               const length = new Uint8Array(4);
-              new DataView(length).setUint32(0, payload.byteLength);
+              new DataView(length.buffer).setUint32(0, payload.byteLength);
+
+              console.log({
+                length,
+                payload,
+              });
 
               await buffer.write(length);
               await buffer.write(payload);
-              await buffer.write(await Deno.readFile(video.file_path));
+              await buffer.write(await Deno.readFile(file_path));
 
               ws.send(buffer.bytes());
+            } else {
+              ws.send(
+                JSON.stringify({
+                  type: "error",
+                  data: {
+                    status: Status.Unauthorized,
+                    message: "write videos permission required",
+                  },
+                })
+              );
             }
+            break;
+          }
+          case "downloaded": {
+            ws.send(
+              JSON.stringify({
+                type: "start",
+              })
+            );
+
             break;
           }
           case "error": {
@@ -655,30 +681,23 @@ router.get("/connect/client", async (ctx) => {
             break;
           }
           default: {
-            return ws.send(
+            ws.send(
               JSON.stringify({
                 type: "error",
-                data: { status: Status.BadRequest },
+                data: {
+                  status: Status.BadRequest,
+                  message: "unknown message type",
+                },
               })
             );
-          }
-        }
-
-        if (type === "video") {
-          const state = clients.get(clientId);
-          if (state) {
-            state.demosToSend -= 1;
-
-            if (state.demosToSend <= 0) {
-              ws.send("start");
-            }
+            break;
           }
         }
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
 
-      return ws.send(
+      ws.send(
         JSON.stringify({
           type: "error",
           data: { status: Status.InternalServerError },
@@ -688,7 +707,7 @@ router.get("/connect/client", async (ctx) => {
   };
 
   ws.onclose = () => {
-    console.log("Client disconnected");
+    logger.info(`Client ${clientId} disconnected`);
     clients.delete(clientId);
   };
 });
@@ -869,7 +888,7 @@ type AppState = {
 const app = new Application<AppState>();
 
 app.addEventListener("error", (ev) => {
-  console.error(ev.error);
+  logger.error(ev.error);
 });
 
 app.use(oakCors());
@@ -885,7 +904,7 @@ app.use(async (ctx, next) => {
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-console.log(`server listening at http://${SERVER_HOST}:${SERVER_PORT}`);
+logger.info(`server listening at http://${SERVER_HOST}:${SERVER_PORT}`);
 
 await app.listen(
   SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none"
