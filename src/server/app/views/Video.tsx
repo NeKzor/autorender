@@ -9,7 +9,11 @@ import Footer from "../components/Footer.tsx";
 import { DataLoader, PageMeta, json, useLoaderData } from "../Routes.ts";
 import { Video } from "../../models.ts";
 
-type JoinedVideo = Video & { requested_by_username: string };
+type JoinedVideo = Video & {
+  requested_by_username: string;
+  rendered_by_username: string;
+};
+
 type Data = JoinedVideo | undefined;
 
 export const meta: PageMeta<Data> = (data) => {
@@ -25,10 +29,13 @@ export const meta: PageMeta<Data> = (data) => {
 export const loader: DataLoader = async ({ params, context }) => {
   const [video] = await context.db.query<JoinedVideo>(
     `select *
-          , users.username as requested_by_username
+          , requester.username as requested_by_username
+          , renderer.username as rendered_by_username
        from videos
-       left join users
-            on users.discord_id = videos.requested_by_id
+       left join users requester
+            on requester.discord_id = videos.requested_by_id
+       left join users renderer
+            on renderer.user_id = videos.rendered_by
       where video_id = ?`,
     [params.video_id]
   );
@@ -55,9 +62,27 @@ export const VideoView = () => {
           </div>
           <br />
           <div>Comment: {data.comment}</div>
-          <div>Date: {data.created_at}</div>
-          <div>Requested by: {data.requested_by_name}</div>
-          <div>Rendered by: {data.rendered_by}</div>
+          <div>Render options: {data.render_options}</div>
+          <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
+          <div>
+            Requested by:{" "}
+            <a
+              href={`/profile/${
+                data.requested_by_username ?? data.requested_by_name
+              }`}
+            >
+              {data.requested_by_username ?? data.requested_by_name}
+            </a>
+          </div>
+          <div>
+            Rendered by:{" "}
+            <a href={`/profile/${data.rendered_by_username ?? "@"}`}>
+              {data.rendered_by_username ?? "@"}
+            </a>
+          </div>
+          <div>
+            Render options: <code>{data.render_options ?? "none"}</code>
+          </div>
         </>
       )}
       <Footer />

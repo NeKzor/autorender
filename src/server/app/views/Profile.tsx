@@ -16,7 +16,7 @@ type Data = {
 
 export const meta: PageMeta<Data> = (data) => {
   return {
-    title: data.user?.username ?? 'Profile not found :(',
+    title: data.user?.username ?? "Profile not found :(",
   };
 };
 
@@ -32,7 +32,7 @@ export const loader: DataLoader = async ({ params, context }) => {
         [user.discord_id]
       )
     : [];
-  
+
   return json<Data>({ user, videos });
 };
 
@@ -52,7 +52,7 @@ export const Profile = () => {
                   <a href={`/videos/${video.video_id}`}>
                     {video.title ?? "untitled"}
                   </a>{" "}
-                  | {video.created_at}
+                  | {new Date(video.created_at).toLocaleDateString()}
                 </li>
               );
             })}
