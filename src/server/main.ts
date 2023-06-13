@@ -28,7 +28,7 @@ import {
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 import { logger } from "./logger.ts";
 import { index } from "./app/index.tsx";
-import b2CloudStorage from "npm:b2-cloud-storage";
+import { BackblazeClient } from "./b2.ts";
 import {
   AccessPermission,
   AccessToken,
@@ -72,6 +72,7 @@ const DISCORD_AUTHORIZE_LINK = (() => {
 const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
   Deno.env.get("AUTORENDER_BOT_TOKEN")!
 );
+const B2_BUCKET_ID = Deno.env.get("B2_BUCKET_ID")!;
 
 const cookieOptions: CookiesSetDeleteOptions = {
   expires: new Date(Date.now() + 86400000 * 30),
@@ -100,17 +101,14 @@ const useRateLimiter = await RateLimiter({
 
 let discordBot: WebSocket | null = null;
 
-const b2 = new b2CloudStorage({
-  auth: {
-    accountId: Deno.env.get("B2_KEY_ID")!,
-    applicationKey: Deno.env.get("B2_APP_KEY")!,
-  },
-});
+const b2 = new BackblazeClient({ userAgent: AUTORENDER_V1 });
 
-// b2.authorize((err: Error) => {
-//   if (err) throw err;
-//   console.log("Logged into b2");
-// });
+b2.authorizeAccount({
+  accountId: Deno.env.get("B2_KEY_ID")!,
+  applicationKey: Deno.env.get("B2_APP_KEY")!,
+}).then(() => {
+  logger.info("Connected to b2");
+});
 
 await logger.initFileLogger("log/server", {
   rotate: true,
@@ -180,20 +178,25 @@ apiV1
       outPath: "./demos",
     });
 
-    const requestedByName = authUser
-      ? authUser.username
-      : data.fields.requested_by_name;
-    const requestedById = authUser
-      ? authUser.discord_id
-      : data.fields.requested_by_id;
+    logger.info("received", data.files?.length ?? 0, "file(s)");
 
     const file = data.files?.at(0);
     if (!file?.filename) {
       return ctx.throw(Status.BadRequest);
     }
 
+    const requestedByName = authUser?.username ?? data.fields.requested_by_name;
+    const requestedById = authUser?.discord_id ?? data.fields.requested_by_id;
     const filePath = join("./demos", basename(file.filename));
-    await Deno.copyFile(file.filename, filePath);
+
+    // TODO: Use sdp.js (or rewrite in Deno) to parse demos:
+    //       * Get game dir
+    //       * Resolve non-workshop maps
+    //       * Get UGC, then lookup workshop url in mirror.nekz.me
+    //       * Figure out if UGC changes when revision of workshop item updates
+    //       * Get map CRC?
+    //       * Probably want to replicate mirror.nekz.me data locally
+    //       * Probably want to populate map data in database
 
     const result = await db.execute(
       `insert into videos (
@@ -300,11 +303,10 @@ apiV1
       ]
     );
 
-    const { rows } = await db.execute<AccessToken>(
+    const [accessToken] = await db.query<AccessToken>(
       `select * from access_tokens where access_token_id = ?`,
       [inserted.lastInsertId]
     );
-    const accessToken = rows?.at(0);
 
     await db.execute(
       `insert into audit_logs (
@@ -465,61 +467,43 @@ router.get("/connect/client", async (ctx) => {
     console.log(clientId, message.data);
 
     try {
-      if (message.data instanceof Blob) {
-        const buffer = await message.data.arrayBuffer();
+      if (message.data instanceof ArrayBuffer) {
+        const buffer = message.data;
         const view = new DataView(buffer, 0);
         const videoId = view.getBigUint64(0);
 
-        const { rows } = await db.execute(
+        const [video] = await db.query<Video>(
           `select * from videos where video_id = ?`,
-          [Number(videoId)]
+          [videoId]
         );
 
-        const video = rows?.at(0) as Video | undefined;
         if (!video) {
           return ws.send(
             JSON.stringify({ type: "error", data: { status: Status.NotFound } })
           );
         }
 
-        const tempFile = await Deno.makeTempFile({
-          prefix: `video-${video.video_id}-`,
-        });
-        await Deno.writeFile(tempFile, new Uint8Array(buffer.slice(8)));
+        const videoFile = join("./videos", `${video.video_id}.mp4`);
+        const videoBuffer = buffer.slice(8);
+        await Deno.writeFile(videoFile, new Uint8Array(videoBuffer));
 
         try {
-          const results = await new Promise((resolve, reject) => {
-            b2.uploadFile(
-              tempFile,
-              {
-                bucketId: "p2render",
-                fileName: `${video.video_id}.mp4`,
-                contentType: "application/octet-stream",
-                onUploadProgress: (update: {
-                  percent: number;
-                  bytesCopied: number;
-                  bytesTotal: number;
-                  bytesDispatched: number;
-                }) => {
-                  logger.info(
-                    `Uploading ${tempFile} - ${update.percent}% (${update.bytesDispatched}/${update.bytesTotal}`
-                  );
-                },
-              },
-              (err: Error, results: unknown) => {
-                if (err) {
-                  reject(err);
-                } else {
-                  resolve(results);
-                }
-              }
-            );
+          console.log("Uploading video file", videoFile);
+
+          const upload = await b2.uploadFile({
+            bucketId: B2_BUCKET_ID,
+            fileName: `${video.video_id}.mp4`,
+            fileContents: videoBuffer,
+            contentType: "video/mp4",
           });
 
-          console.log({ results });
+          console.log({ upload });
 
-          // TODO: update links
-          // TODO: thumbnail
+          const videoUrl = b2.getDownloadUrl(upload.fileName);
+
+          console.log({ videoUrl });
+
+          // TODO: small/large thumbnail
 
           await db.execute(
             `update videos
@@ -528,7 +512,7 @@ router.get("/connect/client", async (ctx) => {
              , thumb_url = ?
              , rendered_at = current_timestamp()
              where video_id = ?`,
-            [PendingStatus.FinishedRender, "", "", video.video_id]
+            [PendingStatus.FinishedRender, videoUrl, "", video.video_id]
           );
 
           if (discordBot) {
@@ -560,7 +544,7 @@ router.get("/connect/client", async (ctx) => {
           );
         } finally {
           try {
-            Deno.remove(tempFile);
+            Deno.remove(videoFile);
           } catch (err) {
             logger.error("failed to remove temporary file:", err.toString());
           }
@@ -643,11 +627,6 @@ router.get("/connect/client", async (ctx) => {
               const payload = new TextEncoder().encode(JSON.stringify(video));
               const length = new Uint8Array(4);
               new DataView(length.buffer).setUint32(0, payload.byteLength);
-
-              console.log({
-                length,
-                payload,
-              });
 
               await buffer.write(length);
               await buffer.write(payload);
@@ -904,7 +883,7 @@ app.use(async (ctx, next) => {
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-logger.info(`server listening at http://${SERVER_HOST}:${SERVER_PORT}`);
+logger.info(`Server listening at http://${SERVER_HOST}:${SERVER_PORT}`);
 
 await app.listen(
   SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none"

@@ -32,7 +32,7 @@ const connect = () => {
         break;
       }
       default: {
-        console.error(`unhandled type: ${type}`);
+        console.error(`Unhandled type: ${type}`);
         break;
       }
     }

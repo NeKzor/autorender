@@ -90,7 +90,8 @@ const connect = () => {
         const demo = buffer.slice(length + 4);
         const decoded = new TextDecoder().decode(payload);
 
-        logger.info('decoded payload:', decoded);
+        logger.info("decoded payload:", decoded);
+        logger.info("demo byte length:", demo.byteLength);
 
         const video = JSON.parse(decoded) as Video;
         state.videos.push(video);
@@ -101,7 +102,12 @@ const connect = () => {
         );
 
         if (state.videos.length === state.toDownload) {
-          ws.send(JSON.stringify({ type: "downloaded", data: { count: state.toDownload } }));
+          ws.send(
+            JSON.stringify({
+              type: "downloaded",
+              data: { count: state.toDownload },
+            })
+          );
         }
       } else {
         const { type, data } = JSON.parse(message.data) as AutorenderMessages;
@@ -168,6 +174,8 @@ const connect = () => {
 
               logger.info("game exited", { code });
 
+              gameProcess = null;
+
               // TODO: timeout based on demo time
               //const timeoutAt = start + 1 * 1_000 + (RENDER_TIMEOUT_BASE * 1_000);
 
@@ -175,7 +183,10 @@ const connect = () => {
                 try {
                   const buffer = new Buffer();
                   const videoId = new Uint8Array(8);
-                  new DataView(videoId.buffer).setBigUint64(0, BigInt(video_id));
+                  new DataView(videoId.buffer).setBigUint64(
+                    0,
+                    BigInt(video_id)
+                  );
 
                   await buffer.write(videoId);
                   await buffer.write(
@@ -200,6 +211,7 @@ const connect = () => {
               console.error(err);
               ws.send(JSON.stringify({ type: "error", data: err.toString() }));
             } finally {
+              state.toDownload = 0;
               state.videos = [];
               state.status = ClientStatus.Idle;
 
@@ -215,7 +227,7 @@ const connect = () => {
             break;
           }
           default: {
-            console.error(`unhandled type: ${type}`);
+            console.error(`Unhandled type: ${type}`);
             break;
           }
         }
@@ -277,7 +289,7 @@ const launchGame = async () => {
     `exec ${AUTORENDER_CFG}`,
     ...state.videos.slice(1).map(playdemo),
     ...(usesQueue ? ["sar_alias autorender_queue autorender_video_0"] : []),
-    `${eventCommand} ${nextCommand}`,
+    `${eventCommand} "${nextCommand}"`,
     `playdemo ${getDemoName(state.videos.at(0)!)}`,
   ];
 
@@ -347,6 +359,8 @@ const testRender = async () => {
   const { code } = await gameProcess.output();
 
   logger.info("game exited", { code });
+
+  gameProcess = null;
 };
 
 //await testRender();

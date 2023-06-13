@@ -4,22 +4,23 @@ Convert any Portal 2 demo file into a video with: `/render <attachment>`
 
 ## Features
 
-- Render any demo On-Demand in a Discord server!
-- Render any workshop map. Powered by [mirror.nekz.me]
-- Works without being bound to `board.portal2.sr`
-- Render files directly in a web platform
-- Written in 100% TypeScript + Deno
-- Hosted inside Docker containers
+- Render videos On-Demand in a Discord server
+- Support for workshop maps, powered by [mirror.nekz.me]
+- Render files directly in a web platform (TODO)
+- Runs in a secure runtime with [Deno]
+- Written in 100% TypeScript
+- Hosted inside Docker containers (TODO)
 
 [mirror.nekz.me]: https://github.com/NeKzor/mirror
+[Deno]: https://deno.com/runtime
 
 ## Network Topology
 
 ```
-                  RPC            WSS/HTTPS    WSS
-Discord Client 1 --|                           |-- Client 1
-Discord Client 2 --|-- Discord Bot -- Server --|-- Client 2
-Discord Client 3 --|                           |-- ...
+                HTTPS/WSS      WSS  HTTPS/WSS    WSS
+Discord Client 1 --|                              |-- Client 1
+Discord Client 2 --|-- Discord -- Bot -- Server --|-- Client 2
+Discord Client 3 --|                              |-- ...
              ... --|
 ```
 
