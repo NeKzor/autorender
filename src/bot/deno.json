@@ -9,5 +9,8 @@
         "indentWidth": 4,
         "singleQuote": true,
         "proseWrap": "preserve"
+    },
+    "compilerOptions": {
+        "noUncheckedIndexedAccess": true
     }
 }

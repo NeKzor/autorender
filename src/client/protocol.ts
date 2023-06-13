@@ -2,6 +2,9 @@
  * Copyright (c) 2023, NeKz
  *
  * SPDX-License-Identifier: MIT
+ * 
+ * 
+ * This defines the protocol between the server and the client.
  */
 
 import { Video } from "../server/models.ts";

@@ -56,10 +56,6 @@ createCommand({
         },
       });
 
-      const file = await demo.blob();
-      const requestedByName = `${interaction.user.username}#${interaction.user.discriminator}`;
-      const requestedById = interaction.user.id.toString();
-
       const body = new FormData();
 
       for (const option of ["title", "comment", "render_options"]) {
@@ -72,7 +68,15 @@ createCommand({
       // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
       //       https://github.com/oakserver/oak/issues/581
 
-      body.append("files", file);
+      body.append("files", await demo.blob());
+
+      const requestedByName =
+        interaction.user.discriminator !== "0"
+          ? `${interaction.user.username}#${interaction.user.discriminator}`
+          : interaction.user.username;
+
+      const requestedById = interaction.user.id.toString();
+
       body.append("requested_by_name", requestedByName);
       body.append("requested_by_id", requestedById);
 
@@ -82,7 +86,9 @@ createCommand({
           method: "PUT",
           headers: {
             "User-Agent": "autorender-bot v1.0",
-            Authorization: `Bearer ${encodeURIComponent(Deno.env.get('AUTORENDER_BOT_TOKEN')!)}`,
+            Authorization: `Bearer ${encodeURIComponent(
+              Deno.env.get("AUTORENDER_BOT_TOKEN")!
+            )}`,
           },
           body,
         }

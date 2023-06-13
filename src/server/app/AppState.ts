@@ -11,6 +11,7 @@ import { RouteMeta } from "./Routes.ts";
 export interface AppState {
   user: User | null;
   meta: RouteMeta;
+  domain: string;
   discordAuthorizeLink: string;
 }
 

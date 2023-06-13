@@ -30,6 +30,7 @@ import Token from "./views/Token.tsx";
 import Tokens from "./views/Tokens.tsx";
 import Privacy from "./views/Privacy.tsx";
 import * as ProfileView from "./views/Profile.tsx";
+import * as VideoView from "./views/Video.tsx";
 import { Database } from "../db.ts";
 import {
   AccessPermission,
@@ -78,19 +79,38 @@ export interface ActionFunction<Context> {
 export type DataLoader = LoaderFunction<RequestContext>;
 export type ActionLoader = LoaderFunction<RequestContext>;
 
-// This allows every route to change meta values.
+export type OpenGraphFacebook =
+  | "type"
+  | "url"
+  | "title"
+  | "description"
+  | "image";
+export type OpenGraphTwitter = OpenGraphFacebook;
+export type OpenGraphTwitterCard =
+  | "summary"
+  | "summary_large_image"
+  | "app"
+  | "player";
+
+// This allows every route to change the page's meta values.
 export type RouteMeta = {
   title?: string;
+  description?: string;
+  ["twitter:card"]?: OpenGraphTwitterCard;
+} & { [key in `og:${OpenGraphFacebook}`]?: string } & {
+  [key in `twitter:${OpenGraphTwitter}`]?: string;
 };
 
-// TODO: Figure out a way to access data from the data loader.
-//       Probably not possible because it's handled inside a React component :>
-export type PageMeta = () => RouteMeta;
+export type PageMeta<Data> = (loaderData: Data) => RouteMeta;
 
-export type Route<Context> = Omit<RouteObject, "loader" | "action"> & {
+// deno-lint-ignore no-explicit-any
+export type Route<Context, Data = any> = Omit<
+  RouteObject,
+  "loader" | "action"
+> & {
   loader?: LoaderFunction<Context>;
   action?: LoaderFunction<Context>;
-  meta?: PageMeta;
+  meta?: PageMeta<Data>;
 };
 
 export const routes: Route<RequestContext>[] = [
@@ -262,6 +282,14 @@ export const routes: Route<RequestContext>[] = [
 
       return redirect("/tokens/" + lastInsertId);
     },
+  },
+  {
+    // TODO: Support unlisted/private videos.
+    //       This will require UUIDs... private videos will be tough :>
+    path: "/videos/:video_id",
+    Component: VideoView.VideoView,
+    meta: VideoView.meta,
+    loader: VideoView.loader,
   },
   {
     path: "/privacy",

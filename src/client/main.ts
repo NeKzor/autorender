@@ -2,6 +2,10 @@
  * Copyright (c) 2023, NeKz
  *
  * SPDX-License-Identifier: MIT
+ * 
+ * 
+ * The client is responsible to render an incoming demo file. The final video
+ * file will be send back to the server once it finished rendering.
  */
 
 import "https://deno.land/std@0.177.0/dotenv/load.ts";

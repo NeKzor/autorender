@@ -2,6 +2,12 @@
  * Copyright (c) 2023, NeKz
  *
  * SPDX-License-Identifier: MIT
+ * 
+ * 
+ * The server is mostly responsible for:
+ *    - Handling incoming websocket messages from the Discord bot
+ *    - Handling incoming websocket messages from clients
+ *    - Serving the web platform (`/app`)
  */
 
 import "https://deno.land/std@0.177.0/dotenv/load.ts";
@@ -62,13 +68,14 @@ const IS_HTTPS = SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none";
 const MAX_VIDEOS_PER_REQUEST = 3;
 const AUTORENDER_V1 = "autorender-v1";
 const DISCORD_AUTHORIZE_LINK = (() => {
-  const url = new URLSearchParams();
-  url.set("client_id", Deno.env.get("DISCORD_CLIENT_ID")!);
-  url.set("redirect_uri", Deno.env.get("DISCORD_REDIRECT_URI")!);
-  url.set("response_type", "code");
-  url.set("scope", "identify");
-  return `https://discord.com/api/oauth2/authorize?${url.toString()}`;
+  const params = new URLSearchParams();
+  params.set("client_id", Deno.env.get("DISCORD_CLIENT_ID")!);
+  params.set("redirect_uri", Deno.env.get("DISCORD_REDIRECT_URI")!);
+  params.set("response_type", "code");
+  params.set("scope", "identify");
+  return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 })();
+const SERVER_DOMAIN = new URL(Deno.env.get("DISCORD_REDIRECT_URI")!).host;
 const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
   Deno.env.get("AUTORENDER_BOT_TOKEN")!
 );
@@ -100,6 +107,20 @@ const useRateLimiter = await RateLimiter({
 });
 
 let discordBot: WebSocket | null = null;
+
+// TODO: Hmm, this might not be a good idea if a render constantly fails.
+//       Maybe only send a message once?
+const sendErrorToBot = (error: {
+  status: number;
+  message: string;
+  requested_by_id: string;
+}) => {
+  if (discordBot) {
+    discordBot.send(JSON.stringify({ type: "error", data: error }));
+  } else {
+    logger.warn("Bot not connected. Failed to send error status.", error);
+  }
+};
 
 const b2 = new BackblazeClient({ userAgent: AUTORENDER_V1 });
 
@@ -393,11 +414,11 @@ router.get("/connect/bot", async (ctx) => {
   discordBot.onmessage = (message) => {
     logger.info("Bot:", message.data);
 
-    const { type } = JSON.parse(message.data);
+    const { type, data } = JSON.parse(message.data);
 
     switch (type) {
-      case "status": {
-        discordBot?.send(JSON.stringify({ type: "response", data: "ok" }));
+      case "notified": {
+        logger.info("Notified", data);
         break;
       }
       default: {
@@ -473,8 +494,8 @@ router.get("/connect/client", async (ctx) => {
         const videoId = view.getBigUint64(0);
 
         const [video] = await db.query<Video>(
-          `select * from videos where video_id = ?`,
-          [videoId]
+          `select * from videos where video_id = ? and pending = ?`,
+          [videoId, PendingStatus.StartedRender]
         );
 
         if (!video) {
@@ -483,47 +504,61 @@ router.get("/connect/client", async (ctx) => {
           );
         }
 
-        const videoFile = join("./videos", `${video.video_id}.mp4`);
-        const videoBuffer = buffer.slice(8);
-        await Deno.writeFile(videoFile, new Uint8Array(videoBuffer));
+        const fileName = `${video.video_id}.mp4`;
+
+        // TODO: Is it useful to store the video temporarily? Maybe for debugging?
+        //const videoFile = join("./videos", fileName);
 
         try {
-          console.log("Uploading video file", videoFile);
+          const videoBuffer = buffer.slice(8);
+          //await Deno.writeFile(videoFile, new Uint8Array(videoBuffer));
+
+          logger.info("Uploading video file", fileName);
 
           const upload = await b2.uploadFile({
             bucketId: B2_BUCKET_ID,
-            fileName: `${video.video_id}.mp4`,
+            fileName,
             fileContents: videoBuffer,
             contentType: "video/mp4",
           });
 
-          console.log({ upload });
-
           const videoUrl = b2.getDownloadUrl(upload.fileName);
 
-          console.log({ videoUrl });
+          logger.info("Uploaded", upload, videoUrl);
 
           // TODO: small/large thumbnail
 
           await db.execute(
             `update videos
-             set pending = ?
-             , video_url = ?
-             , thumb_url = ?
-             , rendered_at = current_timestamp()
-             where video_id = ?`,
-            [PendingStatus.FinishedRender, videoUrl, "", video.video_id]
+                set pending = ?
+                  , video_url = ?
+                  , thumb_url = ?
+                  , rendered_at = current_timestamp()
+               where video_id = ?
+                 and pending = ?`,
+            [
+              PendingStatus.FinishedRender,
+              videoUrl,
+              "",
+              video.video_id,
+              PendingStatus.StartedRender,
+            ]
           );
 
-          if (discordBot) {
-            const notification = {
-              video_id: video.video_id,
-              title: video.title,
-              requested_by_id: video.requested_by_id,
-            };
+          const uploadMessage = {
+            video_id: video.video_id,
+            title: video.title,
+            requested_by_id: video.requested_by_id,
+          };
 
+          if (discordBot) {
             discordBot.send(
-              JSON.stringify({ type: "upload", data: notification })
+              JSON.stringify({ type: "upload", data: uploadMessage })
+            );
+          } else {
+            logger.warn(
+              "Bot not connected. Failed to send upload message.",
+              uploadMessage
             );
           }
 
@@ -542,12 +577,28 @@ router.get("/connect/client", async (ctx) => {
               data: { status: Status.InternalServerError },
             })
           );
-        } finally {
+
           try {
-            Deno.remove(videoFile);
+            await db.execute(
+              `update videos
+                  set pending = ?
+                 where video_id = ?
+                   and pending = ?`,
+              [
+                PendingStatus.RequiresRender,
+                video.video_id,
+                PendingStatus.StartedRender,
+              ]
+            );
           } catch (err) {
-            logger.error("failed to remove temporary file:", err.toString());
+            logger.error(err);
           }
+        } finally {
+          // try {
+          //   Deno.remove(videoFile);
+          // } catch (err) {
+          //   logger.error("failed to remove temporary file:", err.toString());
+          // }
         }
       } else {
         const { type, data } = JSON.parse(message.data);
@@ -652,7 +703,6 @@ router.get("/connect/client", async (ctx) => {
                 type: "start",
               })
             );
-
             break;
           }
           case "error": {
@@ -838,13 +888,30 @@ const routeToApp = async (ctx: Context) => {
     return ctx.response.redirect(location);
   }
 
-  const matchedPath = context.matches.at(0)?.route?.path;
+  const [match] = context.matches;
+  const matchedPath = match?.route?.path;
   const matchedRoute = routes.find((route) => route.path === matchedPath);
-  const meta = matchedRoute?.meta ? matchedRoute.meta() : { title: "" };
+  const meta = (() => {
+    if (!matchedRoute?.meta || !match) {
+      return {};
+    }
+
+    const [_, loadersData] =
+      Object.entries(context.loaderData).find(
+        ([id]) => id === match.route.id
+      ) ?? [];
+
+    if (loadersData === undefined) {
+      return {};
+    }
+
+    return matchedRoute.meta(loadersData);
+  })();
 
   const initialState: ReactAppState = {
     user,
     meta,
+    domain: SERVER_DOMAIN,
     discordAuthorizeLink: DISCORD_AUTHORIZE_LINK,
   };
 

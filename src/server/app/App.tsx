@@ -11,8 +11,23 @@ import {
   AppDispatchContext,
   reducer,
 } from "./AppState.ts";
+import { RouteMeta } from "./Routes.ts";
 
-const domain = "autorender.portal2.local";
+const metaNames: (keyof RouteMeta)[] = [
+  "title",
+  "description",
+  "og:type",
+  "og:url",
+  "og:title",
+  "og:description",
+  "og:image",
+  "twitter:type",
+  "twitter:url",
+  "twitter:title",
+  "twitter:description",
+  "twitter:image",
+  "twitter:card",
+];
 
 type AppProps = {
   initialState: AppState;
@@ -22,6 +37,8 @@ type AppProps = {
 
 const App = ({ initialState, nonce, children }: AppProps) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  const { meta, domain } = state;
+  const title = meta.title !== undefined ? `${meta.title} | ${domain}` : domain;
 
   return (
     <html lang="en" dir="ltr">
@@ -32,26 +49,23 @@ const App = ({ initialState, nonce, children }: AppProps) => {
           content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
         />
         <meta
-            http-equiv="Content-Security-Policy"
-            content={`
+          http-equiv="Content-Security-Policy"
+          content={`
                 default-src 'self';
                 script-src 'nonce-${nonce}';
                 style-src 'self' https://fonts.googleapis.com;
                 font-src 'self' https://fonts.gstatic.com;
+                media-src 'self' *.backblazeb2.com;
                 img-src 'self';
               `}
         />
-        <meta name="referrer" content="no-referrer" />
         <meta name="theme-color" content="#f44336" />
-        <meta property="og:site_name" content={domain} />
-        <meta property="og:type" content="object" />
-        <meta property="og:title" content="Automatic demo render service" />
-        <meta property="og:url" content={`https://${domain}`} />
-        <meta
-          property="og:description"
-          content="Render, share and view demo renders."
-        />
-        <title>{state.meta.title + ' | ' + domain}</title>
+        {metaNames
+          .filter((name) => meta[name] !== undefined)
+          .map((name) => {
+            return <meta name={name} content={meta[name]} />;
+          })}
+        <title>{title}</title>
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"

@@ -7,30 +7,58 @@
 import * as React from "https://esm.sh/react@18.2.0";
 import Footer from "../components/Footer.tsx";
 import { DataLoader, PageMeta, json, useLoaderData } from "../Routes.ts";
-import { User } from "../../models.ts";
+import { User, Video } from "../../models.ts";
 
-type LoaderData = User | null;
+type Data = {
+  user: User | undefined;
+  videos: Video[];
+};
 
-export const meta: PageMeta = () => {
+export const meta: PageMeta<Data> = (data) => {
   return {
-    title: "Profile",
+    title: data.user?.username ?? 'Profile not found :(',
   };
 };
 
 export const loader: DataLoader = async ({ params, context }) => {
-  const { rows } = await context.db.execute<User>(
+  const [user] = await context.db.query<User>(
     `select * from users where username = ?`,
     [params.username]
   );
-  return json<LoaderData>(rows?.at(0) ?? null);
+
+  const videos = user
+    ? await context.db.query<Video>(
+        `select * from videos where requested_by_id = ? order by created_at desc`,
+        [user.discord_id]
+      )
+    : [];
+  
+  return json<Data>({ user, videos });
 };
 
 export const Profile = () => {
-  const data = useLoaderData<LoaderData>();
+  const { user, videos } = useLoaderData<Data>();
 
   return (
     <>
-      <div>{data?.username ?? 'profile not found :('}</div>
+      <div>{user?.username ?? "profile not found :("}</div>
+      {user && (
+        <>
+          <div>Requested {videos.length} videos</div>
+          <ul>
+            {videos.map((video) => {
+              return (
+                <li>
+                  <a href={`/videos/${video.video_id}`}>
+                    {video.title ?? "untitled"}
+                  </a>{" "}
+                  | {video.created_at}
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
       <Footer />
     </>
   );
