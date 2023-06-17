@@ -33,7 +33,7 @@ CREATE TABLE access_tokens (
 DROP TABLE IF EXISTS videos;
 
 CREATE TABLE videos (
-    video_id BIGINT NOT NULL AUTO_INCREMENT,
+    video_id BIGINT NOT NULL AUTO_INCREMENT, -- TODO: use UUID
     title VARCHAR(32),
     comment VARCHAR(128),
     requested_by_name VARCHAR(64) NOT NULL,
@@ -45,6 +45,7 @@ CREATE TABLE videos (
     map_url VARCHAR(1024),
     pending INT NOT NULL DEFAULT 0,
     rendered_by BIGINT,
+    rendered_by_token BIGINT,
     rendered_at TIMESTAMP,
     render_node VARCHAR(64),
     video_url VARCHAR(1024),
@@ -55,6 +56,7 @@ CREATE TABLE videos (
     deleted_at TIMESTAMP,
     PRIMARY KEY (video_id),
     FOREIGN KEY (rendered_by) REFERENCES users(user_id),
+    FOREIGN KEY (rendered_by_token) REFERENCES access_tokens(access_token_id),
     FOREIGN KEY (deleted_by) REFERENCES users(user_id),
     FULLTEXT (title)
 );

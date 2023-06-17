@@ -23,9 +23,9 @@ export interface Database extends Omit<Client, "connect" | "query" | "execute"> 
 }
 
 export const db = await (new Client() as Database).connect({
-  hostname: Deno.env.get("DB_HOST") ?? "127.0.0.1",
-  port: parseInt(Deno.env.get("DB_PORT") ?? "3306", 10),
-  username: Deno.env.get("DB_USER") ?? "p2render",
-  password: Deno.env.get("DB_PASS") ?? "p2render",
-  db: Deno.env.get("DB_NAME") ?? "p2render",
+  hostname: Deno.env.get("DB_HOST")!,
+  port: parseInt(Deno.env.get("DB_PORT")!, 10),
+  username: Deno.env.get("DB_USER")!,
+  password: Deno.env.get("DB_PASS")!,
+  db: Deno.env.get("DB_NAME")!,
 });

@@ -88,9 +88,11 @@ export interface Video {
   render_options: string;
   file_name: string;
   file_path: string;
-  map_url: string;
+  file_url: string;
+  full_map_name: string;
   pending: PendingStatus;
   rendered_by: number;
+  rendered_by_token: number;
   rendered_at: number;
   video_url: string;
   thumb_url: string;

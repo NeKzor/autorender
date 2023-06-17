@@ -59,6 +59,7 @@ import {
   routeHandler,
   routes,
 } from "./app/Routes.ts";
+import { getDemoInfo } from "./demo.ts";
 
 const SERVER_HOST = Deno.env.get("SERVER_HOST")!;
 const SERVER_PORT = parseInt(Deno.env.get("SERVER_PORT")!, 10);
@@ -206,18 +207,25 @@ apiV1
       return ctx.throw(Status.BadRequest);
     }
 
+    // TODO:
+    //    * Figure out if UGC changes when the revision of a workshop item updates.
+    //    * Is map CRC useful?
+    //    * Should we replicate mirror.nekz.me data locally?
+    //    * Should we save map data in the database?
+
+    const filePath = file.filename;
+    const demoInfo = await getDemoInfo(await Deno.readFile(filePath));
+    if (!demoInfo) {
+      return ctx.throw(Status.BadRequest);
+    }
+
+    if (demoInfo.isWorkshopMap && !demoInfo.fileUrl) {
+      logger.error(`failed to resolve workshop map`);
+      return ctx.throw(Status.InternalServerError);
+    }
+
     const requestedByName = authUser?.username ?? data.fields.requested_by_name;
     const requestedById = authUser?.discord_id ?? data.fields.requested_by_id;
-    const filePath = join("./demos", basename(file.filename));
-
-    // TODO: Use sdp.js (or rewrite in Deno) to parse demos:
-    //       * Get game dir
-    //       * Resolve non-workshop maps
-    //       * Get UGC, then lookup workshop url in mirror.nekz.me
-    //       * Figure out if UGC changes when revision of workshop item updates
-    //       * Get map CRC?
-    //       * Probably want to replicate mirror.nekz.me data locally
-    //       * Probably want to populate map data in database
 
     const result = await db.execute(
       `insert into videos (
@@ -228,9 +236,12 @@ apiV1
           , render_options
           , file_name
           , file_path
+          , file_url
+          , full_map_name
           , pending
         ) values (
             ?
+          , ?
           , ?
           , ?
           , ?
@@ -247,6 +258,8 @@ apiV1
         data.fields.render_options,
         file.originalName,
         filePath,
+        demoInfo.fileUrl,
+        demoInfo.fullMapName,
         PendingStatus.RequiresRender,
       ]
     );
@@ -526,20 +539,18 @@ router.get("/connect/client", async (ctx) => {
 
           logger.info("Uploaded", upload, videoUrl);
 
-          // TODO: small/large thumbnail
+          // TODO: Small and large thumbnails.
 
           await db.execute(
             `update videos
                 set pending = ?
                   , video_url = ?
-                  , thumb_url = ?
                   , rendered_at = current_timestamp()
                where video_id = ?
                  and pending = ?`,
             [
               PendingStatus.FinishedRender,
               videoUrl,
-              "",
               video.video_id,
               PendingStatus.StartedRender,
             ]
@@ -633,12 +644,14 @@ router.get("/connect/client", async (ctx) => {
                 `update videos
                  set pending = ?
                    , rendered_by = ?
+                   , rendered_by_token = ?
                    , render_node = ?
                  where video_id = ?
                    and pending = ?`,
                 [
                   PendingStatus.StartedRender,
                   accessToken.user_id,
+                  accessToken.access_token_id,
                   accessToken.token_name,
                   videoId,
                   PendingStatus.RequiresRender,
@@ -656,8 +669,8 @@ router.get("/connect/client", async (ctx) => {
               }
 
               const [{ file_path, ...video }] = await db.query<
-                Pick<Video, "video_id" | "file_path">
-              >(`select video_id, file_path from videos where video_id = ?`, [
+                Pick<Video, "video_id" | "file_url" | "full_map_name" | "file_path">
+              >(`select video_id, file_url, full_map_name, file_path from videos where video_id = ?`, [
                 videoId,
               ]);
 
@@ -698,6 +711,9 @@ router.get("/connect/client", async (ctx) => {
             break;
           }
           case "downloaded": {
+            // TODO: Mark all videos as an error which did not come back here.
+            //const videos = data as Pick<Video, 'video_id' | 'file_url'>;
+
             ws.send(
               JSON.stringify({
                 type: "start",

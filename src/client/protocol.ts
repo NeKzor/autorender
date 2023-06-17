@@ -2,8 +2,7 @@
  * Copyright (c) 2023, NeKz
  *
  * SPDX-License-Identifier: MIT
- * 
- * 
+ *
  * This defines the protocol between the server and the client.
  */
 
@@ -22,7 +21,7 @@ export type AutorenderMessage<T extends AutorenderDataType, P> = {
 
 export type AutorenderMessageVideos = AutorenderMessage<
   AutorenderDataType.Videos,
-  Partial<Video>[]
+  Pick<Video, "video_id">[]
 >;
 
 export type AutorenderMessageStart = AutorenderMessage<

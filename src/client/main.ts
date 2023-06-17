@@ -2,8 +2,7 @@
  * Copyright (c) 2023, NeKz
  *
  * SPDX-License-Identifier: MIT
- * 
- * 
+ *
  * The client is responsible to render an incoming demo file. The final video
  * file will be send back to the server once it finished rendering.
  */
@@ -14,17 +13,18 @@ import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
 import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
 import { logger } from "./logger.ts";
 import { AutorenderDataType, AutorenderMessages } from "./protocol.ts";
-import { Video } from "../server/models.ts";
+import { Video as VideoModel } from "../server/models.ts";
 
 const GAME_DIR = Deno.env.get("GAME_DIR")!;
 const GAME_MOD = Deno.env.get("GAME_MOD")!;
 const GAME_EXE = Deno.env.get("GAME_EXE")!;
+const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
 
 const AUTORENDER_FOLDER_NAME = Deno.env.get("AUTORENDER_FOLDER_NAME")!;
 const AUTORENDER_PROTOCOL = Deno.env.get("AUTORENDER_PROTOCOL")!;
 const AUTORENDER_CFG = Deno.env.get("AUTORENDER_CFG")!;
 const AUTORENDER_CONNECT_URI = Deno.env.get("AUTORENDER_CONNECT_URI")!;
-const AUTORENDER_DIR = join(GAME_DIR, GAME_MOD, AUTORENDER_FOLDER_NAME);
+const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
 //const AUTORENDER_TIMEOUT_BASE = parseInt(Deno.env.get("AUTORENDER_TIMEOUT_BASE")!);
 const AUTORENDER_CHECK_INTERVAL = 1_000;
 
@@ -40,6 +40,8 @@ enum ClientStatus {
   Idle = 0,
   Rendering = 1,
 }
+
+type Video = Pick<VideoModel, "video_id" | "file_url" | "full_map_name">;
 
 interface ClientState {
   toDownload: number;
@@ -97,12 +99,44 @@ const connect = () => {
         logger.info("decoded payload:", decoded);
         logger.info("demo byte length:", demo.byteLength);
 
-        const video = JSON.parse(decoded) as Video;
+        const video = JSON.parse(decoded) as Pick<
+          Video,
+          "video_id" | "file_url" | "full_map_name"
+        >;
+
+        if (video.file_url) {
+          try {
+            const steamResponse = await fetch(video.file_url, {
+              headers: {
+                "User-Agent": "autorender-client-v1",
+              },
+            });
+
+            if (!steamResponse.ok) {
+              throw new Error(
+                `Failed to download map ${video.file_url} for video ${video.video_id} : ${steamResponse.status}`,
+              );
+            }
+
+            const map = await steamResponse.arrayBuffer();
+
+            await Deno.writeFile(
+              join(GAME_MOD_PATH, `${video.full_map_name}.bsp`),
+              new Uint8Array(map),
+            );
+          } catch (err) {
+            console.error(err);
+            // TODO: Handle the error.
+            state.toDownload--;
+            throw err;
+          }
+        }
+
         state.videos.push(video);
 
         await Deno.writeFile(
           join(AUTORENDER_DIR, `${video.video_id}.dem`),
-          new Uint8Array(demo)
+          new Uint8Array(demo),
         );
 
         if (state.videos.length === state.toDownload) {
@@ -110,7 +144,7 @@ const connect = () => {
             JSON.stringify({
               type: "downloaded",
               data: { count: state.toDownload },
-            })
+            }),
           );
         }
       } else {
@@ -134,7 +168,7 @@ const connect = () => {
                   } catch (err) {
                     console.error(
                       `failed to remove file ${filename}:`,
-                      err.toString()
+                      err.toString(),
                     );
                   }
                 }
@@ -189,14 +223,14 @@ const connect = () => {
                   const videoId = new Uint8Array(8);
                   new DataView(videoId.buffer).setBigUint64(
                     0,
-                    BigInt(video_id)
+                    BigInt(video_id),
                   );
 
                   await buffer.write(videoId);
                   await buffer.write(
                     await Deno.readFile(
-                      join(AUTORENDER_DIR, `${video_id}.dem.mp4`)
-                    )
+                      join(AUTORENDER_DIR, `${video_id}.dem.mp4`),
+                    ),
                   );
 
                   ws.send(buffer.bytes());
@@ -207,7 +241,7 @@ const connect = () => {
                     JSON.stringify({
                       type: "error",
                       data: { video_id, message: err.toString() },
-                    })
+                    }),
                   );
                 }
               }
@@ -240,7 +274,7 @@ const connect = () => {
       console.error(err);
 
       ws.send(
-        JSON.stringify({ type: "error", data: { message: err.toString() } })
+        JSON.stringify({ type: "error", data: { message: err.toString() } }),
       );
 
       fetchNextVideos();
@@ -299,7 +333,7 @@ const launchGame = async () => {
 
   await Deno.writeTextFile(
     join(GAME_DIR, "portal2", "cfg", "autoexec.cfg"),
-    autoexec.join("\n")
+    autoexec.join("\n"),
   );
 
   const getCommand = () => {
