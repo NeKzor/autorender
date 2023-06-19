@@ -105,30 +105,42 @@ const connect = () => {
         >;
 
         if (video.file_url) {
+          const mapFile = join(GAME_MOD_PATH, 'maps', `${video.full_map_name}.bsp`);
+          let downloadMapFile = false;
+
           try {
-            const steamResponse = await fetch(video.file_url, {
-              headers: {
-                "User-Agent": "autorender-client-v1",
-              },
-            });
+            await Deno.stat(mapFile);
+            logger.info("map", mapFile, "already downloaded");
+          } catch {
+            downloadMapFile = true;
+          }
 
-            if (!steamResponse.ok) {
-              throw new Error(
-                `Failed to download map ${video.file_url} for video ${video.video_id} : ${steamResponse.status}`,
-              );
+          if (downloadMapFile) {
+            logger.info("downloading map", video.file_url);
+
+            try {
+              const steamResponse = await fetch(video.file_url, {
+                headers: {
+                  "User-Agent": "autorender-client-v1",
+                },
+              });
+
+              if (!steamResponse.ok) {
+                throw new Error(
+                  `Failed to download map ${video.file_url} for video ${video.video_id} : ${steamResponse.status}`,
+                );
+              }
+
+              const map = await steamResponse.arrayBuffer();
+              await Deno.writeFile(mapFile, new Uint8Array(map));
+
+              logger.info("downloaded map to", mapFile);
+            } catch (err) {
+              logger.error(err);
+              // TODO: Handle the error.
+              state.toDownload--;
+              throw err;
             }
-
-            const map = await steamResponse.arrayBuffer();
-
-            await Deno.writeFile(
-              join(GAME_MOD_PATH, `${video.full_map_name}.bsp`),
-              new Uint8Array(map),
-            );
-          } catch (err) {
-            console.error(err);
-            // TODO: Handle the error.
-            state.toDownload--;
-            throw err;
           }
         }
 

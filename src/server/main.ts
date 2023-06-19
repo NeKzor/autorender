@@ -249,6 +249,7 @@ apiV1
           , ?
           , ?
           , ?
+          , ?
         )`,
       [
         data.fields.title,
@@ -810,14 +811,12 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
 
   const discordUser = (await usersResponse.json()) as DiscordUser;
 
-  const {
-    rows: [{ user_id }],
-  } = await db.execute<Pick<User, "user_id">>(
+  const [authUser] = await db.query<Pick<User, "user_id">>(
     `select user_id from users where discord_id = ?`,
     [discordUser.id]
   );
 
-  if (user_id) {
+  if (authUser?.user_id) {
     await db.execute(
       `update users set username = ?, discord_avatar = ? where user_id = ?`,
       [
@@ -825,7 +824,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
           ? `${discordUser.username}#${discordUser.discriminator}`
           : discordUser.username,
         discordUser.avatar,
-        user_id,
+        authUser.user_id,
       ]
     );
   } else {
@@ -949,6 +948,7 @@ type AppState = {
 
 const app = new Application<AppState>();
 
+// TODO: error handling
 app.addEventListener("error", (ev) => {
   logger.error(ev.error);
 });

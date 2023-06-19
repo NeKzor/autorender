@@ -1,7 +1,7 @@
 {
     "tasks": {
-        "start": "deno run --allow-env --allow-read=\".env,.env.defaults,.env.example,log/client,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/autorender\" --allow-write=\"log/client,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/autorender,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/cfg/autoexec.cfg\" --allow-run=/bin/bash --allow-net=autorender.portal2.local:8001 main.ts",
-        "start:dev": "deno run --allow-env --allow-read=\".env,.env.defaults,.env.example,log/client,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/autorender\" --allow-write=\"log/client,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/autorender,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/cfg/autoexec.cfg\" --allow-run=/bin/bash --allow-net=autorender.portal2.local:8001 main.ts --watch",
+        "start": "deno run --allow-env --allow-read=\".env,.env.defaults,.env.example,log/client,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/autorender\" --allow-write=\"log/client,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/autorender,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/cfg/autoexec.cfg\" --allow-run=/bin/bash --allow-net=autorender.portal2.local:8001,steamusercontent-a.akamaihd.net main.ts",
+        "start:dev": "deno run --allow-env --allow-read=\".env,.env.defaults,.env.example,log/client,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/autorender\" --allow-write=\"log/client,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/autorender,/home/nekz/.steam/steam/steamapps/common/Portal 2/portal2/cfg/autoexec.cfg\" --allow-run=/bin/bash --allow-net=autorender.portal2.local:8001,steamusercontent-a.akamaihd.net main.ts --watch",
         "test": "deno test --allow-net --allow-read --allow-env"
     },
     "fmt": {
