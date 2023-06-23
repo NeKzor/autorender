@@ -370,7 +370,7 @@ const launchGame = async () => {
       "-game",
       GAME_MOD,
       "-novid",
-      "-vulkan",
+      //"-vulkan", // TODO: vulkan is not always available
       "-windowed",
       "-w",
       "1280",
