@@ -62,7 +62,7 @@ bot.gateway.manager.createShardOptions.makePresence = (shardId: number) => {
     status: "online",
     activities: [
       {
-        name: "Render videos On-Demand!",
+        name: "your rendered demos!",
         type: ActivityTypes.Watching,
         createdAt: Date.now(),
       },
