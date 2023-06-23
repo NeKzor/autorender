@@ -5,7 +5,6 @@
  */
 
 import { NetMessages, SourceDemoParser } from "npm:@nekz/sdp";
-import { SvcServerInfo } from "../../../../.cache/deno/npm/registry.npmjs.org/@nekz/sdp/0.1.0/esm/src/types/NetMessages.js";
 
 export const getDemoInfo = async (buffer: ArrayBuffer) => {
   try {
@@ -15,8 +14,10 @@ export const getDemoInfo = async (buffer: ArrayBuffer) => {
       .adjustTicks()
       .adjustRange();
 
+    // TODO: fix exports in sdp
     const info = demo.findPacket(NetMessages.SvcServerInfo) as
-      | SvcServerInfo
+      // deno-lint-ignore no-explicit-any
+      | any
       | undefined;
 
     if (!info) {
