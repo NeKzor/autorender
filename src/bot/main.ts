@@ -25,10 +25,7 @@ import { events } from "./events/mod.ts";
 import { updateCommands } from "./utils/helpers.ts";
 import { BotDataType, BotMessages } from "./protocol.ts";
 
-const videoUrl = (() => {
-  const { host, protocol } = new URL(Deno.env.get("AUTORENDER_CONNECT_URI")!);
-  return `http${protocol === "http" ? "s" : ""}://${host}/videos/`;
-})();
+const videoUrl = new URL('videos', Deno.env.get("AUTORENDER_PUBLIC_URI")!).toString();
 
 console.log({ videoUrl });
 
@@ -86,7 +83,7 @@ worker.addEventListener("message", (message) => {
       sendDirectMessage(bot, BigInt(data.requested_by_id!), {
         content: [
           `📽️ Finished rendering "${data.title ?? "*untitled*"}" video`,
-          `📺️ ${videoUrl + data.video_id}`,
+          `📺️ ${videoUrl}/${data.video_id}`,
         ].join("\n"),
       });
       break;
