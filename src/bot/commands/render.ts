@@ -13,6 +13,8 @@ import {
 } from "../deps.ts";
 import { createCommand } from "./mod.ts";
 
+const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
+
 createCommand({
   name: "render",
   description: "Render a demo file!",
@@ -70,10 +72,9 @@ createCommand({
 
       body.append("files", await demo.blob());
 
-      const requestedByName =
-        interaction.user.discriminator !== "0"
-          ? `${interaction.user.username}#${interaction.user.discriminator}`
-          : interaction.user.username;
+      const requestedByName = interaction.user.discriminator !== "0"
+        ? `${interaction.user.username}#${interaction.user.discriminator}`
+        : interaction.user.username;
 
       const requestedById = interaction.user.id.toString();
 
@@ -81,17 +82,19 @@ createCommand({
       body.append("requested_by_id", requestedById);
 
       const response = await fetch(
-        "http://autorender.portal2.local:8001/api/v1/videos/render",
+        `${AUTORENDER_BASE_API}/api/v1/videos/render`,
         {
           method: "PUT",
           headers: {
             "User-Agent": "autorender-bot v1.0",
-            Authorization: `Bearer ${encodeURIComponent(
-              Deno.env.get("AUTORENDER_BOT_TOKEN")!
-            )}`,
+            Authorization: `Bearer ${
+              encodeURIComponent(
+                Deno.env.get("AUTORENDER_BOT_TOKEN")!,
+              )
+            }`,
           },
           body,
-        }
+        },
       );
 
       if (!response.ok) {
@@ -108,7 +111,7 @@ createCommand({
           data: {
             content: `📽️ Rendering ${title ?? "*untitled*"} video...`,
           },
-        }
+        },
       );
     } catch (err) {
       console.error(err);
@@ -121,7 +124,7 @@ createCommand({
           data: {
             content: `❌️ Failed to render file`,
           },
-        }
+        },
       );
     }
   },
