@@ -46,7 +46,7 @@ export const resolveFileUrl = async (mapName: string) => {
 
   if (path === "workshop") {
     const res = await fetch(
-      `http://steampowered.com.mirror.nekz.local:8081/api/v1/workshop/620/files/ugc/${ugc}`,
+      `http://steampowered.com.mirror.nekz.me/api/v1/workshop/620/files/ugc/${ugc}`,
       {
         headers: {
           "User-Agent": "autorender-v1",
