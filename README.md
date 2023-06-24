@@ -14,6 +14,29 @@ Convert any Portal 2 demo file into a video with: `/render <attachment>`
 [mirror.nekz.me]: https://github.com/NeKzor/mirror
 [Deno]: https://deno.com/runtime
 
+## TODO
+
+- Resolves render options
+- Generate thumbnails
+- Design frontend platform
+  - Profiles
+  - Search
+  - Users
+  - Audit logs
+  - Demo upload
+- Support game mods
+- Unlisted videos
+- Figure out how private videos would work
+- Package client code
+  - Installer CLI
+  - Download SAR/autorender.cfg automatically
+  - Single executable
+- Figure out docker
+- SAR wishlist:
+  - Remove unnecessary watermark
+  - Sandbox commands like in 1.0
+  - IPC between client and game process
+
 ## Network Topology
 
 ```
