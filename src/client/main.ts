@@ -384,39 +384,4 @@ const launchGame = async () => {
   });
 };
 
-const testRender = async () => {
-  state.videos = [{ video_id: 1 } as Video];
-  //state.videos = [{ video_id: 1 } as Video, { video_id: 2 } as Video];
-  //state.videos = [{ video_id: 1 } as Video, { video_id: 2 } as Video, { video_id: 3 } as Video];
-
-  const command = await launchGame();
-
-  let gameProcess: Deno.ChildProcess | null = null;
-  logger.info("spawning process..");
-
-  Deno.addSignalListener("SIGINT", () => {
-    logger.info("exiting...");
-
-    try {
-      gameProcess?.kill();
-    } catch (err) {
-      logger.error(err);
-    }
-
-    Deno.exit();
-  });
-
-  gameProcess = command.spawn();
-  logger.info("spawned");
-
-  logger.info("output");
-  const { code } = await gameProcess.output();
-
-  logger.info("game exited", { code });
-
-  gameProcess = null;
-};
-
-//await testRender();
-
 connect();
