@@ -741,12 +741,14 @@ router.get("/connect/client", async (ctx) => {
     } catch (err) {
       logger.error(err);
 
-      ws.send(
-        JSON.stringify({
-          type: "error",
-          data: { status: Status.InternalServerError },
-        })
-      );
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            data: { status: Status.InternalServerError },
+          })
+        );
+      }
     }
   };
 

@@ -55,8 +55,10 @@ const state: ClientState = {
   status: ClientStatus.Idle,
 };
 
+let ws: WebSocket | null = null;
+
 const connect = () => {
-  const ws = new WebSocket(AUTORENDER_CONNECT_URI, [
+  ws = new WebSocket(AUTORENDER_CONNECT_URI, [
     AUTORENDER_PROTOCOL,
     encodeURIComponent(Deno.env.get("AUTORENDER_API_KEY")!),
   ]);
@@ -69,7 +71,9 @@ const connect = () => {
     }
 
     check = setTimeout(() => {
-      ws.send(JSON.stringify({ type: "videos", data: { game: GAME_MOD } }));
+      if (ws!.readyState ===  WebSocket.OPEN) {
+        ws!.send(JSON.stringify({ type: "videos", data: { game: GAME_MOD } }));
+      }
     }, AUTORENDER_CHECK_INTERVAL);
   };
 
@@ -150,7 +154,7 @@ const connect = () => {
         );
 
         if (state.videos.length === state.toDownload) {
-          ws.send(
+          ws!.send(
             JSON.stringify({
               type: "downloaded",
               data: { count: state.toDownload },
@@ -185,7 +189,7 @@ const connect = () => {
               }
 
               for (const { video_id } of data) {
-                ws.send(JSON.stringify({ type: "demo", data: { video_id } }));
+                ws!.send(JSON.stringify({ type: "demo", data: { video_id } }));
               }
             } else {
               fetchNextVideos();
@@ -243,11 +247,11 @@ const connect = () => {
                     ),
                   );
 
-                  ws.send(buffer.bytes());
+                  ws!.send(buffer.bytes());
                 } catch (err) {
                   console.error(err);
 
-                  ws.send(
+                  ws!.send(
                     JSON.stringify({
                       type: "error",
                       data: { video_id, message: err.toString() },
@@ -257,7 +261,7 @@ const connect = () => {
               }
             } catch (err) {
               console.error(err);
-              ws.send(JSON.stringify({ type: "error", data: err.toString() }));
+              ws!.send(JSON.stringify({ type: "error", data: err.toString() }));
             } finally {
               state.toDownload = 0;
               state.videos = [];
@@ -283,9 +287,11 @@ const connect = () => {
     } catch (err) {
       console.error(err);
 
-      ws.send(
-        JSON.stringify({ type: "error", data: { message: err.toString() } }),
-      );
+      if (ws!.readyState ===  WebSocket.OPEN) {
+        ws!.send(
+          JSON.stringify({ type: "error", data: { message: err.toString() } }),
+        );
+      }
 
       fetchNextVideos();
     }
