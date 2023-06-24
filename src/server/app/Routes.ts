@@ -84,7 +84,8 @@ export type OpenGraphFacebook =
   | "url"
   | "title"
   | "description"
-  | "image";
+  | "image"
+  | "video";
 export type OpenGraphTwitter = OpenGraphFacebook;
 export type OpenGraphTwitterCard =
   | "summary"

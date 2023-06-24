@@ -21,6 +21,7 @@ const metaNames: (keyof RouteMeta)[] = [
   "og:title",
   "og:description",
   "og:image",
+  "og:video",
   "twitter:type",
   "twitter:url",
   "twitter:title",
