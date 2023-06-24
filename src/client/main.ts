@@ -85,7 +85,7 @@ const connect = () => {
 
   ws.onmessage = async (message) => {
     if (state.status === ClientStatus.Rendering) {
-      return console.warn("got message during rendering... should not happen");
+      return logger.warn("got message during rendering... should not happen");
     }
 
     try {
@@ -180,7 +180,7 @@ const connect = () => {
                   try {
                     Deno.remove(filename);
                   } catch (err) {
-                    console.error(
+                    logger.error(
                       `failed to remove file ${filename}:`,
                       err.toString(),
                     );
@@ -212,7 +212,7 @@ const connect = () => {
                 try {
                   gameProcess?.kill();
                 } catch (err) {
-                  console.error(err);
+                  logger.error(err);
                 }
 
                 Deno.exit();
@@ -249,7 +249,7 @@ const connect = () => {
 
                   ws!.send(buffer.bytes());
                 } catch (err) {
-                  console.error(err);
+                  logger.error(err);
 
                   ws!.send(
                     JSON.stringify({
@@ -260,7 +260,7 @@ const connect = () => {
                 }
               }
             } catch (err) {
-              console.error(err);
+              logger.error(err);
               ws!.send(JSON.stringify({ type: "error", data: err.toString() }));
             } finally {
               state.toDownload = 0;
@@ -273,19 +273,19 @@ const connect = () => {
             break;
           }
           case AutorenderDataType.Error: {
-            console.error(`error code: ${data.status}`);
+            logger.error(`error code: ${data.status}`);
 
             fetchNextVideos();
             break;
           }
           default: {
-            console.error(`Unhandled type: ${type}`);
+            logger.error(`Unhandled type: ${type}`);
             break;
           }
         }
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
 
       if (ws!.readyState ===  WebSocket.OPEN) {
         ws!.send(
@@ -400,7 +400,7 @@ const testRender = async () => {
     try {
       gameProcess?.kill();
     } catch (err) {
-      console.error(err);
+      logger.error(err);
     }
 
     Deno.exit();

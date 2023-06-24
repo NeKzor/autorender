@@ -5,6 +5,7 @@
  */
 
 import { NetMessages, SourceDemoParser } from "npm:@nekz/sdp";
+import { logger } from "./logger.ts";
 
 export const getDemoInfo = async (buffer: ArrayBuffer) => {
   try {
@@ -36,7 +37,7 @@ export const getDemoInfo = async (buffer: ArrayBuffer) => {
       playbackTime: demo.playbackTime,
     };
   } catch (err) {
-    console.error(err);
+    logger.error(err);
     return null;
   }
 };
@@ -65,9 +66,3 @@ export const resolveFileUrl = async (mapName: string) => {
 
   return null;
 };
-
-// console.log(await getDemoInfo(Deno.readFileSync('./demos/1dac53aa9ed488f4a54775bf19714f8d98e6a108.dem')));
-
-// console.log(
-//   await getDemoInfo(Deno.readFileSync("./tests/demos/bhop-outdoors_9-7.dem")),
-// );
