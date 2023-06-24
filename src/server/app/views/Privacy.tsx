@@ -6,7 +6,7 @@
 
 import * as React from "https://esm.sh/react@18.2.0";
 
-const Privacy = () => {
+export const Privacy = () => {
   return (
     <>
       <h1>Privacy Notice</h1>
@@ -60,5 +60,3 @@ const Privacy = () => {
     </>
   );
 };
-
-export default Privacy;

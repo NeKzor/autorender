@@ -7,8 +7,16 @@
 import * as React from "https://esm.sh/react@18.2.0";
 import { AppStateContext } from "../AppState.ts";
 import Footer from "../components/Footer.tsx";
+import { UserPermissions } from "../../models.ts";
+import { PageMeta } from "../Routes.ts";
 
-const Home = () => {
+export const meta: PageMeta<undefined> = () => {
+  return {
+    title: "Home",
+  };
+};
+
+export const Home = () => {
   const state = React.useContext(AppStateContext);
 
   if (!state?.user) {
@@ -28,9 +36,11 @@ const Home = () => {
       <div>
         <a href={`/profile/${state.user.username}`}>Profile</a>
       </div>
-      <div>
-        <a href="/tokens">Tokens</a>
-      </div>
+      {state.user.permissions & UserPermissions.CreateTokens && (
+        <div>
+          <a href="/tokens">Tokens</a>
+        </div>
+      )}
       <div>
         <a href="/logout">Logout</a>
       </div>
@@ -38,5 +48,3 @@ const Home = () => {
     </>
   );
 };
-
-export default Home;

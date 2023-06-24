@@ -7,37 +7,31 @@
 import {
   json as routerJson,
   redirect as routerRedirect,
-  useLoaderData as routerUseLoaderData,
   RouteObject,
+  useLoaderData as routerUseLoaderData,
 } from "https://esm.sh/react-router-dom@6.11.2";
 import {
-  Params,
-  LoaderFunction as RemixLoaderFunction,
   ActionFunction as RemixActionFunction,
+  LoaderFunction as RemixLoaderFunction,
+  Params,
 } from "https://esm.sh/v124/@remix-run/router@1.6.2";
 import {
+  Request as OakRequest,
   Status,
   STATUS_TEXT,
-  Request as OakRequest,
 } from "https://deno.land/x/oak@v12.2.0/mod.ts";
 import { createStaticHandler } from "https://esm.sh/react-router-dom@6.11.2/server";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
-import * as _bcrypt_worker from "https://deno.land/x/bcrypt@v0.4.1/src/worker.ts";
-import Home from "./views/Home.tsx";
-import NotFound from "./views/NotFound.tsx";
-import About from "./views/About.tsx";
-import Token from "./views/Token.tsx";
-import Tokens from "./views/Tokens.tsx";
-import Privacy from "./views/Privacy.tsx";
+
+import * as Home from "./views/Home.tsx";
+import * as NotFound from "./views/NotFound.tsx";
+import * as About from "./views/About.tsx";
+import * as Token from "./views/tokens/Token.tsx";
+import * as Tokens from "./views/tokens/Index.tsx";
+import * as Privacy from "./views/Privacy.tsx";
 import * as ProfileView from "./views/Profile.tsx";
 import * as VideoView from "./views/Video.tsx";
 import { Database } from "../db.ts";
-import {
-  AccessPermission,
-  AccessToken,
-  User,
-  UserPermissions,
-} from "../models.ts";
+import { User } from "../models.ts";
 
 const createResponse = (status: Status) =>
   new Response(STATUS_TEXT[status], { status: status });
@@ -94,33 +88,36 @@ export type OpenGraphTwitterCard =
   | "player";
 
 // This allows every route to change the page's meta values.
-export type RouteMeta = {
-  title?: string;
-  description?: string;
-  ["twitter:card"]?: OpenGraphTwitterCard;
-} & { [key in `og:${OpenGraphFacebook}`]?: string } & {
-  [key in `twitter:${OpenGraphTwitter}`]?: string;
-};
+export type RouteMeta =
+  & {
+    title?: string;
+    description?: string;
+    ["twitter:card"]?: OpenGraphTwitterCard;
+  }
+  & { [key in `og:${OpenGraphFacebook}`]?: string }
+  & {
+    [key in `twitter:${OpenGraphTwitter}`]?: string;
+  };
 
 export type PageMeta<Data> = (loaderData: Data) => RouteMeta;
 
 // deno-lint-ignore no-explicit-any
-export type Route<Context, Data = any> = Omit<
-  RouteObject,
-  "loader" | "action"
-> & {
-  loader?: LoaderFunction<Context>;
-  action?: LoaderFunction<Context>;
-  meta?: PageMeta<Data>;
-};
+export type Route<Context, Data = any> =
+  & Omit<
+    RouteObject,
+    "loader" | "action"
+  >
+  & {
+    loader?: LoaderFunction<Context>;
+    action?: LoaderFunction<Context>;
+    meta?: PageMeta<Data>;
+  };
 
 export const routes: Route<RequestContext>[] = [
   {
     path: "/",
-    Component: Home,
-    meta: () => ({
-      title: "Home",
-    }),
+    Component: Home.Home,
+    meta: Home.meta,
   },
   {
     path: "/profile/:username",
@@ -130,159 +127,32 @@ export const routes: Route<RequestContext>[] = [
   },
   {
     path: "/tokens",
-    Component: Tokens,
-    meta: () => ({
-      title: "Tokens",
-    }),
-    loader: async ({ context }) => {
-      if (!context.user?.user_id) {
-        return unauthorized();
-      }
-
-      const { rows } = await context.db.execute(
-        `select * from access_tokens where user_id = ? order by created_at`,
-        [context.user.user_id]
-      );
-
-      return json(rows ?? []);
-    },
+    Component: Tokens.Tokens,
+    meta: Tokens.meta,
+    loader: Tokens.loader,
   },
   {
     path: "/tokens/:access_token_id",
-    Component: Token,
-    meta: () => ({
-      title: "Token",
-    }),
-    loader: async ({ params, context }) => {
-      if (!context.user?.user_id) {
-        return unauthorized();
-      }
-
-      const { rows } = await context.db.execute(
-        `select * from access_tokens where access_token_id = ? and user_id = ?`,
-        [params.access_token_id, context.user.user_id]
-      );
-
-      return json(rows?.at(0) ?? null);
-    },
-    action: async ({ params, request, context }) => {
-      if (!context.user?.user_id) {
-        return unauthorized();
-      }
-
-      type PostFormData = Partial<Pick<AccessToken, "token_name">>;
-      const { token_name } = Object.fromEntries(
-        await request.formData()
-      ) as PostFormData;
-
-      if (!token_name || token_name.length < 3 || token_name.length > 32) {
-        return badRequest();
-      }
-
-      const { affectedRows } = await context.db.execute(
-        `update access_tokens set token_name = ? where access_token_id = ? and user_id = ?`,
-        [token_name, params.access_token_id, context.user.user_id]
-      );
-
-      if (affectedRows !== 1) {
-        return unauthorized();
-      }
-
-      return redirect("/tokens/" + params.access_token_id);
-    },
+    Component: Token.Token,
+    meta: Token.meta,
+    loader: Token.loader,
+    action: Token.action,
   },
   {
     path: "/tokens/:access_token_id/delete",
-    meta: () => ({
-      title: "Token",
-    }),
-    action: async ({ params, context }) => {
-      if (!context.user?.user_id) {
-        return unauthorized();
-      }
-
-      const { affectedRows } = await context.db.execute(
-        `delete from access_tokens where access_token_id = ? and user_id = ?`,
-        [params.access_token_id, context.user.user_id]
-      );
-
-      if (affectedRows !== 1) {
-        return unauthorized();
-      }
-
-      return redirect("/tokens");
-    },
+    meta: Token.meta,
+    action: Token.actionDelete,
   },
   {
     path: "/tokens/create",
-    meta: () => ({
-      title: "Token",
-    }),
-    Component: Token,
-    loader: ({ context }) => {
-      if (!context.user?.user_id) {
-        return unauthorized();
-      }
-
-      // if (!(context.user.permissions & UserPermissions.CreateTokens)) {
-      //   return unauthorized();
-      // }
-
-      return json<Partial<AccessToken>>({
-        token_name: "",
-        token_key: "",
-      });
-    },
+    meta: Token.meta,
+    Component: Token.Token,
+    loader: Token.loaderCreate,
   },
   {
     path: "/tokens/new",
-    meta: () => ({
-      title: "Token",
-    }),
-    action: async ({ request, context }) => {
-      if (!context.user?.user_id) {
-        return unauthorized();
-      }
-
-      // if (!(context.user.permissions & UserPermissions.CreateTokens)) {
-      //   return unauthorized();
-      // }
-
-      type PostFormData = Partial<Pick<AccessToken, "token_name">>;
-      const { token_name } = Object.fromEntries(
-        await request.formData()
-      ) as PostFormData;
-
-      if (!token_name || token_name.length < 3 || token_name.length > 32) {
-        return badRequest();
-      }
-
-      const { affectedRows, lastInsertId } = await context.db.execute(
-        `insert into access_tokens (
-              user_id
-            , token_name
-            , token_key
-            , permissions
-          ) values (
-              ?
-            , ?
-            , ?
-            , ?
-          )`,
-        [
-          context.user.user_id,
-          token_name,
-          await bcrypt.hash(crypto.randomUUID()),
-          AccessPermission.CreateVideos | AccessPermission.WriteVideos,
-        ]
-      );
-
-      if (affectedRows !== 1) {
-        return internalServerError();
-      }
-
-      return redirect("/tokens/" + lastInsertId);
-    },
+    meta: Token.meta,
+    action: Token.actionNew,
   },
   {
     // TODO: Support unlisted/private videos.
@@ -294,21 +164,21 @@ export const routes: Route<RequestContext>[] = [
   },
   {
     path: "/privacy",
-    Component: Privacy,
+    Component: Privacy.Privacy,
     meta: () => ({
       title: "Privacy",
     }),
   },
   {
     path: "/about",
-    Component: About,
+    Component: About.About,
     meta: () => ({
       title: "About",
     }),
   },
   {
     path: "*",
-    Component: NotFound,
+    Component: NotFound.NotFound,
     meta: () => ({
       title: "Not Found",
     }),

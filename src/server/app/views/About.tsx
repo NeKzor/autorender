@@ -7,7 +7,7 @@
 import * as React from "https://esm.sh/react@18.2.0";
 import Footer from "../components/Footer.tsx";
 
-const About = () => {
+export const About = () => {
   return (
     <>
       <div>Automatic render of any Portal 2 demo file!</div>
@@ -21,5 +21,3 @@ const About = () => {
     </>
   );
 };
-
-export default About;
