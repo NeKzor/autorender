@@ -22,6 +22,7 @@ export const meta: PageMeta<Data> = (data) => {
     description: data?.comment,
     "og:title": data?.title ?? "untitled video",
     "og:description": data?.comment,
+    "og:type": "video",
     "og:video": data?.video_url,
   };
 };
