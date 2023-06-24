@@ -36,7 +36,7 @@ export const Home = () => {
       <div>
         <a href={`/profile/${state.user.username}`}>Profile</a>
       </div>
-      {state.user.permissions & UserPermissions.CreateTokens && (
+      {!!(state.user.permissions & UserPermissions.CreateTokens) && (
         <div>
           <a href="/tokens">Tokens</a>
         </div>
