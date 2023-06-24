@@ -80,8 +80,6 @@ const connect = () => {
   };
 
   ws.onmessage = async (message) => {
-    logger.info("Server:", { message });
-
     if (state.status === ClientStatus.Rendering) {
       return console.warn("got message during rendering... should not happen");
     }

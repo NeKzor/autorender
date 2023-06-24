@@ -499,8 +499,6 @@ router.get("/connect/client", async (ctx) => {
   };
 
   ws.onmessage = async (message) => {
-    console.log(clientId, message.data);
-
     try {
       if (message.data instanceof ArrayBuffer) {
         const buffer = message.data;
