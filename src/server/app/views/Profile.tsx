@@ -26,12 +26,17 @@ export const loader: DataLoader = async ({ params, context }) => {
     [params.username]
   );
 
-  const videos = user
-    ? await context.db.query<Video>(
-        `select * from videos where requested_by_id = ? order by created_at desc`,
+  const { rows: videos } = user
+    ? await context.db.execute<Video>(
+        `select *
+              , BIN_TO_UUID(video_id) as video_id
+           from videos
+          where requested_by_id = ?
+            and deleted_at is null
+          order by created_at desc`,
         [user.discord_id]
       )
-    : [];
+    : { rows: [] };
 
   return json<Data>({ user, videos });
 };

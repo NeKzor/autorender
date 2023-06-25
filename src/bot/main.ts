@@ -2,8 +2,7 @@
  * Copyright (c) 2023, NeKz
  *
  * SPDX-License-Identifier: MIT
- * 
- * 
+ *
  * This is Discord bot sends demo attachments to the  server via the `/render`
  * command. It will send a message once a video is uploaded.
  */
@@ -18,6 +17,7 @@ import {
   fastFileLoader,
   GatewayIntents,
   sendDirectMessage,
+  sendMessage,
   startBot,
 } from "./deps.ts";
 import { logger } from "./utils/logger.ts";
@@ -25,7 +25,8 @@ import { events } from "./events/mod.ts";
 import { updateCommands } from "./utils/helpers.ts";
 import { BotDataType, BotMessages } from "./protocol.ts";
 
-const videoUrl = new URL('videos', Deno.env.get("AUTORENDER_PUBLIC_URI")!).toString();
+const videoUrl = new URL("videos", Deno.env.get("AUTORENDER_PUBLIC_URI")!)
+  .toString();
 
 console.log({ videoUrl });
 
@@ -47,7 +48,7 @@ export const bot = enableCachePlugin(
     botId: BigInt(Deno.env.get("DISCORD_BOT_ID")!),
     intents: GatewayIntents.Guilds,
     events,
-  })
+  }),
 );
 
 // @ts-nocheck: no-updated-depencdencies
@@ -80,16 +81,26 @@ worker.addEventListener("message", (message) => {
 
   switch (type) {
     case BotDataType.Upload: {
-      sendDirectMessage(bot, BigInt(data.requested_by_id!), {
-        content: [
-          `📽️ Finished rendering "${data.title ?? "*untitled*"}" video`,
-          `📺️ ${videoUrl}/${data.video_id}`,
-        ].join("\n"),
-      });
+      const content = [
+        `📽️ Rendered video "${data.title ?? "*untitled*"}".`,
+        `📺️ ${videoUrl}/${data.video_id}`,
+      ].join("\n");
+
+      if (data.requested_in_guild_id && data.requested_in_channel_id) {
+        sendMessage(bot, BigInt(data.requested_in_channel_id), { content });
+      } else {
+        sendDirectMessage(bot, BigInt(data.requested_by_id), { content });
+      }
       break;
     }
     case BotDataType.Error: {
-      console.warn("Ignoring error for now.", data);
+      const content = `❌️ ${data.message}`;
+
+      if (data.requested_in_guild_id && data.requested_in_channel_id) {
+        sendMessage(bot, BigInt(data.requested_in_channel_id), { content });
+      } else {
+        sendDirectMessage(bot, BigInt(data.requested_by_id), { content });
+      }
       break;
     }
     default: {

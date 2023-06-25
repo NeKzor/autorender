@@ -2,8 +2,7 @@
  * Copyright (c) 2023, NeKz
  *
  * SPDX-License-Identifier: MIT
- * 
- * 
+ *
  * The server is mostly responsible for:
  *    - Handling incoming websocket messages from the Discord bot
  *    - Handling incoming websocket messages from clients
@@ -28,8 +27,8 @@ import {
   Session,
 } from "https://deno.land/x/oak_sessions@v4.1.4/mod.ts";
 import {
-  RateLimiter,
   MapStore,
+  RateLimiter,
 } from "https://deno.land/x/oak_rate_limit@v0.1.1/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 import { logger } from "./logger.ts";
@@ -38,15 +37,14 @@ import { BackblazeClient } from "./b2.ts";
 import {
   AccessPermission,
   AccessToken,
-  PendingStatus,
-  Video,
-  DiscordUser,
-  UserPermissions,
-  User,
-  AuditType,
   AuditSource,
+  AuditType,
+  DiscordUser,
+  PendingStatus,
+  User,
+  UserPermissions,
+  Video,
 } from "./models.ts";
-import { basename, join } from "https://deno.land/std@0.190.0/path/mod.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 import * as _bcrypt_worker from "https://deno.land/x/bcrypt@v0.4.1/src/worker.ts";
 import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
@@ -54,8 +52,8 @@ import { AppState as ReactAppState } from "./app/AppState.ts";
 import { db } from "./db.ts";
 import { createStaticRouter } from "https://esm.sh/react-router-dom@6.11.2/server";
 import {
-  RequestContext,
   createFetchRequest,
+  RequestContext,
   routeHandler,
   routes,
 } from "./app/Routes.ts";
@@ -78,8 +76,12 @@ const DISCORD_AUTHORIZE_LINK = (() => {
 })();
 const SERVER_DOMAIN = new URL(Deno.env.get("DISCORD_REDIRECT_URI")!).host;
 const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
-  Deno.env.get("AUTORENDER_BOT_TOKEN")!
+  Deno.env.get("AUTORENDER_BOT_TOKEN")!,
 );
+const AUTORENDER_BOARD_TOKEN_HASH = (() => {
+  const boardToken = Deno.env.get("AUTORENDER_BOARD_TOKEN")!;
+  return boardToken !== "none" ? bcrypt.hashSync(boardToken) : null;
+})();
 const B2_BUCKET_ID = Deno.env.get("B2_BUCKET_ID")!;
 
 const cookieOptions: CookiesSetDeleteOptions = {
@@ -109,14 +111,14 @@ const useRateLimiter = await RateLimiter({
 
 let discordBot: WebSocket | null = null;
 
-// TODO: Hmm, this might not be a good idea if a render constantly fails.
-//       Maybe only send a message once?
 const sendErrorToBot = (error: {
   status: number;
   message: string;
   requested_by_id: string;
+  requested_in_guild_id: string;
+  requested_in_channel_id: string;
 }) => {
-  if (discordBot) {
+  if (discordBot && discordBot.readyState === WebSocket.OPEN) {
     discordBot.send(JSON.stringify({ type: "error", data: error }));
   } else {
     logger.warn("Bot not connected. Failed to send error status.", error);
@@ -125,12 +127,12 @@ const sendErrorToBot = (error: {
 
 const b2 = new BackblazeClient({ userAgent: AUTORENDER_V1 });
 
-b2.authorizeAccount({
-  accountId: Deno.env.get("B2_KEY_ID")!,
-  applicationKey: Deno.env.get("B2_APP_KEY")!,
-}).then(() => {
-  logger.info("Connected to b2");
-});
+// b2.authorizeAccount({
+//   accountId: Deno.env.get("B2_KEY_ID")!,
+//   applicationKey: Deno.env.get("B2_APP_KEY")!,
+// }).then(() => {
+//   logger.info("Connected to b2");
+// });
 
 await logger.initFileLogger("log/server", {
   rotate: true,
@@ -145,7 +147,7 @@ const hasPermission = (ctx: Context, permission: UserPermissions) => {
 const Ok = (
   ctx: Context,
   body: ResponseBody | ResponseBodyFunction,
-  type?: string
+  type?: string,
 ) => {
   ctx.response.status = Status.OK;
   ctx.response.type = type ?? "application/json";
@@ -178,13 +180,26 @@ apiV1
         return ctx.throw(Status.BadRequest);
       }
 
+      const decodedAuthToken = decodeURIComponent(authToken);
+
       if (
         !(await bcrypt.compare(
-          decodeURIComponent(authToken),
-          AUTORENDER_BOT_TOKEN_HASH
+          decodedAuthToken,
+          AUTORENDER_BOT_TOKEN_HASH,
         ))
       ) {
-        return ctx.throw(Status.Unauthorized);
+        if (!AUTORENDER_BOARD_TOKEN_HASH) {
+          return ctx.throw(Status.Unauthorized);
+        }
+
+        if (
+          !(await bcrypt.compare(
+            decodedAuthToken,
+            AUTORENDER_BOARD_TOKEN_HASH,
+          ))
+        ) {
+          return ctx.throw(Status.Unauthorized);
+        }
       }
     }
 
@@ -209,8 +224,6 @@ apiV1
 
     // TODO:
     //    * Figure out if UGC changes when the revision of a workshop item updates.
-    //    * Is map CRC useful?
-    //    * Should we replicate mirror.nekz.me data locally?
     //    * Should we save map data in the database?
 
     const filePath = file.filename;
@@ -226,43 +239,59 @@ apiV1
 
     const requestedByName = authUser?.username ?? data.fields.requested_by_name;
     const requestedById = authUser?.discord_id ?? data.fields.requested_by_id;
+    const requestedInGuildId = data.fields.requested_in_guild_id ?? null;
+    const requestedInGuildName = data.fields.requested_in_guild_name ?? null;
+    const requestedInChannelId = data.fields.requested_in_channel_id ?? null;
+    const requestedInChannelName = data.fields.requested_in_channel_name ??
+      null;
 
-    const result = await db.execute(
+    const videoId = await db.execute(`select UUID_TO_BIN(UUID())`);
+
+    const params = [
+      videoId,
+      data.fields.title,
+      data.fields.comment,
+      requestedByName,
+      requestedById,
+      requestedInGuildId,
+      requestedInGuildName,
+      requestedInChannelId,
+      requestedInChannelName,
+      data.fields.render_options,
+      file.originalName,
+      filePath,
+      demoInfo.fileUrl,
+      demoInfo.fullMapName,
+      demoInfo.size,
+      demoInfo.mapCrc,
+      demoInfo.gameDir,
+      demoInfo.playbackTime,
+      PendingStatus.RequiresRender,
+    ];
+
+    await db.execute(
       `insert into videos (
-            title
+            video_id
+          , title
           , comment
           , requested_by_name
           , requested_by_id
+          , requested_in_guild_id
+          , requested_in_guild_name
+          , requested_in_channel_id
+          , requested_in_channel_name
           , render_options
           , file_name
           , file_path
           , file_url
           , full_map_name
+          , demo_size,
+          , demo_map_crc,
+          , demo_game_dir,
+          , demo_playback_time,
           , pending
-        ) values (
-            ?
-          , ?
-          , ?
-          , ?
-          , ?
-          , ?
-          , ?
-          , ?
-          , ?
-          , ?
-        )`,
-      [
-        data.fields.title,
-        data.fields.comment,
-        requestedByName,
-        requestedById,
-        data.fields.render_options,
-        file.originalName,
-        filePath,
-        demoInfo.fileUrl,
-        demoInfo.fullMapName,
-        PendingStatus.RequiresRender,
-      ]
+        ) values (${params.map(() => "?").join(",")})`,
+      params,
     );
 
     await db.execute(
@@ -278,21 +307,32 @@ apiV1
           , ?
         )`,
       [
-        `Created new video ${result.lastInsertId} for Discord user ${requestedByName}`,
+        `Created video ${videoId} for Discord user ${requestedByName}`,
         AuditType.Info,
         AuditSource.User,
         authUser?.user_id ?? null,
-      ]
+      ],
     );
 
-    Ok(ctx, { inserted: result.affectedRows });
+    const [video] = await db.query<Video>(
+      `select *
+            , BIN_TO_UUID(video_id) as video_id
+         from videos
+        where video_id = UUID_TO_BIN(?)`,
+      [videoId],
+    );
+
+    Ok(ctx, video);
   })
   // Get video views and increment.
   // deno-lint-ignore no-explicit-any
   .post("/videos/:video_id(\\d+)/views", useRateLimiter as any, async (ctx) => {
     const { rows } = await db.execute(
-      `select video_id, views from videos where video_id = ?`,
-      [Number(ctx.params.video_id)]
+      `select BIN_TO_UUID(video_id) as video_id
+            , views
+         from videos
+        where video_id = UUID_TO_BIN(?)`,
+      [Number(ctx.params.video_id)],
     );
 
     const video = rows?.at(0) as Video | undefined;
@@ -300,9 +340,13 @@ apiV1
       return ctx.throw(Status.NotFound);
     }
 
-    await db.execute(`update videos set views = views + 1 where video_id = ?`, [
-      video.video_id,
-    ]);
+    await db.execute(
+      `
+      update videos
+         set views = views + 1
+       where video_id = UUID_TO_BIN?)`,
+      [video.video_id],
+    );
 
     Ok(ctx, video);
   })
@@ -335,12 +379,12 @@ apiV1
         token_name,
         await bcrypt.hash(crypto.randomUUID()),
         AccessPermission.CreateVideos | AccessPermission.WriteVideos,
-      ]
+      ],
     );
 
     const [accessToken] = await db.query<AccessToken>(
       `select * from access_tokens where access_token_id = ?`,
-      [inserted.lastInsertId]
+      [inserted.lastInsertId],
     );
 
     await db.execute(
@@ -362,7 +406,7 @@ apiV1
         AuditType.Info,
         AuditSource.User,
         userId,
-      ]
+      ],
     );
 
     Ok(ctx, accessToken);
@@ -409,7 +453,7 @@ router.get("/connect/bot", async (ctx) => {
   if (
     !(await bcrypt.compare(
       decodeURIComponent(authToken),
-      AUTORENDER_BOT_TOKEN_HASH
+      AUTORENDER_BOT_TOKEN_HASH,
     ))
   ) {
     return ctx.throw(Status.Unauthorized);
@@ -428,21 +472,22 @@ router.get("/connect/bot", async (ctx) => {
   discordBot.onmessage = (message) => {
     logger.info("Bot:", message.data);
 
-    const { type, data } = JSON.parse(message.data);
+    try {
+      const { type } = JSON.parse(message.data);
 
-    switch (type) {
-      case "notified": {
-        logger.info("Notified", data);
-        break;
+      switch (type) {
+        default: {
+          discordBot && discordBot.readyState === WebSocket.OPEN &&
+            discordBot.send(
+              JSON.stringify({
+                type: "error",
+                data: { status: Status.BadRequest },
+              }),
+            );
+        }
       }
-      default: {
-        discordBot?.send(
-          JSON.stringify({
-            type: "error",
-            data: { status: Status.BadRequest },
-          })
-        );
-      }
+    } catch (err) {
+      logger.error(err);
     }
   };
 
@@ -455,7 +500,7 @@ router.get("/connect/bot", async (ctx) => {
 // Client connections.
 
 interface ClientState {
-  demosToSend: number;
+  demosToSend: number; // TODO: I don't think this is ever needed.
 }
 
 const clients = new Map<string, ClientState>();
@@ -472,22 +517,27 @@ router.get("/connect/client", async (ctx) => {
     return ctx.throw(Status.NotAcceptable);
   }
 
-  const { rows } = await db.execute<
-    Pick<
-      AccessToken,
-      "access_token_id" | "user_id" | "token_name" | "permissions"
-    >
-  >(
-    `select access_token_id, user_id, token_name, permissions from access_tokens where token_key = ?`,
-    [decodeURIComponent(authToken)]
+  type TokenSelect = Pick<
+    AccessToken,
+    "access_token_id" | "user_id" | "token_name" | "permissions"
+  >;
+
+  const [accessToken] = await db.query<TokenSelect>(
+    `select access_token_id
+          , user_id
+          , token_name
+          , permissions
+       from access_tokens
+      where token_key = ?`,
+    [decodeURIComponent(authToken)],
   );
 
-  const accessToken = rows?.at(0);
   if (!accessToken) {
     return ctx.throw(Status.Unauthorized);
   }
 
-  const clientId = `${accessToken.access_token_id}-${accessToken.user_id}-${accessToken.token_name}`;
+  const clientId =
+    `${accessToken.access_token_id}-${accessToken.user_id}-${accessToken.token_name}`;
   const ws = ctx.upgrade();
 
   ws.onopen = () => {
@@ -506,13 +556,20 @@ router.get("/connect/client", async (ctx) => {
         const videoId = view.getBigUint64(0);
 
         const [video] = await db.query<Video>(
-          `select * from videos where video_id = ? and pending = ?`,
-          [videoId, PendingStatus.StartedRender]
+          `select *
+                , BIN_TO_UUID(video_id) as video_id
+             from videos
+            where video_id = UUID_TO_BIN(?)
+              and pending = ?`,
+          [videoId, PendingStatus.StartedRender],
         );
 
         if (!video) {
           return ws.send(
-            JSON.stringify({ type: "error", data: { status: Status.NotFound } })
+            JSON.stringify({
+              type: "error",
+              data: { status: Status.NotFound },
+            }),
           );
         }
 
@@ -538,37 +595,50 @@ router.get("/connect/client", async (ctx) => {
 
           logger.info("Uploaded", upload, videoUrl);
 
-          // TODO: Small and large thumbnails.
+          // TODO: Video length, video preview, small/large thumbnails.
 
           await db.execute(
             `update videos
                 set pending = ?
                   , video_url = ?
+                  , video_size = ?
                   , rendered_at = current_timestamp()
-               where video_id = ?
+               where video_id = UUID_TO_BIN(?)
                  and pending = ?`,
             [
               PendingStatus.FinishedRender,
               videoUrl,
+              videoBuffer.byteLength,
               video.video_id,
               PendingStatus.StartedRender,
-            ]
+            ],
           );
 
-          const uploadMessage = {
+          type VideoUpload = Pick<
+            Video,
+            | "video_id"
+            | "title"
+            | "requested_by_id"
+            | "requested_in_guild_id"
+            | "requested_in_channel_id"
+          >;
+
+          const uploadMessage: VideoUpload = {
             video_id: video.video_id,
             title: video.title,
             requested_by_id: video.requested_by_id,
+            requested_in_guild_id: video.requested_in_guild_id,
+            requested_in_channel_id: video.requested_in_channel_id,
           };
 
           if (discordBot) {
             discordBot.send(
-              JSON.stringify({ type: "upload", data: uploadMessage })
+              JSON.stringify({ type: "upload", data: uploadMessage }),
             );
           } else {
             logger.warn(
               "Bot not connected. Failed to send upload message.",
-              uploadMessage
+              uploadMessage,
             );
           }
 
@@ -576,7 +646,7 @@ router.get("/connect/client", async (ctx) => {
             JSON.stringify({
               type: "finish",
               data: { video_id: video.video_id },
-            })
+            }),
           );
         } catch (err) {
           logger.error(err);
@@ -585,20 +655,20 @@ router.get("/connect/client", async (ctx) => {
             JSON.stringify({
               type: "error",
               data: { status: Status.InternalServerError },
-            })
+            }),
           );
 
           try {
             await db.execute(
               `update videos
                   set pending = ?
-                 where video_id = ?
+                 where video_id = UUID_TO_BIN(?)
                    and pending = ?`,
               [
-                PendingStatus.RequiresRender,
+                PendingStatus.FinishedRender,
                 video.video_id,
                 PendingStatus.StartedRender,
-              ]
+              ],
             );
           } catch (err) {
             logger.error(err);
@@ -607,8 +677,14 @@ router.get("/connect/client", async (ctx) => {
           // try {
           //   Deno.remove(videoFile);
           // } catch (err) {
-          //   logger.error("failed to remove temporary file:", err.toString());
+          //   logger.error("failed to remove video file:", err.toString());
           // }
+
+          try {
+            Deno.remove(video.file_path);
+          } catch (err) {
+            logger.error("failed to remove demo file:", err.toString());
+          }
         }
       } else {
         const { type, data } = JSON.parse(message.data);
@@ -617,8 +693,11 @@ router.get("/connect/client", async (ctx) => {
           case "videos": {
             if (accessToken.permissions & AccessPermission.CreateVideos) {
               const videos = await db.query<Pick<Video, "video_id">>(
-                `select video_id from videos where pending = ? limit ?`,
-                [PendingStatus.RequiresRender, MAX_VIDEOS_PER_REQUEST]
+                `select BIN_TO_UUID(video_id) as video_id
+                   from videos
+                  where pending = ?
+                  limit ?`,
+                [PendingStatus.RequiresRender, MAX_VIDEOS_PER_REQUEST],
               );
 
               ws.send(JSON.stringify({ type: "videos", data: videos }));
@@ -630,7 +709,7 @@ router.get("/connect/client", async (ctx) => {
                     status: Status.Unauthorized,
                     message: "create videos permission required",
                   },
-                })
+                }),
               );
             }
             break;
@@ -645,7 +724,7 @@ router.get("/connect/client", async (ctx) => {
                    , rendered_by = ?
                    , rendered_by_token = ?
                    , render_node = ?
-                 where video_id = ?
+                 where video_id = UUID_TO_BIN(?)
                    and pending = ?`,
                 [
                   PendingStatus.StartedRender,
@@ -654,7 +733,7 @@ router.get("/connect/client", async (ctx) => {
                   accessToken.token_name,
                   videoId,
                   PendingStatus.RequiresRender,
-                ]
+                ],
               );
 
               if (update.affectedRows === 0) {
@@ -662,16 +741,26 @@ router.get("/connect/client", async (ctx) => {
                   JSON.stringify({
                     type: "error",
                     data: { status: Status.NotFound, message: "update failed" },
-                  })
+                  }),
                 );
                 break;
               }
 
-              const [{ file_path, ...video }] = await db.query<
-                Pick<Video, "video_id" | "file_url" | "full_map_name" | "file_path">
-              >(`select video_id, file_url, full_map_name, file_path from videos where video_id = ?`, [
-                videoId,
-              ]);
+              type VideoSelect = Pick<
+                Video,
+                "video_id" | "file_url" | "full_map_name" | "file_path"
+              >;
+
+              const [{ file_path, ...video }] = await db.query<VideoSelect>(
+                `
+                select BIN_TO_UUID(video_id) as video_id
+                     , file_url
+                     , full_map_name
+                     , file_path
+                  from videos
+                 where video_id = UUID_TO_BIN(?)`,
+                [videoId],
+              );
 
               if (!video) {
                 ws.send(
@@ -681,7 +770,7 @@ router.get("/connect/client", async (ctx) => {
                       status: Status.NotFound,
                       message: "video not found",
                     },
-                  })
+                  }),
                 );
                 break;
               }
@@ -704,19 +793,75 @@ router.get("/connect/client", async (ctx) => {
                     status: Status.Unauthorized,
                     message: "write videos permission required",
                   },
-                })
+                }),
               );
             }
             break;
           }
           case "downloaded": {
-            // TODO: Mark all videos as an error which did not come back here.
-            //const videos = data as Pick<Video, 'video_id' | 'file_url'>;
+            const downloaded = data as { video_ids: Video["video_id"][] };
+            const videoIds = downloaded.video_ids.slice(
+              0,
+              MAX_VIDEOS_PER_REQUEST,
+            );
+
+            if (
+              !videoIds.length ||
+              downloaded.video_ids.length > MAX_VIDEOS_PER_REQUEST
+            ) {
+              ws.send(
+                JSON.stringify({
+                  type: "error",
+                  data: {
+                    status: Status.BadRequest,
+                    message: "unknown message type",
+                  },
+                }),
+              );
+              break;
+            }
+
+            // For all videos which did not come back here mark them as finished.
+
+            const failedVideos = await db.query<Video>(
+              `select *
+                    , BIN_TO_UUID(video_id) as video_id
+                where pending = ?
+                  and rendered_by_token = ?
+                  and video_id not in (${
+                videoIds.map(() => `UUID_TO_BIN(?)`).join(",")
+              })`,
+              [
+                PendingStatus.StartedRender,
+                accessToken.access_token_id,
+                ...videoIds,
+              ],
+            );
+
+            for (const video of failedVideos) {
+              await db.execute(
+                `update videos
+                    set pending = ?
+                  where video_id = UUID_TO_BIN(?)`,
+                [
+                  PendingStatus.FinishedRender,
+                  video.video_id,
+                ],
+              );
+
+              sendErrorToBot({
+                status: Status.InternalServerError,
+                message: `Failed to render video "${video.title}".`,
+                requested_by_id: video.requested_by_id,
+                requested_in_guild_id: video.requested_in_guild_id,
+                requested_in_channel_id: video.requested_in_channel_id,
+              });
+            }
 
             ws.send(
               JSON.stringify({
                 type: "start",
-              })
+              }),
             );
             break;
           }
@@ -732,7 +877,7 @@ router.get("/connect/client", async (ctx) => {
                   status: Status.BadRequest,
                   message: "unknown message type",
                 },
-              })
+              }),
             );
             break;
           }
@@ -746,7 +891,7 @@ router.get("/connect/client", async (ctx) => {
           JSON.stringify({
             type: "error",
             data: { status: Status.InternalServerError },
-          })
+          }),
         );
       }
     }
@@ -787,10 +932,10 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
       body: Object.entries(data)
         .map(
           ([key, value]) =>
-            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
         )
         .join("&"),
-    }
+    },
   );
 
   if (!oauthResponse.ok) {
@@ -813,7 +958,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
 
   const [authUser] = await db.query<Pick<User, "user_id">>(
     `select user_id from users where discord_id = ?`,
-    [discordUser.id]
+    [discordUser.id],
   );
 
   if (authUser?.user_id) {
@@ -825,7 +970,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
           : discordUser.username,
         discordUser.avatar,
         authUser.user_id,
-      ]
+      ],
     );
   } else {
     await db.execute(
@@ -847,13 +992,13 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
         discordUser.id,
         discordUser.avatar,
         UserPermissions.ListVideos,
-      ]
+      ],
     );
   }
 
   const [user] = await db.query<User>(
     `select * from users where discord_id = ?`,
-    [discordUser.id]
+    [discordUser.id],
   );
 
   if (!user) {
@@ -897,6 +1042,7 @@ const routeToApp = async (ctx: Context) => {
 
   const context = await routeHandler.query(request, { requestContext });
 
+  // NOTE: This only handles redirect responses in async loaders/actions
   if (context instanceof Response) {
     const location = context.headers.get("Location") ?? "/";
     ctx.response.status = context.status;
@@ -911,10 +1057,9 @@ const routeToApp = async (ctx: Context) => {
       return {};
     }
 
-    const [_, loadersData] =
-      Object.entries(context.loaderData).find(
-        ([id]) => id === match.route.id
-      ) ?? [];
+    const [_, loadersData] = Object.entries(context.loaderData).find(
+      ([id]) => id === match.route.id,
+    ) ?? [];
 
     if (loadersData === undefined) {
       return {};
@@ -956,8 +1101,8 @@ app.addEventListener("error", (ev) => {
 app.use(oakCors());
 app.use(async (ctx, next) => {
   const url = ctx.request.url;
-  const ua =
-    ctx.request.headers.get("user-agent")?.replace(/[\n\r]/g, "") ?? "";
+  const ua = ctx.request.headers.get("user-agent")?.replace(/[\n\r]/g, "") ??
+    "";
   const ip = ctx.request.headers.get("x-real-ip") ?? ctx.request.ip;
   logger.info(`${url} : ${ip} : ${ua}`);
   await next();
@@ -971,16 +1116,16 @@ logger.info(`Server listening at http://${SERVER_HOST}:${SERVER_PORT}`);
 await app.listen(
   SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none"
     ? {
-        hostname: SERVER_HOST,
-        port: SERVER_PORT,
-        secure: true,
-        cert: SERVER_SSL_CERT,
-        key: SERVER_SSL_KEY,
-        alpnProtocols: ["h2", "http/1.1"],
-      }
+      hostname: SERVER_HOST,
+      port: SERVER_PORT,
+      secure: true,
+      cert: SERVER_SSL_CERT,
+      key: SERVER_SSL_KEY,
+      alpnProtocols: ["h2", "http/1.1"],
+    }
     : {
-        hostname: SERVER_HOST,
-        port: SERVER_PORT,
-        secure: false,
-      }
+      hostname: SERVER_HOST,
+      port: SERVER_PORT,
+      secure: false,
+    },
 );

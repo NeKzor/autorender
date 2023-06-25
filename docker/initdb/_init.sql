@@ -33,23 +33,36 @@ CREATE TABLE access_tokens (
 DROP TABLE IF EXISTS videos;
 
 CREATE TABLE videos (
-    video_id BIGINT NOT NULL AUTO_INCREMENT, -- TODO: use UUID
+    video_id BINARY(16) NOT NULL,
     title VARCHAR(32),
     comment VARCHAR(128),
     requested_by_name VARCHAR(64) NOT NULL,
     requested_by_id VARCHAR(64) NOT NULL,
+    requested_in_guild_id VARCHAR(64),
+    requested_in_guild_name VARCHAR(64),
+    requested_in_channel_id VARCHAR(64),
+    requested_in_channel_name VARCHAR(64),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     render_options VARCHAR(1024),
     file_name VARCHAR(64),
     file_path VARCHAR(4096),
     file_url VARCHAR(1024),
     full_map_name VARCHAR(64),
+    demo_size INT,
+    demo_map_crc INT,
+    demo_game_dir VARCHAR(64),
+    demo_playback_time INT,
     pending INT NOT NULL DEFAULT 0,
     rendered_by BIGINT,
     rendered_by_token BIGINT,
     rendered_at TIMESTAMP,
     render_node VARCHAR(64),
     video_url VARCHAR(1024),
+    video_size INT,
+    video_length INT,
+    video_preview_url VARCHAR(1024),
+    thumbnail_url_small VARCHAR(1024),
+    thumbnail_url_large VARCHAR(1024),
     thumb_url VARCHAR(1024),
     views INT NOT NULL DEFAULT 0,
     visibility INT NOT NULL DEFAULT 0,
@@ -66,7 +79,7 @@ DROP TABLE IF EXISTS likes;
 
 CREATE TABLE likes (
     user_id BIGINT NOT NULL,
-    video_id BIGINT NOT NULL,
+    video_id BINARY(16) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (video_id) REFERENCES videos(video_id)
@@ -76,7 +89,7 @@ DROP TABLE IF EXISTS bookmarks;
 
 CREATE TABLE bookmarks (
     user_id BIGINT NOT NULL,
-    video_id BIGINT NOT NULL,
+    video_id BINARY(16) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (video_id) REFERENCES videos(video_id)

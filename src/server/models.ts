@@ -19,6 +19,15 @@ export enum UserPermissions {
   ManageUsers = 1 << 8,
   ManageAccessTokens = 1 << 9,
   ViewAuditLogs = 1 << 10,
+
+  All = UserPermissions.DiscoverVideos |
+    UserPermissions.ListVideos |
+    UserPermissions.CreateVideos |
+    UserPermissions.DeleteVideos |
+    UserPermissions.CreateTokens |
+    UserPermissions.ManageUsers |
+    UserPermissions.ManageAccessTokens |
+    UserPermissions.ViewAuditLogs,
 }
 
 /**
@@ -79,23 +88,35 @@ export enum VisibilityState {
  * Table "videos".
  */
 export interface Video {
-  video_id: number;
+  video_id: string;
   title: string;
   comment: string;
   requested_by_name: string;
   requested_by_id: string;
+  requested_in_guild_id: string;
+  requested_in_guild_name: string;
+  requested_in_channel_id: string;
+  requested_in_channel_name: string;
   created_at: number;
   render_options: string;
   file_name: string;
   file_path: string;
   file_url: string;
   full_map_name: string;
+  demo_size: number;
+  demo_map_crc: number;
+  demo_game_dir: string;
+  demo_playback_time: number;
   pending: PendingStatus;
   rendered_by: number;
   rendered_by_token: number;
   rendered_at: number;
   video_url: string;
-  thumb_url: string;
+  video_size: number;
+  video_length: number;
+  video_preview_url: string;
+  thumbnail_url_small: string;
+  thumbnail_url_large: string;
   views: number;
   visibility: VisibilityState;
   deleted_by: number;
@@ -107,7 +128,7 @@ export interface Video {
  */
 export interface Like {
   user_id: number;
-  video_id: number;
+  video_id: string;
   created_at: number;
 }
 
@@ -116,7 +137,7 @@ export interface Like {
  */
 export interface Bookmark {
   user_id: number;
-  video_id: number;
+  video_id: string;
   created_at: number;
 }
 

@@ -4,7 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Bot } from "../deps.ts";
+import { Video } from "../../server/models.ts";
+import { Bot, getChannel, getGuild } from "../deps.ts";
 import { Interaction } from "../deps.ts";
 import {
   ApplicationCommandOptionTypes,
@@ -13,7 +14,7 @@ import {
 } from "../deps.ts";
 import { createCommand } from "./mod.ts";
 
-const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
+const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
 
 createCommand({
   name: "render",
@@ -48,10 +49,10 @@ createCommand({
   ],
   execute: async (bot: Bot, interaction: Interaction) => {
     const args = [...(interaction.data?.options?.values() ?? [])];
-    const attachment = interaction.data?.resolved?.attachments?.first();
+    const attachment = interaction.data?.resolved?.attachments?.first()!;
 
     try {
-      const demo = await fetch(attachment!.url, {
+      const demo = await fetch(attachment.url, {
         method: "GET",
         headers: {
           "User-Agent": "autorender-bot v1.0",
@@ -67,6 +68,10 @@ createCommand({
         }
       }
 
+      if (!body.get("title")) {
+        body.append("title", attachment.filename);
+      }
+
       // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
       //       https://github.com/oakserver/oak/issues/581
 
@@ -77,9 +82,29 @@ createCommand({
         : interaction.user.username;
 
       const requestedById = interaction.user.id.toString();
+      const requestedInGuildId = interaction.guildId?.toString();
+      const requestedInChannelId = interaction.channelId?.toString();
 
       body.append("requested_by_name", requestedByName);
       body.append("requested_by_id", requestedById);
+
+      if (requestedInGuildId) {
+        body.append("requested_in_guild_id", requestedInGuildId);
+
+        const guildName = (await getGuild(bot, BigInt(requestedInGuildId))).name;
+        if (guildName) {
+          body.append("requested_in_guild_name", guildName);
+        }
+      }
+
+      if (requestedInChannelId) {
+        body.append("requested_in_channel_id", requestedInChannelId);
+
+        const channelName = (await getChannel(bot, BigInt(requestedInChannelId))).name;
+        if (channelName) {
+          body.append("requested_in_channel_name", channelName);
+        }
+      }
 
       const response = await fetch(
         `${AUTORENDER_BASE_API}/api/v1/videos/render`,
@@ -101,7 +126,7 @@ createCommand({
         throw new Error(`Failed to render video: ${response.status}`);
       }
 
-      const title = args.find((arg) => arg.name === "title")?.value;
+      const video = await response.json() as Video;
 
       await bot.helpers.sendInteractionResponse(
         interaction.id,
@@ -109,7 +134,7 @@ createCommand({
         {
           type: InteractionResponseTypes.ChannelMessageWithSource,
           data: {
-            content: `📽️ Rendering ${title ?? "*untitled*"} video...`,
+            content: `⏳️ Queued video "${video.title}" for rendering.`,
           },
         },
       );
@@ -122,7 +147,7 @@ createCommand({
         {
           type: InteractionResponseTypes.ChannelMessageWithSource,
           data: {
-            content: `❌️ Failed to render file`,
+            content: `❌️ Failed to render file :(`,
           },
         },
       );
