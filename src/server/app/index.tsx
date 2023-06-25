@@ -23,7 +23,12 @@ export const index = (
 
   return renderToReadableStream(
     <App initialState={initialState} nonce={nonce}>
-      <StaticRouterProvider router={router} context={context} nonce={nonce} />
+      <StaticRouterProvider
+        router={router}
+        context={context}
+        nonce={nonce}
+        hydrate={false}
+      />
     </App>,
     {
       nonce,
