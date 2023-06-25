@@ -28,6 +28,7 @@ export const getDemoInfo = async (buffer: ArrayBuffer) => {
     const isWorkshopMap = demo.mapName !== info.mapName;
 
     return {
+      size: buffer.byteLength,
       mapName: demo.mapName,
       fullMapName: info.mapName,
       mapCrc: info.mapCrc,
