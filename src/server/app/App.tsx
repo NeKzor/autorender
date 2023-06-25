@@ -30,6 +30,17 @@ const metaNames: (keyof RouteMeta)[] = [
   "twitter:card",
 ];
 
+const getCSP = (nonce: string) => {
+  return [
+    `default-src 'self';`,
+    `script-src 'nonce-${nonce}';`,
+    `style-src 'self' https://fonts.googleapis.com;`,
+    `font-src 'self' https://fonts.gstatic.com;`,
+    `media-src 'self' *.backblazeb2.com;`,
+    `img-src 'self';`,
+  ].join(" ");
+};
+
 type AppProps = {
   initialState: AppState;
   nonce: string;
@@ -49,17 +60,7 @@ const App = ({ initialState, nonce, children }: AppProps) => {
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
         />
-        <meta
-          http-equiv="Content-Security-Policy"
-          content={`
-                default-src 'self';
-                script-src 'nonce-${nonce}';
-                style-src 'self' https://fonts.googleapis.com;
-                font-src 'self' https://fonts.gstatic.com;
-                media-src 'self' *.backblazeb2.com;
-                img-src 'self';
-              `}
-        />
+        <meta http-equiv="Content-Security-Policy" content={getCSP(nonce)} />
         <meta name="theme-color" content="#f44336" />
         {metaNames
           .filter((name) => meta[name] !== undefined)
