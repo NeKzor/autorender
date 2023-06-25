@@ -19,7 +19,7 @@ export const meta: PageMeta<Data> = () => {
 
 export const loader: DataLoader = async ({ context }) => {
   if (!context.user?.user_id) {
-    return unauthorized();
+    unauthorized();
   }
 
   const tokens = await context.db.query<AccessToken>(

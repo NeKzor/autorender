@@ -35,11 +35,11 @@ export const meta: PageMeta<Data> = () => {
 
 export const loader: DataLoader = async ({ params, context }) => {
   if (!context.user?.user_id) {
-    return unauthorized();
+    unauthorized();
   }
 
   if (!(context.user.permissions & UserPermissions.CreateTokens)) {
-    return unauthorized();
+    unauthorized();
   }
 
   const tokens = await context.db.query<AccessToken>(
@@ -52,11 +52,11 @@ export const loader: DataLoader = async ({ params, context }) => {
 
 export const loaderCreate: DataLoader = ({ context }) => {
   if (!context.user?.user_id) {
-    return unauthorized();
+    unauthorized();
   }
 
   if (!(context.user.permissions & UserPermissions.CreateTokens)) {
-    return unauthorized();
+    unauthorized();
   }
 
   return json<Partial<AccessToken>>({
@@ -67,11 +67,11 @@ export const loaderCreate: DataLoader = ({ context }) => {
 
 export const action: ActionLoader = async ({ params, request, context }) => {
   if (!context.user?.user_id) {
-    return unauthorized();
+    unauthorized();
   }
 
   if (!(context.user.permissions & UserPermissions.CreateTokens)) {
-    return unauthorized();
+    unauthorized();
   }
 
   type PostFormData = Partial<Pick<AccessToken, "token_name">>;
@@ -80,7 +80,7 @@ export const action: ActionLoader = async ({ params, request, context }) => {
   ) as PostFormData;
 
   if (!token_name || token_name.length < 3 || token_name.length > 32) {
-    return badRequest();
+    badRequest();
   }
 
   const { affectedRows } = await context.db.execute(
@@ -89,7 +89,7 @@ export const action: ActionLoader = async ({ params, request, context }) => {
   );
 
   if (affectedRows !== 1) {
-    return unauthorized();
+    unauthorized();
   }
 
   return redirect("/tokens/" + params.access_token_id);
@@ -97,11 +97,11 @@ export const action: ActionLoader = async ({ params, request, context }) => {
 
 export const actionNew: ActionLoader = async ({ request, context }) => {
   if (!context.user?.user_id) {
-    return unauthorized();
+    unauthorized();
   }
 
   if (!(context.user.permissions & UserPermissions.CreateTokens)) {
-    return unauthorized();
+    unauthorized();
   }
 
   type PostFormData = Partial<Pick<AccessToken, "token_name">>;
@@ -142,11 +142,11 @@ export const actionNew: ActionLoader = async ({ request, context }) => {
 
 export const actionDelete: ActionLoader = async ({ params, context }) => {
   if (!context.user?.user_id) {
-    return unauthorized();
+    unauthorized();
   }
 
   if (!(context.user.permissions & UserPermissions.CreateTokens)) {
-    return unauthorized();
+    unauthorized();
   }
 
   const { affectedRows } = await context.db.execute(
@@ -155,7 +155,7 @@ export const actionDelete: ActionLoader = async ({ params, context }) => {
   );
 
   if (affectedRows !== 1) {
-    return unauthorized();
+    unauthorized();
   }
 
   return redirect("/tokens");

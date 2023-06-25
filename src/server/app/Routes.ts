@@ -33,14 +33,18 @@ import * as VideoView from "./views/Video.tsx";
 import { Database } from "../db.ts";
 import { User } from "../models.ts";
 
-const createResponse = (status: Status) =>
-  new Response(STATUS_TEXT[status], { status: status });
+const throwStatus = (status: Status) => {
+  throw new Response(null, { status: status, statusText: STATUS_TEXT[status] });
+};
 
-export const notFound = () => createResponse(Status.NotFound);
-export const unauthorized = () => createResponse(Status.Unauthorized);
-export const badRequest = () => createResponse(Status.BadRequest);
-export const internalServerError = () =>
-  createResponse(Status.InternalServerError);
+// Thanks TypeScript :>
+export type NeverFn = () => never;
+
+export const notFound: NeverFn = () => throwStatus(Status.NotFound);
+export const unauthorized: NeverFn = () => throwStatus(Status.Unauthorized);
+export const badRequest: NeverFn = () => throwStatus(Status.BadRequest);
+export const internalServerError: NeverFn = () =>
+  throwStatus(Status.InternalServerError);
 
 export const json = routerJson;
 export const redirect = routerRedirect;
