@@ -2,8 +2,7 @@
  * Copyright (c) 2023, NeKz
  *
  * SPDX-License-Identifier: MIT
- * 
- * 
+ *
  * This worker thread propagates all new incoming messages from the server to
  * the main thread.
  */
@@ -16,27 +15,39 @@ const AUTORENDER_PROTOCOL = Deno.env.get("AUTORENDER_PROTOCOL")!;
 // TODO: file logging
 console.log("Running worker thread...");
 
+let ws: WebSocket | null = null;
+let wasConnected = false;
+
+const onOpen = () => {
+  wasConnected = true;
+  console.log("Connected to server");
+};
+
+const onMessage = (message: MessageEvent) => {
+  console.log("Server:", message);
+  // deno-lint-ignore no-explicit-any
+  (self as any).postMessage(message.data);
+};
+
+const onClose = async () => {
+  if (wasConnected) {
+    wasConnected = false;
+    console.log("Disconnected from server");
+  }
+
+  await delay(100);
+  connect();
+};
+
 const connect = () => {
-  const ws = new WebSocket(AUTORENDER_CONNECT_URI, [
+  ws = new WebSocket(AUTORENDER_CONNECT_URI, [
     AUTORENDER_PROTOCOL,
     encodeURIComponent(Deno.env.get("AUTORENDER_BOT_TOKEN")!),
   ]);
 
-  ws.onopen = () => {
-    console.log("Connected to server");
-  };
-
-  ws.onmessage = (message) => {
-    console.log("Server:", message);
-    // deno-lint-ignore no-explicit-any
-    (self as any).postMessage(message.data);
-  };
-
-  ws.onclose = async () => {
-    console.log("Disconnected from server");
-    await delay(1000);
-    connect();
-  };
+  ws.onopen = onOpen;
+  ws.onmessage = onMessage;
+  ws.onclose = onClose;
 };
 
 connect();
