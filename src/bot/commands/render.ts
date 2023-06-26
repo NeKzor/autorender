@@ -15,10 +15,6 @@ import {
 import { createCommand } from "./mod.ts";
 
 const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
-const AUTORENDER_VIDEO_URL = new URL(
-  "videos",
-  Deno.env.get("AUTORENDER_PUBLIC_URI")!,
-).toString();
 
 createCommand({
   name: "render",
@@ -145,13 +141,8 @@ createCommand({
 
       const video = await response.json() as Video;
 
-      const content = [
-        `⏳️ Queued video "${video.title}" for rendering.`,
-        `📺️ ${AUTORENDER_VIDEO_URL}/${video.video_id}`,
-      ].join("\n");
-
       await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-        content,
+        content: `⏳️ Queued video "${video.title}" for rendering.`,
       });
     } catch (err) {
       console.error(err);
