@@ -3,7 +3,9 @@ docker/
 
 # from .gitignore
 .vscode/
-steam.ts
+docker/compose/
+log/
+src/test/
 
 # Logs
 logs
