@@ -175,16 +175,12 @@ const handleMessageStart = async () => {
     gameProcess = null;
     Deno.removeSignalListener("SIGINT", handleTermination);
 
+    const encoder = new TextEncoder();
+
     for (const { video_id } of state.videos) {
       try {
         const buffer = new Buffer();
-        const videoId = new Uint8Array(8);
-        new DataView(videoId.buffer).setBigUint64(
-          0,
-          BigInt(video_id),
-        );
-
-        await buffer.write(videoId);
+        await buffer.write(encoder.encode(video_id));
         await buffer.write(
           await Deno.readFile(
             join(AUTORENDER_DIR, `${video_id}.dem.mp4`),

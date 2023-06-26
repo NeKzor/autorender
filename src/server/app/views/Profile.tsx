@@ -26,8 +26,8 @@ export const loader: DataLoader = async ({ params, context }) => {
     [params.username]
   );
 
-  const { rows: videos } = user
-    ? await context.db.execute<Video>(
+  const videos = user
+    ? await context.db.query<Video>(
         `select *
               , BIN_TO_UUID(video_id) as video_id
            from videos
@@ -36,7 +36,7 @@ export const loader: DataLoader = async ({ params, context }) => {
           order by created_at desc`,
         [user.discord_id]
       )
-    : { rows: [] };
+    : [];
 
   return json<Data>({ user, videos });
 };

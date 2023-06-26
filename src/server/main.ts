@@ -85,7 +85,7 @@ const AUTORENDER_BOARD_TOKEN_HASH = (() => {
 const B2_BUCKET_ID = Deno.env.get("B2_BUCKET_ID")!;
 
 const cookieOptions: CookiesSetDeleteOptions = {
-  expires: new Date(Date.now() + 86400000 * 30),
+  expires: new Date(Date.now() + 86_400_000 * 30),
   sameSite: "lax",
   secure: IS_HTTPS,
 };
@@ -127,12 +127,12 @@ const sendErrorToBot = (error: {
 
 const b2 = new BackblazeClient({ userAgent: AUTORENDER_V1 });
 
-// b2.authorizeAccount({
-//   accountId: Deno.env.get("B2_KEY_ID")!,
-//   applicationKey: Deno.env.get("B2_APP_KEY")!,
-// }).then(() => {
-//   logger.info("Connected to b2");
-// });
+b2.authorizeAccount({
+  accountId: Deno.env.get("B2_KEY_ID")!,
+  applicationKey: Deno.env.get("B2_APP_KEY")!,
+}).then(() => {
+  logger.info("Connected to b2");
+});
 
 await logger.initFileLogger("log/server", {
   rotate: true,
@@ -245,10 +245,11 @@ apiV1
     const requestedInChannelName = data.fields.requested_in_channel_name ??
       null;
 
-    const videoId = await db.execute(`select UUID_TO_BIN(UUID())`);
+    const [{ video_id }] = await db.query<Pick<Video, "video_id">>(
+      `select UUID() as video_id`,
+    );
 
-    const params = [
-      videoId,
+    const fields = [
       data.fields.title,
       data.fields.comment,
       requestedByName,
@@ -285,13 +286,16 @@ apiV1
           , file_path
           , file_url
           , full_map_name
-          , demo_size,
-          , demo_map_crc,
-          , demo_game_dir,
-          , demo_playback_time,
+          , demo_size
+          , demo_map_crc
+          , demo_game_dir
+          , demo_playback_time
           , pending
-        ) values (${params.map(() => "?").join(",")})`,
-      params,
+        ) values (UUID_TO_BIN(?), ${fields.map(() => "?").join(",")})`,
+      [
+        video_id,
+        ...fields,
+      ],
     );
 
     await db.execute(
@@ -307,7 +311,7 @@ apiV1
           , ?
         )`,
       [
-        `Created video ${videoId} for Discord user ${requestedByName}`,
+        `Created video ${video_id} for Discord user ${requestedByName}`,
         AuditType.Info,
         AuditSource.User,
         authUser?.user_id ?? null,
@@ -319,7 +323,7 @@ apiV1
             , BIN_TO_UUID(video_id) as video_id
          from videos
         where video_id = UUID_TO_BIN(?)`,
-      [videoId],
+      [video_id],
     );
 
     Ok(ctx, video);
@@ -344,7 +348,7 @@ apiV1
       `
       update videos
          set views = views + 1
-       where video_id = UUID_TO_BIN?)`,
+       where video_id = UUID_TO_BIN(?)`,
       [video.video_id],
     );
 
@@ -552,8 +556,7 @@ router.get("/connect/client", async (ctx) => {
     try {
       if (message.data instanceof ArrayBuffer) {
         const buffer = message.data;
-        const view = new DataView(buffer, 0);
-        const videoId = view.getBigUint64(0);
+        const videoId = new TextDecoder().decode(buffer.slice(0, 36));
 
         const [video] = await db.query<Video>(
           `select *
@@ -579,7 +582,7 @@ router.get("/connect/client", async (ctx) => {
         //const videoFile = join("./videos", fileName);
 
         try {
-          const videoBuffer = buffer.slice(8);
+          const videoBuffer = buffer.slice(36);
           //await Deno.writeFile(videoFile, new Uint8Array(videoBuffer));
 
           logger.info("Uploading video file", fileName);
@@ -826,6 +829,7 @@ router.get("/connect/client", async (ctx) => {
             const failedVideos = await db.query<Video>(
               `select *
                     , BIN_TO_UUID(video_id) as video_id
+                 from videos
                 where pending = ?
                   and rendered_by_token = ?
                   and video_id not in (${
