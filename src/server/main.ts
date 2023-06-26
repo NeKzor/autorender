@@ -644,13 +644,6 @@ router.get("/connect/client", async (ctx) => {
               uploadMessage,
             );
           }
-
-          ws.send(
-            JSON.stringify({
-              type: "finish",
-              data: { video_id: video.video_id },
-            }),
-          );
         } catch (err) {
           logger.error(err);
 
