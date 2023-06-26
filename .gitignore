@@ -1,6 +1,7 @@
 .vscode/
 docker/compose/
 log/
+src/bot/fileloader.ts
 src/test/
 
 # Logs
