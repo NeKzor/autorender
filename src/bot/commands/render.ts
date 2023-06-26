@@ -15,6 +15,10 @@ import {
 import { createCommand } from "./mod.ts";
 
 const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
+const AUTORENDER_VIDEO_URL = new URL(
+  "videos",
+  Deno.env.get("AUTORENDER_PUBLIC_URI")!,
+).toString();
 
 createCommand({
   name: "render",
@@ -52,6 +56,17 @@ createCommand({
     const attachment = interaction.data?.resolved?.attachments?.first()!;
 
     try {
+      await bot.helpers.sendInteractionResponse(
+        interaction.id,
+        interaction.token,
+        {
+          type: InteractionResponseTypes.ChannelMessageWithSource,
+          data: {
+            content: `⏳️ Queueing video...`,
+          },
+        },
+      );
+
       const demo = await fetch(attachment.url, {
         method: "GET",
         headers: {
@@ -91,7 +106,8 @@ createCommand({
       if (requestedInGuildId) {
         body.append("requested_in_guild_id", requestedInGuildId);
 
-        const guildName = (await getGuild(bot, BigInt(requestedInGuildId))).name;
+        const guildName =
+          (await getGuild(bot, BigInt(requestedInGuildId))).name;
         if (guildName) {
           body.append("requested_in_guild_name", guildName);
         }
@@ -100,7 +116,8 @@ createCommand({
       if (requestedInChannelId) {
         body.append("requested_in_channel_id", requestedInChannelId);
 
-        const channelName = (await getChannel(bot, BigInt(requestedInChannelId))).name;
+        const channelName =
+          (await getChannel(bot, BigInt(requestedInChannelId))).name;
         if (channelName) {
           body.append("requested_in_channel_name", channelName);
         }
@@ -128,16 +145,14 @@ createCommand({
 
       const video = await response.json() as Video;
 
-      await bot.helpers.sendInteractionResponse(
-        interaction.id,
-        interaction.token,
-        {
-          type: InteractionResponseTypes.ChannelMessageWithSource,
-          data: {
-            content: `⏳️ Queued video "${video.title}" for rendering.`,
-          },
-        },
-      );
+      const content = [
+        `⏳️ Queued video "${video.title}" for rendering.`,
+        `📺️ ${AUTORENDER_VIDEO_URL}/${video.video_id}`,
+      ].join("\n");
+
+      await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+        content,
+      });
     } catch (err) {
       console.error(err);
 
@@ -147,7 +162,7 @@ createCommand({
         {
           type: InteractionResponseTypes.ChannelMessageWithSource,
           data: {
-            content: `❌️ Failed to render file :(`,
+            content: `❌️ Failed to queue video :(`,
           },
         },
       );

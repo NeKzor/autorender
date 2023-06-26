@@ -30,6 +30,8 @@ const onMessage = (message: MessageEvent) => {
 };
 
 const onClose = async () => {
+  ws = null;
+
   if (wasConnected) {
     wasConnected = false;
     console.log("Disconnected from server");
