@@ -48,21 +48,21 @@ createCommand({
     },
   ],
   execute: async (bot: Bot, interaction: Interaction) => {
-    const args = [...(interaction.data?.options?.values() ?? [])];
-    const attachment = interaction.data?.resolved?.attachments?.first()!;
+    await bot.helpers.sendInteractionResponse(
+      interaction.id,
+      interaction.token,
+      {
+        type: InteractionResponseTypes.ChannelMessageWithSource,
+        data: {
+          content: `⏳️ Uploading file...`,
+        },
+      },
+    );
 
     try {
-      await bot.helpers.sendInteractionResponse(
-        interaction.id,
-        interaction.token,
-        {
-          type: InteractionResponseTypes.ChannelMessageWithSource,
-          data: {
-            content: `⏳️ Queueing video...`,
-          },
-        },
-      );
-
+      const args = [...(interaction.data?.options?.values() ?? [])];
+      const attachment = interaction.data?.resolved?.attachments?.first()!;
+      
       const demo = await fetch(attachment.url, {
         method: "GET",
         headers: {
@@ -147,16 +147,9 @@ createCommand({
     } catch (err) {
       console.error(err);
 
-      await bot.helpers.sendInteractionResponse(
-        interaction.id,
-        interaction.token,
-        {
-          type: InteractionResponseTypes.ChannelMessageWithSource,
-          data: {
-            content: `❌️ Failed to queue video :(`,
-          },
-        },
-      );
+      await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+        content: `❌️ Failed to queue video :(`,
+      });
     }
   },
 });
