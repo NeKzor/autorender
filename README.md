@@ -105,7 +105,7 @@ The server should now be available at: `http://autorender.portal2.local`
 
 - Create the user account once by logging in from the home page
 - Make sure that `DISCORD_USER_ID` in the `src/server/.env` file is the correct user ID of the created user
-- Set all permissions for the account with `deno run -A tasks/dev.ts`
+- Set all permissions for the account with `deno task dev`
 - Logout and login again
 
 ### src/server/.env

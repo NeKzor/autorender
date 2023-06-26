@@ -1,9 +1,10 @@
 {
     "tasks": {
-        "start:dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,./,/tmp/ --allow-write=log/server,demos/,videos/,/tmp/ --allow-net=127.0.0.1:8001,127.0.0.1:3307,discord.com,backblazeb2.com,api.backblazeb2.com,steampowered.com.mirror.nekz.me --watch main.ts",
-        "start:prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,./,/tmp/ --allow-write=log/server,demos/,videos/,/tmp/ --allow-net=127.0.0.1:8834,127.0.0.1:3307,discord.com,backblazeb2.com,api.backblazeb2.com,steampowered.com.mirror.nekz.me main.ts",
+        "start:dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server --allow-write=log/server,demos/,videos/ --allow-net=127.0.0.1:8001,127.0.0.1:3307,discord.com,backblazeb2.com,api.backblazeb2.com,api005.backblazeb2.com,pod-050-1000-18.backblaze.com,steampowered.com.mirror.nekz.me --watch main.ts",
+        "start:prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server --allow-write=log/server,demos/,videos/ --allow-net=127.0.0.1:8834,127.0.0.1:3307,discord.com,backblazeb2.com,api.backblazeb2.com,api005.backblazeb2.com,pod-050-1000-18.backblaze.com,steampowered.com.mirror.nekz.me main.ts",
         "test": "deno test --allow-net --allow-read --allow-env",
-        "pending": "deno run --no-prompt --allow-net --allow-read --allow-env tasks/pending.ts"
+        "pending": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/pending.ts",
+        "dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/dev.ts"
     },
     "fmt": {
         "useTabs": false,
