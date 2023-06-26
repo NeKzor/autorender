@@ -52,11 +52,13 @@ export const VideoView = () => {
       {!data?.video_id && <div>video not found :(</div>}
       {data && (
         <>
-          <div>
-            <a href={`/profile/${data?.requested_by_username}`}>
-              Back to profile
-            </a>
-          </div>
+          {data.requested_by_username && (
+            <div>
+              <a href={`/profile/${data.requested_by_username}`}>
+                Back to profile
+              </a>
+            </div>
+          )}
           <h2>{data.title ?? "untitled"}</h2>
           <br />
           {!data.video_url && data.pending === PendingStatus.FinishedRender && (
@@ -76,18 +78,18 @@ export const VideoView = () => {
             </div>
           )}
           <br />
-          <div>Comment: {data.comment}</div>
-          <div>Render options: {data.render_options}</div>
+          <div>Comment: {data.comment ?? "-"}</div>
+          <div>Render options: {data.render_options ?? "-"}</div>
           <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
           <div>
             Requested by:{" "}
-            <a
-              href={`/profile/${
-                data.requested_by_username ?? data.requested_by_name
-              }`}
-            >
-              {data.requested_by_username ?? data.requested_by_name}
-            </a>
+            {data.requested_by_username ? (
+              <a href={`/profile/${data.requested_by_username}`}>
+                {data.requested_by_username}
+              </a>
+            ) : (
+              <>{data.requested_by_name}</>
+            )}
           </div>
           {data.requested_in_channel_name && (
             <div>
