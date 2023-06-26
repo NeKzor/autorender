@@ -34,6 +34,8 @@ const AUTORENDER_CONNECT_URI = Deno.env.get("AUTORENDER_CONNECT_URI")!;
 const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
 const AUTORENDER_CHECK_INTERVAL = 1_000;
 const AUTORENDER_PATCHED_SAR = true; // TODO: Upstream sar_on_renderer feature
+const AUTORENDER_SEND_MAX_RETRIES = 5;
+const AUTORENDER_SEND_RETRY_INTERVAL = 1_000;
 
 try {
   await Deno.mkdir(AUTORENDER_DIR);
@@ -64,16 +66,29 @@ let ws: WebSocket | null = null;
 let idleTimer: number | null = null;
 let wasConnected = false;
 
-const send = (data: Uint8Array | AutorenderSendMessages) => {
+const send = async (
+  data: Uint8Array | AutorenderSendMessages,
+  options?: { dropDataIfDisconnected: boolean },
+) => {
+  const isBuffer = data instanceof Uint8Array;
+
   if (ws && ws.readyState === WebSocket.OPEN) {
-    if (data instanceof Uint8Array) {
-      ws.send(data);
-    } else {
-      ws.send(JSON.stringify(data));
-    }
-  } else {
-    // TODO: Retry for a specific amount of time then
-    //       drop the data if we failed to connect
+    ws.send(isBuffer ? data : JSON.stringify(data));
+  } else if (!options?.dropDataIfDisconnected) {
+    let retries = AUTORENDER_SEND_MAX_RETRIES;
+    do {
+      await delay(AUTORENDER_SEND_RETRY_INTERVAL);
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(isBuffer ? data : JSON.stringify(data));
+        return;
+      }
+    } while (retries-- > 0);
+
+    logger.warn(
+      "dropped data",
+      isBuffer ? `buffer of size ${data.byteLength}` : data,
+    );
   }
 };
 
@@ -84,17 +99,19 @@ const fetchNextVideos = () => {
     }
 
     idleTimer = setTimeout(
-      () =>
-        send({ type: AutorenderSendDataType.Videos, data: { game: GAME_MOD } }),
+      async () =>
+        await send(
+          {
+            type: AutorenderSendDataType.Videos,
+            data: { game: GAME_MOD },
+          },
+          {
+            dropDataIfDisconnected: true,
+          },
+        ),
       AUTORENDER_CHECK_INTERVAL,
     );
   }
-};
-
-const onOpen = () => {
-  wasConnected = true;
-  logger.info("Connected to server");
-  fetchNextVideos();
 };
 
 /**
@@ -130,7 +147,7 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos["data"]) => {
 
   // Claim video and request demo file.
   for (const { video_id } of videos) {
-    send({ type: AutorenderSendDataType.Demo, data: { video_id } });
+    await send({ type: AutorenderSendDataType.Demo, data: { video_id } });
   }
 };
 
@@ -187,11 +204,11 @@ const handleMessageStart = async () => {
           ),
         );
 
-        send(buffer.bytes());
+        await send(buffer.bytes());
       } catch (err) {
         logger.error(err);
 
-        send({
+        await send({
           type: AutorenderSendDataType.Error,
           data: { video_id, message: err.toString() },
         });
@@ -200,7 +217,7 @@ const handleMessageStart = async () => {
   } catch (err) {
     logger.error(err);
 
-    send({
+    await send({
       type: AutorenderSendDataType.Error,
       data: { message: err.toString() },
     });
@@ -287,7 +304,7 @@ const handleBlobData = async (data: Blob) => {
 
   // Confirm videos once all demos have been downloaded.
   if (state.videos.length === state.toDownload) {
-    send({
+    await send({
       type: AutorenderSendDataType.Downloaded,
       data: { video_ids: state.videos.map(({ video_id }) => video_id) },
     });
@@ -328,7 +345,7 @@ const onMessage = async (message: MessageEvent) => {
   } catch (err) {
     logger.error(err);
 
-    send({
+    await send({
       type: AutorenderSendDataType.Error,
       data: { message: err.toString() },
     });
@@ -337,7 +354,15 @@ const onMessage = async (message: MessageEvent) => {
   }
 };
 
+const onOpen = () => {
+  wasConnected = true;
+  logger.info("Connected to server");
+  fetchNextVideos();
+};
+
 const onClose = async () => {
+  ws = null;
+
   if (wasConnected) {
     wasConnected = false;
     logger.info("Disconnected from server");
@@ -361,6 +386,8 @@ const connect = () => {
   ws.onmessage = onMessage;
   ws.onclose = onClose;
 };
+
+connect();
 
 /**
  * Prepares autoexec.cfg to queue all demos.
@@ -443,5 +470,3 @@ const prepareGameLaunch = async () => {
     ],
   });
 };
-
-connect();
