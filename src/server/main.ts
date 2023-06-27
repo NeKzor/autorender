@@ -703,7 +703,7 @@ router.get("/connect/client", async (ctx) => {
                   type: "error",
                   data: {
                     status: Status.Unauthorized,
-                    message: "create videos permission required",
+                    message: "Create videos permission required.",
                   },
                 }),
               );
@@ -736,7 +736,10 @@ router.get("/connect/client", async (ctx) => {
                 ws.send(
                   JSON.stringify({
                     type: "error",
-                    data: { status: Status.NotFound, message: "update failed" },
+                    data: {
+                      status: Status.NotFound,
+                      message: "Update failed.",
+                    },
                   }),
                 );
                 break;
@@ -764,7 +767,7 @@ router.get("/connect/client", async (ctx) => {
                     type: "error",
                     data: {
                       status: Status.NotFound,
-                      message: "video not found",
+                      message: "Video not found.",
                     },
                   }),
                 );
@@ -787,7 +790,7 @@ router.get("/connect/client", async (ctx) => {
                   type: "error",
                   data: {
                     status: Status.Unauthorized,
-                    message: "write videos permission required",
+                    message: "Write videos permission required.",
                   },
                 }),
               );
@@ -872,7 +875,7 @@ router.get("/connect/client", async (ctx) => {
                 type: "error",
                 data: {
                   status: Status.BadRequest,
-                  message: "unknown message type",
+                  message: "Unknown message type.",
                 },
               }),
             );
