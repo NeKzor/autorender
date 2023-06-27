@@ -255,8 +255,6 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
 
     logger.info("downloaded map to", mapFile);
   } catch (err) {
-    logger.error(err);
-    // TODO: Handle the error
     state.toDownload--;
     throw err;
   }
