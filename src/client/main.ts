@@ -156,9 +156,9 @@ let gameProcess: Deno.ChildProcess | null = null;
 Deno.addSignalListener("SIGINT", () => {
   if (gameProcess) {
     try {
-      logger.info("handling termination...");
+      logger.info("Handling termination...");
       gameProcess.kill();
-      logger.info("termination game process");
+      logger.info("Termination game process");
     } catch (err) {
       logger.error(err);
     }
@@ -171,25 +171,25 @@ Deno.addSignalListener("SIGINT", () => {
  * Server requests the start of a render after it got the confirmed videos.
  */
 const handleMessageStart = async () => {
-  if (gameProcess) {
-    throw new Error('Game process is still running!');
-  }
-
   try {
+    if (!state.videos.length) {
+      throw new Error("No videos available");
+    }
+
     state.status = ClientStatus.Rendering;
 
     const command = await prepareGameLaunch();
 
-    logger.info("spawning process...");
+    logger.info("Spawning process...");
 
     gameProcess = command.spawn();
 
-    logger.info("spawned");
+    logger.info("Spawned");
 
     // TODO: Timeout based on demo time
     const { code } = await gameProcess.output();
 
-    logger.info("game exited", { code });
+    logger.info("Game exited", { code });
 
     gameProcess = null;
 
@@ -211,17 +211,13 @@ const handleMessageStart = async () => {
 
         send({
           type: AutorenderSendDataType.Error,
-          data: { video_id, message: err.toString() },
+          data: {
+            video_id,
+            message: err.toString(),
+          },
         });
       }
     }
-  } catch (err) {
-    logger.error(err);
-
-    send({
-      type: AutorenderSendDataType.Error,
-      data: { message: err.toString() },
-    });
   } finally {
     state.toDownload = 0;
     state.videos = [];
@@ -235,29 +231,24 @@ const handleMessageStart = async () => {
 };
 
 const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
-  logger.info("downloading map", video.file_url);
+  logger.info("Downloading map", video.file_url);
 
-  try {
-    const steamResponse = await fetch(video.file_url, {
-      headers: {
-        "User-Agent": "autorender-client-v1",
-      },
-    });
+  const steamResponse = await fetch(video.file_url, {
+    headers: {
+      "User-Agent": "autorender-client-v1",
+    },
+  });
 
-    if (!steamResponse.ok) {
-      throw new Error(
-        `Failed to download map ${video.file_url} for video ${video.video_id} : ${steamResponse.status}`,
-      );
-    }
-
-    const map = await steamResponse.arrayBuffer();
-    await Deno.writeFile(mapFile, new Uint8Array(map));
-
-    logger.info("downloaded map to", mapFile);
-  } catch (err) {
-    state.toDownload--;
-    throw err;
+  if (!steamResponse.ok) {
+    throw new Error(
+      `Failed to download map ${video.file_url} for video ${video.video_id} : ${steamResponse.status}`,
+    );
   }
+
+  const map = await steamResponse.arrayBuffer();
+  await Deno.writeFile(mapFile, new Uint8Array(map));
+
+  logger.info("Downloaded map to", mapFile);
 };
 
 /**
@@ -267,46 +258,66 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
  *      length + 1 ... = demo file
  */
 const handleMessageBuffer = async (buffer: ArrayBuffer) => {
-  const length = new DataView(buffer).getUint32(0);
-  const payload = buffer.slice(4, length + 4);
-  const demo = buffer.slice(length + 4);
-  const decoded = new TextDecoder().decode(payload);
+  let videoId: VideoModel["video_id"] | undefined = undefined;
 
-  logger.info("decoded payload:", decoded);
-  logger.info("demo byte length:", demo.byteLength);
+  try {
+    const length = new DataView(buffer).getUint32(0);
+    const payload = buffer.slice(4, length + 4);
+    const demo = buffer.slice(length + 4);
+    const decoded = new TextDecoder().decode(payload);
 
-  const video = JSON.parse(decoded) as VideoModel;
+    logger.info("Decoded payload:", decoded);
+    logger.info("Demo byte length:", demo.byteLength);
 
-  // Check if a workshop map needs to be downloaded.
-  if (video.file_url) {
-    const mapFile = join(GAME_MOD_PATH, "maps", `${video.full_map_name}.bsp`);
-    let downloadMapFile = false;
+    const video = JSON.parse(decoded) as VideoModel;
 
-    try {
-      await Deno.stat(mapFile);
-      logger.info("map", mapFile, "already downloaded");
-    } catch {
-      downloadMapFile = true;
+    videoId = video.video_id;
+
+    // Check if a workshop map needs to be downloaded.
+    if (video.file_url) {
+      const mapFile = join(GAME_MOD_PATH, "maps", `${video.full_map_name}.bsp`);
+      let downloadMapFile = false;
+
+      try {
+        await Deno.stat(mapFile);
+        logger.info("Map", mapFile, "already downloaded");
+      } catch {
+        downloadMapFile = true;
+      }
+
+      if (downloadMapFile) {
+        await downloadWorkshopMap(mapFile, video);
+      }
     }
 
-    if (downloadMapFile) {
-      await downloadWorkshopMap(mapFile, video);
-    }
-  }
+    await Deno.writeFile(
+      join(AUTORENDER_DIR, `${video.video_id}.dem`),
+      new Uint8Array(demo),
+    );
 
-  await Deno.writeFile(
-    join(AUTORENDER_DIR, `${video.video_id}.dem`),
-    new Uint8Array(demo),
-  );
+    state.videos.push(video);
+  } catch (err) {
+    logger.error(err);
 
-  state.videos.push(video);
+    state.toDownload -= 1;
 
-  // Confirm videos once all demos have been downloaded.
-  if (state.videos.length === state.toDownload) {
     send({
-      type: AutorenderSendDataType.Downloaded,
-      data: { video_ids: state.videos.map(({ video_id }) => video_id) },
+      type: AutorenderSendDataType.Error,
+      data: {
+        video_id: videoId,
+        message: err.toString(),
+      },
     });
+  } finally {
+    // Confirm videos once all demos have been downloaded.
+    if (state.videos.length === state.toDownload) {
+      send({
+        type: AutorenderSendDataType.Downloaded,
+        data: {
+          video_ids: state.videos.map(({ video_id }) => video_id),
+        },
+      });
+    }
   }
 };
 
@@ -346,7 +357,9 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
 
     send({
       type: AutorenderSendDataType.Error,
-      data: { message: err.toString() },
+      data: {
+        message: err.toString(),
+      },
     });
 
     fetchNextVideos();
@@ -357,10 +370,6 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
  * Prepares autoexec.cfg to queue all demos.
  */
 const prepareGameLaunch = async () => {
-  if (!state.videos.length) {
-    throw new Error("no videos available");
-  }
-
   const getDemoName = ({ video_id }: VideoPayload) => {
     return join(AUTORENDER_FOLDER_NAME, video_id.toString());
   };

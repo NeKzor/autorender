@@ -867,7 +867,22 @@ router.get("/connect/client", async (ctx) => {
             break;
           }
           case "error": {
-            // TODO: handle error case
+            const { video_id } = data as {
+              video_id: Video["video_id"] | undefined;
+              message: string;
+            };
+
+            if (video_id) {
+              await db.execute(
+                `update videos
+                    set pending = ?
+                  where video_id = UUID_TO_BIN(?)`,
+                [
+                  PendingStatus.FinishedRender,
+                  video_id,
+                ],
+              );
+            }
             break;
           }
           default: {
