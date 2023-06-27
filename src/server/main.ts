@@ -111,7 +111,7 @@ const useRateLimiter = await RateLimiter({
 
 let discordBot: WebSocket | null = null;
 
-const sendErrorToBot = (error: {
+const _sendErrorToBot = (error: {
   status: number;
   message: string;
   requested_by_id: string;
@@ -364,7 +364,8 @@ apiV1
 
     const { token_name } = ctx.request.body({
       type: "json",
-    }).value as any;
+      // deno-lint-ignore no-explicit-any
+    }).value as any as Pick<AccessToken, "token_name">;
 
     const inserted = await db.execute(
       `insert into access_tokens (
@@ -849,13 +850,13 @@ router.get("/connect/client", async (ctx) => {
                 ],
               );
 
-              sendErrorToBot({
-                status: Status.InternalServerError,
-                message: `Failed to render video "${video.title}".`,
-                requested_by_id: video.requested_by_id,
-                requested_in_guild_id: video.requested_in_guild_id,
-                requested_in_channel_id: video.requested_in_channel_id,
-              });
+              // sendErrorToBot({
+              //   status: Status.InternalServerError,
+              //   message: `Failed to render video "${video.title}".`,
+              //   requested_by_id: video.requested_by_id,
+              //   requested_in_guild_id: video.requested_in_guild_id,
+              //   requested_in_channel_id: video.requested_in_channel_id,
+              // });
             }
 
             ws.send(
@@ -1095,7 +1096,11 @@ const app = new Application<AppState>();
 
 // TODO: error handling
 app.addEventListener("error", (ev) => {
-  logger.error(ev.error);
+  try {
+    logger.error(ev.error);
+  } catch (err) {
+    console.error("This should not happen!", err);
+  }
 });
 
 app.use(oakCors());

@@ -8,7 +8,6 @@
  */
 
 import "https://deno.land/std@0.177.0/dotenv/load.ts";
-import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
 import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
 import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
 import { logger } from "./logger.ts";
@@ -21,6 +20,7 @@ import {
   VideoPayload,
 } from "./protocol.ts";
 import { Video as VideoModel } from "../server/models.ts";
+import { ClientState, ClientStatus } from "./state.ts";
 
 const GAME_DIR = Deno.env.get("GAME_DIR")!;
 const GAME_MOD = Deno.env.get("GAME_MOD")!;
@@ -28,32 +28,16 @@ const GAME_EXE = Deno.env.get("GAME_EXE")!;
 const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
 
 const AUTORENDER_FOLDER_NAME = Deno.env.get("AUTORENDER_FOLDER_NAME")!;
-const AUTORENDER_PROTOCOL = Deno.env.get("AUTORENDER_PROTOCOL")!;
 const AUTORENDER_CFG = Deno.env.get("AUTORENDER_CFG")!;
-const AUTORENDER_CONNECT_URI = Deno.env.get("AUTORENDER_CONNECT_URI")!;
 const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
-const AUTORENDER_CHECK_INTERVAL = 1_000;
 const AUTORENDER_PATCHED_SAR = true; // TODO: Upstream sar_on_renderer feature
-const AUTORENDER_SEND_MAX_RETRIES = 5;
-const AUTORENDER_SEND_RETRY_INTERVAL = 1_000;
+const AUTORENDER_CHECK_INTERVAL = 1_000;
 
 try {
   await Deno.mkdir(AUTORENDER_DIR);
   logger.info(`created autorender directory in ${GAME_DIR}`);
   // deno-lint-ignore no-empty
 } catch {}
-
-enum ClientStatus {
-  Idle = 0,
-  Rendering = 1,
-}
-
-interface ClientState {
-  toDownload: number;
-  videos: VideoPayload[];
-  status: ClientStatus;
-  payloads: (Uint8Array | AutorenderSendMessages)[];
-}
 
 const state: ClientState = {
   toDownload: 0,
@@ -62,34 +46,50 @@ const state: ClientState = {
   payloads: [],
 };
 
-let ws: WebSocket | null = null;
 let idleTimer: number | null = null;
-let wasConnected = false;
 
-const send = async (
+// Worker thread for connecting to the server.
+const worker = new Worker(new URL("./worker.ts", import.meta.url).href, {
+  type: "module",
+});
+
+worker.addEventListener("message", async (message: MessageEvent) => {
+  if (message.data instanceof ArrayBuffer) {
+    await onMessage(message.data);
+  } else {
+    const { type, data } = message.data;
+    switch (type) {
+      case "connected":
+        fetchNextVideos();
+        break;
+      case "disconnected":
+        if (idleTimer !== null) {
+          clearTimeout(idleTimer);
+        }
+        break;
+      case "message":
+        await onMessage(data);
+        break;
+      default:
+        logger.error(
+          `Unhandled message type from worker: ${message.data.type}`,
+        );
+        break;
+    }
+  }
+});
+
+const send = (
   data: Uint8Array | AutorenderSendMessages,
   options?: { dropDataIfDisconnected: boolean },
 ) => {
-  const isBuffer = data instanceof Uint8Array;
-
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(isBuffer ? data : JSON.stringify(data));
-  } else if (!options?.dropDataIfDisconnected) {
-    let retries = AUTORENDER_SEND_MAX_RETRIES;
-    do {
-      await delay(AUTORENDER_SEND_RETRY_INTERVAL);
-
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(isBuffer ? data : JSON.stringify(data));
-        return;
-      }
-    } while (retries-- > 0);
-
-    logger.warn(
-      "dropped data",
-      isBuffer ? `buffer of size ${data.byteLength}` : data,
-    );
-  }
+  worker.postMessage({
+    type: "send",
+    data: {
+      data,
+      options,
+    },
+  });
 };
 
 const fetchNextVideos = () => {
@@ -99,8 +99,8 @@ const fetchNextVideos = () => {
     }
 
     idleTimer = setTimeout(
-      async () =>
-        await send(
+      () =>
+        send(
           {
             type: AutorenderSendDataType.Videos,
             data: { game: GAME_MOD },
@@ -147,7 +147,7 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos["data"]) => {
 
   // Claim video and request demo file.
   for (const { video_id } of videos) {
-    await send({ type: AutorenderSendDataType.Demo, data: { video_id } });
+    send({ type: AutorenderSendDataType.Demo, data: { video_id } });
   }
 };
 
@@ -204,11 +204,11 @@ const handleMessageStart = async () => {
           ),
         );
 
-        await send(buffer.bytes());
+        send(buffer.bytes());
       } catch (err) {
         logger.error(err);
 
-        await send({
+        send({
           type: AutorenderSendDataType.Error,
           data: { video_id, message: err.toString() },
         });
@@ -217,7 +217,7 @@ const handleMessageStart = async () => {
   } catch (err) {
     logger.error(err);
 
-    await send({
+    send({
       type: AutorenderSendDataType.Error,
       data: { message: err.toString() },
     });
@@ -264,11 +264,8 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
  *      5 ... length   = video data
  *      length + 1 ... = demo file
  */
-const handleBlobData = async (data: Blob) => {
-  const buffer = await data.arrayBuffer();
-  const view = new DataView(buffer);
-
-  const length = Number(view.getUint32(0));
+const handleMessageBuffer = async (buffer: ArrayBuffer) => {
+  const length = new DataView(buffer).getUint32(0);
   const payload = buffer.slice(4, length + 4);
   const demo = buffer.slice(length + 4);
   const decoded = new TextDecoder().decode(payload);
@@ -304,23 +301,23 @@ const handleBlobData = async (data: Blob) => {
 
   // Confirm videos once all demos have been downloaded.
   if (state.videos.length === state.toDownload) {
-    await send({
+    send({
       type: AutorenderSendDataType.Downloaded,
       data: { video_ids: state.videos.map(({ video_id }) => video_id) },
     });
   }
 };
 
-const onMessage = async (message: MessageEvent) => {
+const onMessage = async (messageData: ArrayBuffer | string) => {
   if (state.status === ClientStatus.Rendering) {
     return logger.warn("got message during rendering... should not happen");
   }
 
   try {
-    if (message.data instanceof Blob) {
-      await handleBlobData(message.data);
+    if (messageData instanceof ArrayBuffer) {
+      await handleMessageBuffer(messageData);
     } else {
-      const { type, data } = JSON.parse(message.data) as AutorenderMessages;
+      const { type, data } = JSON.parse(messageData) as AutorenderMessages;
 
       switch (type) {
         case AutorenderDataType.Videos: {
@@ -345,7 +342,7 @@ const onMessage = async (message: MessageEvent) => {
   } catch (err) {
     logger.error(err);
 
-    await send({
+    send({
       type: AutorenderSendDataType.Error,
       data: { message: err.toString() },
     });
@@ -353,41 +350,6 @@ const onMessage = async (message: MessageEvent) => {
     fetchNextVideos();
   }
 };
-
-const onOpen = () => {
-  wasConnected = true;
-  logger.info("Connected to server");
-  fetchNextVideos();
-};
-
-const onClose = async () => {
-  ws = null;
-
-  if (wasConnected) {
-    wasConnected = false;
-    logger.info("Disconnected from server");
-  }
-
-  if (idleTimer !== null) {
-    clearTimeout(idleTimer);
-  }
-
-  await delay(100);
-  connect();
-};
-
-const connect = () => {
-  ws = new WebSocket(AUTORENDER_CONNECT_URI, [
-    AUTORENDER_PROTOCOL,
-    encodeURIComponent(Deno.env.get("AUTORENDER_API_KEY")!),
-  ]);
-
-  ws.onopen = onOpen;
-  ws.onmessage = onMessage;
-  ws.onclose = onClose;
-};
-
-connect();
 
 /**
  * Prepares autoexec.cfg to queue all demos.
