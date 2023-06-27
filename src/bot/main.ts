@@ -77,8 +77,6 @@ const worker = new Worker(new URL("./worker.ts", import.meta.url).href, {
 worker.addEventListener("message", (message) => {
   const { type, data } = JSON.parse(message.data) as BotMessages;
 
-  console.log("Message");
-
   switch (type) {
     case BotDataType.Upload: {
       const content = [
