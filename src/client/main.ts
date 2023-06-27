@@ -151,32 +151,34 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos["data"]) => {
   }
 };
 
+let gameProcess: Deno.ChildProcess | null = null;
+
+Deno.addSignalListener("SIGINT", () => {
+  if (gameProcess) {
+    try {
+      logger.info("handling termination...");
+      gameProcess.kill();
+      logger.info("termination game process");
+    } catch (err) {
+      logger.error(err);
+    }
+  }
+
+  Deno.exit();
+});
+
 /**
  * Server requests the start of a render after it got the confirmed videos.
  */
 const handleMessageStart = async () => {
+  if (gameProcess) {
+    throw new Error('Game process is still running!');
+  }
+
   try {
     state.status = ClientStatus.Rendering;
 
     const command = await prepareGameLaunch();
-
-    let gameProcess: Deno.ChildProcess | null = null;
-
-    const handleTermination = () => {
-      if (gameProcess) {
-        try {
-          logger.info("handling termination...");
-          gameProcess.kill();
-          logger.info("termination game process");
-        } catch (err) {
-          logger.error(err);
-        }
-      }
-
-      Deno.exit();
-    };
-
-    Deno.addSignalListener("SIGINT", handleTermination);
 
     logger.info("spawning process...");
 
@@ -190,7 +192,6 @@ const handleMessageStart = async () => {
     logger.info("game exited", { code });
 
     gameProcess = null;
-    Deno.removeSignalListener("SIGINT", handleTermination);
 
     const encoder = new TextEncoder();
 
@@ -225,6 +226,9 @@ const handleMessageStart = async () => {
     state.toDownload = 0;
     state.videos = [];
     state.status = ClientStatus.Idle;
+
+    gameProcess?.kill();
+    gameProcess = null;
 
     fetchNextVideos();
   }
