@@ -87,7 +87,6 @@ const onClose = async () => {
 };
 
 const onMessage = async (message: MessageEvent) => {
-  console.log("Server:", message);
   // deno-lint-ignore no-explicit-any
   (self as any).postMessage(
     message.data instanceof Blob
