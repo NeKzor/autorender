@@ -810,7 +810,7 @@ router.get("/connect/client", async (ctx) => {
                   type: "error",
                   data: {
                     status: Status.BadRequest,
-                    message: "unknown message type",
+                    message: "Invalid amount of video IDs.",
                   },
                 }),
               );
