@@ -53,9 +53,9 @@ sequenceDiagram
     Bot->>Discord: Send status message
 
     Note right of Bot: autorender.nekz.me
-    Bot->>Server: Create video
+    Bot->>+Server: Create video
     Server->>Server: Process demo file
-    Server->>Bot: Send video data
+    Server->>-Bot: Send video data
     Bot->>Discord: Update status message
 
     Note left of Client: Access via tokens
@@ -177,12 +177,13 @@ The server should now be available at: `http://autorender.portal2.local`
 ## Credits
 
 - [@PortalRex] for idea and motivation
-- [@mlugg] for [autorender.portal2.sr]
-- [p2sr/SourceAutoRecord] for rendering commands
+- [@ThatFridgeFella] for testing
+- [p2sr/SourceAutoRecord] for a renderer crashes!
+- [p2sr/portal2-cm-autorender] for making me not want to use Python!!
 
 [@PortalRex]: https://github.com/PortalRex
-[@mlugg]: https://github.com/mlugg
-[autorender.portal2.sr]: https://autorender.portal2.sr
+[@ThatFridgeFella]: https://github.com/ThatFridgeFella
+[p2sr/portal2-cm-autorender]: https://github.com/p2sr/portal2-cm-autorender
 [p2sr/SourceAutoRecord]: https://github.com/p2sr/SourceAutoRecord
 
 ## License
