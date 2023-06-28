@@ -35,7 +35,14 @@ const AUTORENDER_CHECK_INTERVAL = 1_000;
 
 try {
   await Deno.mkdir(AUTORENDER_DIR);
-  logger.info(`Created autorender directory in ${GAME_DIR}`);
+  logger.info(`Created autorender directory ${AUTORENDER_DIR}`);
+  // deno-lint-ignore no-empty
+} catch {}
+
+try {
+  const workshopDirectory = join(GAME_MOD_PATH, "maps", "workshop");
+  await Deno.mkdir(workshopDirectory);
+  logger.info(`Created workshop directory ${workshopDirectory}`);
   // deno-lint-ignore no-empty
 } catch {}
 
