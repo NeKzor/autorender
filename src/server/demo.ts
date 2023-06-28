@@ -16,10 +16,8 @@ export const getDemoInfo = async (buffer: ArrayBuffer) => {
       .adjustRange();
 
     // TODO: fix exports in sdp
-    const info = demo.findPacket(NetMessages.SvcServerInfo) as
-      // deno-lint-ignore no-explicit-any
-      | any
-      | undefined;
+    // deno-lint-ignore no-explicit-any
+    const info = demo.findPacket(NetMessages.SvcServerInfo) as any;
 
     if (!info) {
       return null;
@@ -45,9 +43,13 @@ export const getDemoInfo = async (buffer: ArrayBuffer) => {
 
 export const resolveFileUrl = async (mapName: string) => {
   // Example: workshop/271715738875416672/bhop_outdoors
-  const [path, ugc, _name] = mapName.split("/");
+  const [path, ugc, name] = mapName.split("/", 3);
 
   if (path === "workshop") {
+    if (name.includes("/") || name.includes("\\")) {
+      throw new Error(`Invalid map name found in demo: ${name}`);
+    }
+
     const res = await fetch(
       `http://steampowered.com.mirror.nekz.me/api/v1/workshop/620/files/ugc/${ugc}`,
       {
