@@ -8,7 +8,7 @@
  */
 
 import "https://deno.land/std@0.177.0/dotenv/load.ts";
-import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
+import { dirname, join } from "https://deno.land/std@0.190.0/path/mod.ts";
 import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
 import { logger } from "./logger.ts";
 import {
@@ -35,7 +35,7 @@ const AUTORENDER_CHECK_INTERVAL = 1_000;
 
 try {
   await Deno.mkdir(AUTORENDER_DIR);
-  logger.info(`created autorender directory in ${GAME_DIR}`);
+  logger.info(`Created autorender directory in ${GAME_DIR}`);
   // deno-lint-ignore no-empty
 } catch {}
 
@@ -245,6 +245,8 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
     );
   }
 
+  await Deno.mkdir(dirname(mapFile));
+
   const map = await steamResponse.arrayBuffer();
   await Deno.writeFile(mapFile, new Uint8Array(map));
 
@@ -323,7 +325,7 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
 
 const onMessage = async (messageData: ArrayBuffer | string) => {
   if (state.status === ClientStatus.Rendering) {
-    return logger.warn("got message during rendering... should not happen");
+    return logger.warn("Got message during rendering... should not happen");
   }
 
   try {
@@ -342,7 +344,7 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
           break;
         }
         case AutorenderDataType.Error: {
-          logger.error(`error code: ${data.status}`);
+          logger.error(`Error code: ${data.status}`);
           fetchNextVideos();
           break;
         }
