@@ -354,68 +354,6 @@ apiV1
 
     Ok(ctx, video);
   })
-  // Create a new access token for a client application.
-  .post("/application/new", useSession, requiresAuth, async (ctx) => {
-    if (!hasPermission(ctx, UserPermissions.CreateTokens)) {
-      return ctx.throw(Status.Unauthorized);
-    }
-
-    const userId = ctx.state.session.get("user")!.user_id;
-
-    const { token_name } = ctx.request.body({
-      type: "json",
-      // deno-lint-ignore no-explicit-any
-    }).value as any as Pick<AccessToken, "token_name">;
-
-    const inserted = await db.execute(
-      `insert into access_tokens (
-          user_id
-        , token_name
-        , token_key
-        , permissions
-      ) values (
-          ?
-        , ?
-        , ?
-        , ?
-      )`,
-      [
-        userId,
-        token_name,
-        await bcrypt.hash(crypto.randomUUID()),
-        AccessPermission.CreateVideos | AccessPermission.WriteVideos,
-      ],
-    );
-
-    const [accessToken] = await db.query<AccessToken>(
-      `select * from access_tokens where access_token_id = ?`,
-      [inserted.lastInsertId],
-    );
-
-    await db.execute(
-      `insert into audit_logs (
-            title
-          , audit_type
-          , source
-          , source_user_id
-        ) values (
-            ?
-          , ?
-          , ?
-          , ?
-        )`,
-      [
-        `Created access token ${
-          accessToken!.access_token_id
-        } for user ${userId}`,
-        AuditType.Info,
-        AuditSource.User,
-        userId,
-      ],
-    );
-
-    Ok(ctx, accessToken);
-  })
   .get("/(.*)", (ctx) => {
     Err(ctx, Status.NotFound, "Route not found :(");
   });
