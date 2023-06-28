@@ -215,7 +215,7 @@ apiV1
       outPath: "./demos",
     });
 
-    logger.info("received", data.files?.length ?? 0, "file(s)");
+    logger.info("Received", data.files?.length ?? 0, "file(s)");
 
     const file = data.files?.at(0);
     if (!file?.filename) {
@@ -233,7 +233,7 @@ apiV1
     }
 
     if (demoInfo.isWorkshopMap && !demoInfo.fileUrl) {
-      logger.error(`failed to resolve workshop map`);
+      logger.error(`Failed to resolve workshop map`);
       return ctx.throw(Status.InternalServerError);
     }
 
@@ -674,13 +674,13 @@ router.get("/connect/client", async (ctx) => {
           // try {
           //   Deno.remove(videoFile);
           // } catch (err) {
-          //   logger.error("failed to remove video file:", err.toString());
+          //   logger.error("Failed to remove video file:", err.toString());
           // }
 
           try {
             Deno.remove(video.file_path);
           } catch (err) {
-            logger.error("failed to remove demo file:", err.toString());
+            logger.error("Failed to remove demo file:", err.toString());
           }
         }
       } else {
