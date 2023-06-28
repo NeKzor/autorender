@@ -6,6 +6,9 @@
  * This worker thread handle the connection to the server.
  */
 
+/// <reference no-default-lib="true" />
+/// <reference lib="deno.worker" />
+
 import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
 import { logger } from "./logger.ts";
 import { AutorenderSendMessages } from "./protocol.ts";
@@ -23,7 +26,7 @@ const send = async (
   options?: { dropDataIfDisconnected: boolean },
 ) => {
   const isBuffer = data instanceof Uint8Array;
-  const dataToSend = isBuffer ? data : JSON.stringify(data)
+  const dataToSend = isBuffer ? data : JSON.stringify(data);
 
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(dataToSend);
@@ -45,8 +48,7 @@ const send = async (
   }
 };
 
-// deno-lint-ignore no-explicit-any
-(self as any).addEventListener("message", async (message: MessageEvent) => {
+self.addEventListener("message", async (message: MessageEvent) => {
   switch (message.data.type) {
     case "send": {
       type SendData = {
@@ -67,8 +69,7 @@ const send = async (
 const onOpen = () => {
   wasConnected = true;
   logger.info("Connected to server");
-  // deno-lint-ignore no-explicit-any
-  (self as any).postMessage({ type: "connected" });
+  self.postMessage({ type: "connected" });
 };
 
 const onClose = async () => {
@@ -79,16 +80,14 @@ const onClose = async () => {
     logger.info("Disconnected from server");
   }
 
-  // deno-lint-ignore no-explicit-any
-  (self as any).postMessage({ type: "disconnected" });
+  self.postMessage({ type: "disconnected" });
 
   await delay(100);
   connect();
 };
 
 const onMessage = async (message: MessageEvent) => {
-  // deno-lint-ignore no-explicit-any
-  (self as any).postMessage(
+  self.postMessage(
     message.data instanceof Blob
       // TODO: Deno bug? Blob should be transferrable, no?
       ? await message.data.arrayBuffer()

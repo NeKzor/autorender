@@ -7,6 +7,9 @@
  * the main thread.
  */
 
+/// <reference no-default-lib="true" />
+/// <reference lib="deno.worker" />
+
 import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
 
 const AUTORENDER_CONNECT_URI = Deno.env.get("AUTORENDER_CONNECT_URI")!;
@@ -25,8 +28,7 @@ const onOpen = () => {
 
 const onMessage = (message: MessageEvent) => {
   console.log("Server:", message);
-  // deno-lint-ignore no-explicit-any
-  (self as any).postMessage(message.data);
+  self.postMessage(message.data);
 };
 
 const onClose = async () => {
