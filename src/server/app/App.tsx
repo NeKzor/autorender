@@ -63,7 +63,7 @@ const App = ({ initialState, nonce, children }: AppProps) => {
         <meta http-equiv="Content-Security-Policy" content={getCSP(nonce)} />
         <meta name="theme-color" content="#f44336" />
         {metaNames
-          .filter((name) => meta[name] !== undefined)
+          .filter((name) => meta[name] !== undefined && meta[name] !== null)
           .map((name) => {
             return <meta name={name} content={meta[name]} />;
           })}
