@@ -40,35 +40,42 @@ Convert any Portal 2 demo file into a video with: `/render <attachment>`
 
 ## Network Topology
 
-```
-                HTTPS/WSS      WSS  HTTPS/WSS    WSS
-Discord Client 1 --|                              |-- Client 1
-Discord Client 2 --|-- Discord -- Bot -- Server --|-- Client 2
-Discord Client 3 --|                              |-- ...
-             ... --|
-```
+```mermaid
+sequenceDiagram
+    participant Discord
+    Note left of Discord: discord.com<br>discord.gg
+    participant Bot
+    participant Server
+    participant Client
+    participant Backblaze
 
-## Storage
+    Discord->>Bot: Upload demo file
+    Bot->>Discord: Send status message
 
-```
-             Bot
-          Sends demo
-              |
-            Server
-     Stores and sends demo
-              |
-        Render Client
-     Renders demo to video
-              |
-            Server
-         Deletes demo
-         Uploads video
-              |
-          Backblaze
-        Stores video
-              |
-         Server (Web)
-  Links video to Backblaze URL
+    Note right of Bot: autorender.nekz.me
+    Bot->>Server: Create video
+    Server->>Server: Process demo file
+    Server->>Bot: Send video data
+    Bot->>Discord: Update status message
+
+    Note left of Client: Access via tokens
+    Client->>Server: Ask for videos
+    Server->>Client: Send video ID
+    Client->>Server: Claim video ID
+    Server->>Client: Send demo file
+    Client->>Server: Confirm video ID
+    Server->>+Client: Start video render
+    Client->>Client: Launch game process<br>Render demo file
+    Client->>-Server: Send video file
+
+    Note right of Backblaze: backblazeb2.com
+    Server->>Backblaze: Get upload URL
+    Backblaze->>Server: Return upload URL
+    Server->>+Backblaze: Upload video file at URL
+    Backblaze->>-Server: Return upload object
+    Server->>Server: Update video
+    Server->>Bot: Send updated video
+    Bot->>Discord: Send video link
 ```
 
 ## Local Development
