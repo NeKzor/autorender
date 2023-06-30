@@ -87,12 +87,18 @@ const onClose = async () => {
 };
 
 const onMessage = async (message: MessageEvent) => {
-  self.postMessage(
-    message.data instanceof Blob
-      // TODO: Deno bug? Blob should be transferrable, no?
-      ? await message.data.arrayBuffer()
-      : { type: "message", data: message.data },
-  );
+  if (message.data instanceof Blob) {
+    // TODO: Avoid using ArrayBuffer by using Blob directly.
+    //       This is not supported yet :>
+    //       https://github.com/denoland/deno/issues/12067
+    const buffer = await message.data.arrayBuffer();
+    self.postMessage(buffer, [buffer]);
+  } else {
+    self.postMessage({
+      type: "message",
+      data: message.data,
+    });
+  }
 };
 
 const connect = () => {
