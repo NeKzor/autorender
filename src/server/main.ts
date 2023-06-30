@@ -136,7 +136,7 @@ b2.authorizeAccount({
 
 await logger.initFileLogger("log/server", {
   rotate: true,
-  maxBytes: 10 * 1024,
+  maxBytes: 100_000_000,
   maxBackupCount: 7,
 });
 
