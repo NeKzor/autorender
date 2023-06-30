@@ -140,6 +140,11 @@ await logger.initFileLogger("log/server", {
   maxBackupCount: 7,
 });
 
+addEventListener("unhandledrejection", (ev) => {
+  ev.preventDefault();
+  console.error(ev.reason);
+});
+
 const hasPermission = (ctx: Context, permission: UserPermissions) => {
   return ctx.state.session.get("user").permissions & permission;
 };
