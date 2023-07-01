@@ -43,6 +43,13 @@ const onClose = async () => {
   connect();
 };
 
+const onError = (event: ErrorEvent | Event) => {
+  console.error(
+    "Connection error",
+    event instanceof ErrorEvent ? event.error : event,
+  );
+};
+
 const connect = () => {
   ws = new WebSocket(AUTORENDER_CONNECT_URI, [
     AUTORENDER_PROTOCOL,
@@ -52,6 +59,7 @@ const connect = () => {
   ws.onopen = onOpen;
   ws.onmessage = onMessage;
   ws.onclose = onClose;
+  ws.onerror = onError
 };
 
 connect();

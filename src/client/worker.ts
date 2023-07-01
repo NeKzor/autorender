@@ -86,6 +86,13 @@ const onClose = async () => {
   connect();
 };
 
+const onError = (event: ErrorEvent | Event) => {
+  logger.error(
+    "Connection error",
+    event instanceof ErrorEvent ? event.error : event,
+  );
+};
+
 const onMessage = async (message: MessageEvent) => {
   if (message.data instanceof Blob) {
     // TODO: Avoid using ArrayBuffer by using Blob directly.
@@ -110,6 +117,7 @@ const connect = () => {
   ws.onopen = onOpen;
   ws.onmessage = onMessage;
   ws.onclose = onClose;
+  ws.onerror = onError;
 };
 
 connect();

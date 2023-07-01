@@ -443,6 +443,13 @@ router.get("/connect/bot", async (ctx) => {
     logger.info("Bot disconnected");
     discordBot = null;
   };
+
+  discordBot.onerror = (event: ErrorEvent | Event) => {
+    logger.error(
+      "Bot connection error",
+      event instanceof ErrorEvent ? event.error : event,
+    );
+  };
 });
 
 // Client connections.
@@ -859,6 +866,13 @@ router.get("/connect/client", async (ctx) => {
   ws.onclose = () => {
     logger.info(`Client ${clientId} disconnected`);
     clients.delete(clientId);
+  };
+
+  ws.onerror = (event: ErrorEvent | Event) => {
+    logger.error(
+      `Client ${clientId} connection error`,
+      event instanceof ErrorEvent ? event.error : event,
+    );
   };
 });
 
