@@ -24,14 +24,15 @@ export const getDemoInfo = async (buffer: ArrayBuffer) => {
     }
 
     const isWorkshopMap = demo.mapName !== info.mapName;
+    const fullMapName = info.mapName.replaceAll("\\", "/");
 
     return {
       size: buffer.byteLength,
       mapName: demo.mapName,
-      fullMapName: info.mapName,
+      fullMapName,
       mapCrc: info.mapCrc,
       isWorkshopMap,
-      fileUrl: isWorkshopMap ? await resolveFileUrl(info.mapName) : null,
+      fileUrl: isWorkshopMap ? await resolveFileUrl(fullMapName) : null,
       gameDir: demo.gameDirectory,
       playbackTime: demo.playbackTime,
     };
@@ -41,8 +42,8 @@ export const getDemoInfo = async (buffer: ArrayBuffer) => {
   }
 };
 
+// Example: workshop/271715738875416672/bhop_outdoors
 export const resolveFileUrl = async (mapName: string) => {
-  // Example: workshop/271715738875416672/bhop_outdoors
   const [path, ugc, name] = mapName.split("/", 3);
 
   if (path === "workshop") {
