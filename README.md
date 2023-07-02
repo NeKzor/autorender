@@ -177,6 +177,58 @@ The server should now be available at: `http://autorender.portal2.local`
 [64 MiB]:  https://github.com/denoland/fastwebsockets/blob/875e6b7ba001898e38bbff50e8f90cc11b90e718/src/lib.rs#L283
 [deno#15809]: https://github.com/denoland/deno/issues/15809
 
+## Production
+
+Same as in development but all task commands end with `prod` e.g. `deno task start:prod`.
+
+Make sure the bot's `.env` file has the correct values for:
+- `AUTORENDER_BASE_API` should point to the internal address
+- `AUTORENDER_PUBLIC_URI` should point to the public domain (used for sending the final Discord message)
+
+### Proxy Example with Nginx + Certbot
+
+```
+server {
+    listen 80;
+    server_name autorender.nekz.me;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name autorender.nekz.me;
+
+    ssl_certificate /etc/letsencrypt/live/autorender.nekz.me/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/autorender.nekz.me/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+    location / {
+        proxy_pass http://127.0.0.1:8834$request_uri;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+	      client_max_body_size 150M;
+    }
+
+    location /connect/client {
+        proxy_pass http://127.0.0.1:8834$request_uri;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+        proxy_read_timeout 1800s;
+        proxy_send_timeout 1800s;
+    }
+}
+```
+
 ## Credits
 
 - [@PortalRex] for idea and motivation
