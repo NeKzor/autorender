@@ -34,9 +34,12 @@ Convert any Portal 2 demo file into a video with: `/render <attachment>`
 - Figure out docker + easier setup
 - Figure out a way to fix the server's [net permission](#caveats)
 - SAR wishlist:
-  - Remove unnecessary watermark
+  - ~~Remove unnecessary watermark~~
   - Sandbox commands like in 1.0
   - IPC between client and game process
+  - Detect if demo could be played
+  - Do not capture mouse input during render
+  - Remove Steam
 
 ## Network Topology
 
@@ -83,12 +86,14 @@ sequenceDiagram
 ### Requirements
 
 - [deno runtime]
+- [FFmpeg]
 - [Discord Application]
 - [Backblaze Bucket]
 - [Docker Engine]
 - [mkcert] (optional)
 
 [deno runtime]: https://deno.com/runtime
+[FFmpeg]: https://ffmpeg.org/download.html
 [Discord Application]: https://discord.com/developers/applications
 [Backblaze Bucket]: https://www.backblaze.com
 [Docker Engine]: https://docs.docker.com/engine/install
@@ -148,6 +153,7 @@ The server should now be available at: `http://autorender.portal2.local`
 |---|---|
 |GAME_DIR|Directory path of the game.|
 |GAME_EXE|The binary or script to execute: `portal2.exe` (Windows) `portal2.sh` (Linux).|
+|GAME_PROC|The process name of the game: `portal2.exe` (Windows) `portal2_linux` (Linux).|
 |AUTORENDER_API_KEY|Access token for autorender server.|
 
 ### Install & Run Bot

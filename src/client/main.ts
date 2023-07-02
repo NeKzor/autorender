@@ -25,13 +25,22 @@ import { UploadWorkerDataType } from "./upload.ts";
 const GAME_DIR = Deno.env.get("GAME_DIR")!;
 const GAME_MOD = Deno.env.get("GAME_MOD")!;
 const GAME_EXE = Deno.env.get("GAME_EXE")!;
+const GAME_PROC = Deno.env.get("GAME_PROC")!;
 const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
 
 const AUTORENDER_FOLDER_NAME = Deno.env.get("AUTORENDER_FOLDER_NAME")!;
 const AUTORENDER_CFG = Deno.env.get("AUTORENDER_CFG")!;
 const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
-const AUTORENDER_PATCHED_SAR = true; // TODO: Upstream sar_on_renderer feature
+// TODO: Upstream sar_on_renderer feature
+const AUTORENDER_PATCHED_SAR = true;
+// Timeout interval in ms to check if there are new videos to render.
 const AUTORENDER_CHECK_INTERVAL = 1_000;
+// Approximated scaling factor for multiplying the demo playback time.
+const AUTORENDER_SCALE_TIMEOUT = 7;
+// Approximated time in seconds of how long it takes to load a demo.
+const AUTORENDER_LOAD_TIMEOUT = 5;
+// Approximated time in seconds of how long it takes to start/exit the game process.
+const AUTORENDER_BASE_TIMEOUT = 20;
 
 try {
   await Deno.mkdir(AUTORENDER_DIR);
@@ -77,6 +86,7 @@ worker.addEventListener("message", async (message: MessageEvent) => {
       case "disconnected":
         if (idleTimer !== null) {
           clearTimeout(idleTimer);
+          idleTimer = null;
         }
         break;
       case "message":
@@ -181,15 +191,45 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos["data"]) => {
 };
 
 let gameProcess: Deno.ChildProcess | null = null;
+let timeout: number | null = null;
+
+/**
+ * Kills the game process.
+ */
+const killGameProcess = () => {
+  if (!gameProcess) {
+    return;
+  }
+
+  // Negative PID in Unix means killing the entire process group.
+  const pid = Deno.build.os === "windows" ? gameProcess.pid : -gameProcess.pid;
+
+  logger.info(`Killing process ${pid}`);
+
+  //Deno.kill(pid, "SIGKILL");
+
+  // Deno.kill does not work for some reason :>
+  if (Deno.build.os !== "windows") {
+    const kill = new Deno.Command("pkill", { args: [GAME_PROC] });
+    const { code } = kill.outputSync();
+    logger.info(`pkill ${GAME_PROC}`, { code });
+  } else {
+    Deno.kill(pid, "SIGKILL");
+  }
+
+  logger.info("killed");
+};
 
 Deno.addSignalListener("SIGINT", () => {
   if (gameProcess) {
     try {
       logger.info("Handling termination...");
-      gameProcess.kill();
+      killGameProcess();
       logger.info("Termination game process");
     } catch (err) {
       logger.error(err);
+    } finally {
+      gameProcess = null;
     }
   }
 
@@ -213,14 +253,39 @@ const handleMessageStart = async () => {
 
     gameProcess = command.spawn();
 
-    logger.info("Spawned");
+    logger.info(`Spawned process ${gameProcess.pid}`);
 
-    // TODO: Timeout based on demo time
+    const calculatedTimeout = state.videos.reduce(
+      (total, video) => {
+        return total + (video.demo_playback_time * AUTORENDER_SCALE_TIMEOUT) +
+          AUTORENDER_LOAD_TIMEOUT;
+      },
+      AUTORENDER_BASE_TIMEOUT,
+    );
+
+    logger.info(`Process timeout in ${calculatedTimeout.toFixed(2)} seconds`);
+
+    timeout = setTimeout(() => {
+      if (gameProcess) {
+        try {
+          logger.warn("Timeout of process");
+          killGameProcess();
+          logger.warn("Killed process");
+        } catch (err) {
+          logger.error(err);
+        } finally {
+          gameProcess = null;
+        }
+      }
+    }, 10 * 1_000);
+
     const { code } = await gameProcess.output();
 
-    logger.info("Game exited", { code });
-
+    clearTimeout(timeout);
     gameProcess = null;
+    timeout = null;
+
+    logger.info("Game exited", { code });
 
     // Let the upload thread do the work.
     upload.postMessage({
@@ -231,12 +296,24 @@ const handleMessageStart = async () => {
       },
     });
   } finally {
+    if (timeout !== null) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+
     state.toDownload = 0;
     state.videos = [];
     state.status = ClientStatus.Idle;
 
-    gameProcess?.kill();
-    gameProcess = null;
+    if (gameProcess) {
+      try {
+        killGameProcess();
+      } catch (err) {
+        logger.error(err);
+      } finally {
+        gameProcess = null;
+      }
+    }
 
     fetchNextVideos();
   }
@@ -257,7 +334,11 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
     );
   }
 
-  await Deno.mkdir(dirname(mapFile));
+  try {
+    await Deno.mkdir(dirname(mapFile));
+  } catch (err) {
+    logger.error(err);
+  }
 
   const map = await steamResponse.arrayBuffer();
   await Deno.writeFile(mapFile, new Uint8Array(map));

@@ -8,7 +8,7 @@
 
 import { Video } from "../server/models.ts";
 
-export type VideoPayload = Pick<Video, "video_id" | "file_url" | "full_map_name">;
+export type VideoPayload = Pick<Video, "video_id" | "file_url" | "full_map_name" | "demo_playback_time">;
 
 export enum AutorenderDataType {
   Videos = "videos",

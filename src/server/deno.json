@@ -1,7 +1,7 @@
 {
     "tasks": {
-        "start:dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,demos,videos --allow-write=log/server,demos/,videos/ --allow-net --watch main.ts",
-        "start:prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,demos,videos --allow-write=log/server,demos/,videos/ --allow-net main.ts",
+        "start:dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,demos,videos --allow-write=log/server,demos/,videos/ --allow-run=ffprobe --allow-net --watch main.ts",
+        "start:prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,demos,videos --allow-write=log/server,demos/,videos/ --allow-run=ffprobe --allow-net main.ts",
         "test": "deno test --allow-net --allow-read --allow-env",
         "pending": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/pending.ts",
         "dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/dev.ts"

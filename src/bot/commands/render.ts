@@ -150,20 +150,32 @@ createCommand({
         },
       );
 
-      if (!response.ok) {
-        throw new Error(`Failed to render video: ${response.status}`);
+      if (response.ok) {
+        const video = await response.json() as Video;
+
+        await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+          content: `⏳️ Queued video "${video.title}" for rendering.`,
+        });
+      } else {
+        if (
+          response.headers.get("Content-Type")?.includes("application/json")
+        ) {
+          type ErrorResponse = { status: number; message: string };
+          const error = await response.json() as ErrorResponse;
+          console.error(error);
+
+          await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+            content: `❌️ Failed to queue video. Reason: ${error.message}`,
+          });
+        } else {
+          throw new Error(`Failed to queue video: ${response.status}`);
+        }
       }
-
-      const video = await response.json() as Video;
-
-      await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-        content: `⏳️ Queued video "${video.title}" for rendering.`,
-      });
     } catch (err) {
       console.error(err);
 
       await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-        content: `❌️ Failed to queue video :(`,
+        content: `❌️ Failed to queue video.`,
       });
     }
   },

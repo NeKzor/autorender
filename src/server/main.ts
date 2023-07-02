@@ -243,8 +243,9 @@ apiV1
 
     const filePath = file.filename;
     const demoInfo = await getDemoInfo(await Deno.readFile(filePath));
-    if (!demoInfo) {
-      return Err(ctx, Status.BadRequest);
+
+    if (demoInfo === null || typeof demoInfo === "string") {
+      return Err(ctx, Status.BadRequest, demoInfo ?? undefined);
     }
 
     if (demoInfo.isWorkshopMap && !demoInfo.fileUrl) {
@@ -377,7 +378,7 @@ apiV1
     }
 
     if (!ctx.request.hasBody) {
-      return Err(ctx, Status.UnsupportedMediaType);
+      return Err(ctx, Status.BadRequest, "Missing request body.");
     }
 
     const body = ctx.request.body({ type: "form-data" });
@@ -394,6 +395,14 @@ apiV1
     const file = data.files?.at(0);
     if (!file?.filename) {
       return Err(ctx, Status.BadRequest);
+    }
+
+    const cmd = new Deno.Command("ffprobe", { args: [file.filename] });
+
+    const { code } = await cmd.output();
+    if (code !== 0) {
+      logger.error(`Process ffprobe returned: ${code}`);
+      return Err(ctx, Status.UnsupportedMediaType);
     }
 
     const [video] = await db.query<Video>(
@@ -427,7 +436,8 @@ apiV1
 
       logger.info("Uploaded", upload, videoUrl);
 
-      // TODO: Video length, video preview, small/large thumbnails.
+      // TODO: Determine video length, create video preview and
+      //       small/large thumbnails in a different thread.
 
       await db.execute(
         `update videos
@@ -748,14 +758,18 @@ router.get("/connect/client", async (ctx) => {
 
             type VideoSelect = Pick<
               Video,
-              "video_id" | "file_url" | "full_map_name" | "file_path"
+              | "video_id"
+              | "file_url"
+              | "full_map_name"
+              | "demo_playback_time"
+              | "file_path"
             >;
 
             const [{ file_path, ...video }] = await db.query<VideoSelect>(
-              `
-                select BIN_TO_UUID(video_id) as video_id
+              `select BIN_TO_UUID(video_id) as video_id
                      , file_url
                      , full_map_name
+                     , demo_playback_time
                      , file_path
                   from videos
                  where video_id = UUID_TO_BIN(?)`,
