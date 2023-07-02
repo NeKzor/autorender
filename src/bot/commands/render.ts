@@ -34,22 +34,24 @@ createCommand({
       description: "Video title.",
       type: ApplicationCommandOptionTypes.String,
       required: false,
+      maxLength: 64,
     },
     {
       name: "comment",
       description: "Video comment.",
       type: ApplicationCommandOptionTypes.String,
       required: false,
+      maxLength: 512,
     },
     {
       name: "render_options",
       description: "Render options e.g. sar_ihud 1, mat_fullbright 1",
       type: ApplicationCommandOptionTypes.String,
       required: false,
+      maxLength: 1024,
     },
   ],
   execute: async (bot: Bot, interaction: Interaction) => {
-    const args = [...(interaction.data?.options?.values() ?? [])];
     const attachment = interaction.data?.resolved?.attachments?.first()!;
 
     if (attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE) {
@@ -85,7 +87,15 @@ createCommand({
         },
       });
 
+      if (!demo.ok) {
+        await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+          content: `❌️ Unable to download attachment.`,
+        });
+        return;
+      }
+
       const body = new FormData();
+      const args = [...(interaction.data?.options?.values() ?? [])];
 
       for (const option of ["title", "comment", "render_options"]) {
         const value = args.find((arg) => arg.name === option)?.value;
@@ -95,7 +105,7 @@ createCommand({
       }
 
       if (!body.get("title")) {
-        body.append("title", attachment.filename);
+        body.append("title", attachment.filename.slice(0, 64));
       }
 
       // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.

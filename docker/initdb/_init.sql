@@ -34,8 +34,8 @@ DROP TABLE IF EXISTS videos;
 
 CREATE TABLE videos (
     video_id BINARY(16) NOT NULL,
-    title VARCHAR(32),
-    comment VARCHAR(128),
+    title VARCHAR(64),
+    comment VARCHAR(512),
     requested_by_name VARCHAR(64) NOT NULL,
     requested_by_id VARCHAR(64) NOT NULL,
     requested_in_guild_id VARCHAR(64),
