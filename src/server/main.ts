@@ -446,35 +446,39 @@ apiV1
         ],
       );
 
-      type VideoUpload = Pick<
-        Video,
-        | "video_id"
-        | "title"
-        | "requested_by_id"
-        | "requested_in_guild_id"
-        | "requested_in_channel_id"
-      >;
+      Ok(ctx, { video_id: video.video_id });
 
-      const uploadMessage: VideoUpload = {
-        video_id: video.video_id,
-        title: video.title,
-        requested_by_id: video.requested_by_id,
-        requested_in_guild_id: video.requested_in_guild_id,
-        requested_in_channel_id: video.requested_in_channel_id,
-      };
+      try {
+        type VideoUpload = Pick<
+          Video,
+          | "video_id"
+          | "title"
+          | "requested_by_id"
+          | "requested_in_guild_id"
+          | "requested_in_channel_id"
+        >;
 
-      if (discordBot) {
-        discordBot.send(
-          JSON.stringify({ type: "upload", data: uploadMessage }),
-        );
-      } else {
-        logger.warn(
-          "Bot not connected. Failed to send upload message.",
-          uploadMessage,
-        );
+        const uploadMessage: VideoUpload = {
+          video_id: video.video_id,
+          title: video.title,
+          requested_by_id: video.requested_by_id,
+          requested_in_guild_id: video.requested_in_guild_id,
+          requested_in_channel_id: video.requested_in_channel_id,
+        };
+
+        if (discordBot && discordBot.readyState === WebSocket.OPEN) {
+          discordBot.send(
+            JSON.stringify({ type: "upload", data: uploadMessage }),
+          );
+        } else {
+          logger.warn(
+            `Bot not connected. Failed to send upload message for ${discordBot}.`,
+            uploadMessage,
+          );
+        }
+      } catch (err) {
+        logger.error(err);
       }
-
-      Ok(ctx, video);
     } catch (err) {
       logger.error(err);
 
@@ -579,6 +583,7 @@ router.get("/connect/bot", async (ctx) => {
 
   if (discordBot) {
     discordBot.close();
+    discordBot = null;
   }
 
   discordBot = ctx.upgrade();

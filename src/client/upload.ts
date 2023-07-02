@@ -79,7 +79,7 @@ self.addEventListener(
               throw new Error(`Failed to render video: ${response.status}`);
             }
 
-            const video = await response.json() as Video;
+            const video = await response.json() as Pick<Video, "video_id">;
             logger.info("Uploaded video", video);
           } catch (err) {
             logger.error(err);
