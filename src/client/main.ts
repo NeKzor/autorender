@@ -277,7 +277,7 @@ const handleMessageStart = async () => {
           gameProcess = null;
         }
       }
-    }, 10 * 1_000);
+    }, calculatedTimeout * 1_000);
 
     const { code } = await gameProcess.output();
 
