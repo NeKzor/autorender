@@ -52,7 +52,7 @@ self.addEventListener("message", async (message: MessageEvent) => {
   switch (message.data.type) {
     case "send": {
       type SendData = {
-        data: Uint8Array | AutorenderSendMessages;
+        data: AutorenderSendMessages;
         options?: { dropDataIfDisconnected: boolean };
       };
 
@@ -61,7 +61,7 @@ self.addEventListener("message", async (message: MessageEvent) => {
       break;
     }
     default:
-      logger.error(`Unhandled type: ${message.data.type}`);
+      logger.error(`Unhandled worker message type: ${message.data.type}`);
       break;
   }
 });

@@ -17,6 +17,7 @@ import {
   Middleware,
   Router,
   Status,
+  STATUS_TEXT,
 } from "https://deno.land/x/oak@v12.2.0/mod.ts";
 import {
   ResponseBody,
@@ -82,6 +83,10 @@ const AUTORENDER_BOARD_TOKEN_HASH = (() => {
   const boardToken = Deno.env.get("AUTORENDER_BOARD_TOKEN")!;
   return boardToken !== "none" ? bcrypt.hashSync(boardToken) : null;
 })();
+const AUTORENDER_TEMP_DEMOS_FOLDER = "./demos";
+const AUTORENDER_TEMP_VIDEOS_FOLDER = "./videos";
+const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
+const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 const B2_BUCKET_ID = Deno.env.get("B2_BUCKET_ID")!;
 
 const cookieOptions: CookiesSetDeleteOptions = {
@@ -99,7 +104,7 @@ const useSession = Session.initMiddleware(store, {
 
 const requiresAuth: Middleware<AppState> = (ctx) => {
   if (!ctx.state.session.get("user")) {
-    return ctx.throw(Status.Unauthorized);
+    return Err(ctx, Status.Unauthorized);
   }
 };
 
@@ -159,22 +164,26 @@ const Ok = (
   ctx.response.body = body ?? {};
 };
 
-const Err = (ctx: Context, status: Status, message: string) => {
-  ctx.response.status = status;
+const Err = (ctx: Context, status?: Status, message?: string) => {
+  ctx.response.status = status ?? Status.InternalServerError;
   ctx.response.type = "application/json";
-  ctx.response.body = { status, message };
+  ctx.response.body = {
+    status: ctx.response.status,
+    message: message ??
+      (status ? STATUS_TEXT[status] : STATUS_TEXT[Status.InternalServerError]),
+  };
 };
 
 const apiV1 = new Router<AppState>();
 
 apiV1
-  // Incoming render request containing the demo file.
+  // Incoming render request from the bot containing the demo file.
   .put("/videos/render", useSession, async (ctx) => {
     const authUser = ctx.state.session.get("user");
 
     if (authUser) {
       if (!hasPermission(ctx, UserPermissions.CreateVideos)) {
-        return ctx.throw(Status.Unauthorized);
+        return Err(ctx, Status.Unauthorized);
       }
     } else {
       const [authType, authToken] = (
@@ -182,7 +191,7 @@ apiV1
       ).split(" ");
 
       if (authType !== "Bearer") {
-        return ctx.throw(Status.BadRequest);
+        return Err(ctx, Status.BadRequest);
       }
 
       const decodedAuthToken = decodeURIComponent(authToken);
@@ -194,7 +203,7 @@ apiV1
         ))
       ) {
         if (!AUTORENDER_BOARD_TOKEN_HASH) {
-          return ctx.throw(Status.Unauthorized);
+          return Err(ctx, Status.Unauthorized);
         }
 
         if (
@@ -203,13 +212,13 @@ apiV1
             AUTORENDER_BOARD_TOKEN_HASH,
           ))
         ) {
-          return ctx.throw(Status.Unauthorized);
+          return Err(ctx, Status.Unauthorized);
         }
       }
     }
 
     if (!ctx.request.hasBody) {
-      return ctx.throw(Status.UnsupportedMediaType);
+      return Err(ctx, Status.UnsupportedMediaType);
     }
 
     const body = ctx.request.body({ type: "form-data" });
@@ -217,14 +226,15 @@ apiV1
       customContentTypes: {
         "application/octet-stream": "dem",
       },
-      outPath: "./demos",
+      outPath: AUTORENDER_TEMP_DEMOS_FOLDER,
+      maxFileSize: AUTORENDER_MAX_DEMO_FILE_SIZE,
     });
 
-    logger.info("Received", data.files?.length ?? 0, "file(s)");
+    logger.info("Received", data.files?.length ?? 0, "demo(s)");
 
     const file = data.files?.at(0);
     if (!file?.filename) {
-      return ctx.throw(Status.BadRequest);
+      return Err(ctx, Status.BadRequest);
     }
 
     // TODO:
@@ -234,12 +244,12 @@ apiV1
     const filePath = file.filename;
     const demoInfo = await getDemoInfo(await Deno.readFile(filePath));
     if (!demoInfo) {
-      return ctx.throw(Status.BadRequest);
+      return Err(ctx, Status.BadRequest);
     }
 
     if (demoInfo.isWorkshopMap && !demoInfo.fileUrl) {
       logger.error(`Failed to resolve workshop map`);
-      return ctx.throw(Status.InternalServerError);
+      return Err(ctx, Status.InternalServerError);
     }
 
     const requestedByName = authUser?.username ?? data.fields.requested_by_name;
@@ -333,6 +343,166 @@ apiV1
 
     Ok(ctx, video);
   })
+  // Incoming upload requests from clients containing the video file.
+  .post("/videos/upload", async (ctx) => {
+    const [authType, authToken] = (
+      ctx.request.headers.get("Authorization") ?? ""
+    ).split(" ");
+
+    if (authType !== "Bearer") {
+      return Err(ctx, Status.BadRequest);
+    }
+
+    type TokenSelect = Pick<
+      AccessToken,
+      "access_token_id" | "user_id" | "token_name" | "permissions"
+    >;
+
+    const [accessToken] = await db.query<TokenSelect>(
+      `select access_token_id
+            , user_id
+            , token_name
+            , permissions
+         from access_tokens
+        where token_key = ?`,
+      [decodeURIComponent(authToken)],
+    );
+
+    if (!accessToken) {
+      return Err(ctx, Status.Unauthorized);
+    }
+
+    if (!(accessToken.permissions & AccessPermission.WriteVideos)) {
+      return Err(ctx, Status.Unauthorized, "Write videos permission required.");
+    }
+
+    if (!ctx.request.hasBody) {
+      return Err(ctx, Status.UnsupportedMediaType);
+    }
+
+    const body = ctx.request.body({ type: "form-data" });
+    const data = await body.value.read({
+      customContentTypes: {
+        "video/mp4": "mp4",
+      },
+      outPath: AUTORENDER_TEMP_VIDEOS_FOLDER,
+      maxFileSize: AUTORENDER_MAX_VIDEO_FILE_SIZE,
+    });
+
+    logger.info("Received", data.files?.length ?? 0, "video(s)");
+
+    const file = data.files?.at(0);
+    if (!file?.filename) {
+      return Err(ctx, Status.BadRequest);
+    }
+
+    const [video] = await db.query<Video>(
+      `select *
+            , BIN_TO_UUID(video_id) as video_id
+         from videos
+        where video_id = UUID_TO_BIN(?)
+          and pending = ?`,
+      [data.fields.video_id, PendingStatus.StartedRender],
+    );
+
+    if (!video) {
+      return Err(ctx, Status.NotFound);
+    }
+
+    const fileName = `${video.video_id}.mp4`;
+
+    try {
+      logger.info("Uploading video file", fileName);
+
+      const fileContents = await Deno.readFile(file.filename);
+
+      const upload = await b2.uploadFile({
+        bucketId: B2_BUCKET_ID,
+        fileName,
+        fileContents,
+        contentType: "video/mp4",
+      });
+
+      const videoUrl = b2.getDownloadUrl(upload.fileName);
+
+      logger.info("Uploaded", upload, videoUrl);
+
+      // TODO: Video length, video preview, small/large thumbnails.
+
+      await db.execute(
+        `update videos
+            set pending = ?
+              , video_url = ?
+              , video_size = ?
+              , rendered_at = current_timestamp()
+           where video_id = UUID_TO_BIN(?)
+             and pending = ?`,
+        [
+          PendingStatus.FinishedRender,
+          videoUrl,
+          fileContents.byteLength,
+          video.video_id,
+          PendingStatus.StartedRender,
+        ],
+      );
+
+      type VideoUpload = Pick<
+        Video,
+        | "video_id"
+        | "title"
+        | "requested_by_id"
+        | "requested_in_guild_id"
+        | "requested_in_channel_id"
+      >;
+
+      const uploadMessage: VideoUpload = {
+        video_id: video.video_id,
+        title: video.title,
+        requested_by_id: video.requested_by_id,
+        requested_in_guild_id: video.requested_in_guild_id,
+        requested_in_channel_id: video.requested_in_channel_id,
+      };
+
+      if (discordBot) {
+        discordBot.send(
+          JSON.stringify({ type: "upload", data: uploadMessage }),
+        );
+      } else {
+        logger.warn(
+          "Bot not connected. Failed to send upload message.",
+          uploadMessage,
+        );
+      }
+
+      Ok(ctx, video);
+    } catch (err) {
+      logger.error(err);
+
+      Err(ctx, Status.InternalServerError);
+
+      try {
+        await db.execute(
+          `update videos
+              set pending = ?
+             where video_id = UUID_TO_BIN(?)
+               and pending = ?`,
+          [
+            PendingStatus.FinishedRender,
+            video.video_id,
+            PendingStatus.StartedRender,
+          ],
+        );
+      } catch (err) {
+        logger.error(err);
+      }
+    } finally {
+      try {
+        Deno.remove(video.file_path);
+      } catch (err) {
+        logger.error("Failed to remove video file:", err.toString());
+      }
+    }
+  })
   // Get video views and increment.
   // deno-lint-ignore no-explicit-any
   .post("/videos/:video_id(\\d+)/views", useRateLimiter as any, async (ctx) => {
@@ -346,7 +516,7 @@ apiV1
 
     const video = rows?.at(0) as Video | undefined;
     if (!video) {
-      return ctx.throw(Status.NotFound);
+      return Err(ctx, Status.NotFound);
     }
 
     await db.execute(
@@ -388,14 +558,14 @@ router.use("/api/v1", apiV1.routes());
 
 router.get("/connect/bot", async (ctx) => {
   if (!ctx.isUpgradable) {
-    return ctx.throw(Status.NotImplemented);
+    return Err(ctx, Status.NotImplemented);
   }
 
   const [version, authToken] =
     ctx.request.headers.get("sec-websocket-protocol")?.split(", ") ?? [];
 
   if (version !== AUTORENDER_V1) {
-    return ctx.throw(Status.NotAcceptable);
+    return Err(ctx, Status.NotAcceptable);
   }
 
   if (
@@ -404,7 +574,7 @@ router.get("/connect/bot", async (ctx) => {
       AUTORENDER_BOT_TOKEN_HASH,
     ))
   ) {
-    return ctx.throw(Status.Unauthorized);
+    return Err(ctx, Status.Unauthorized);
   }
 
   if (discordBot) {
@@ -462,14 +632,14 @@ const clients = new Map<string, ClientState>();
 
 router.get("/connect/client", async (ctx) => {
   if (!ctx.isUpgradable) {
-    return ctx.throw(Status.NotImplemented);
+    return Err(ctx, Status.NotImplemented);
   }
 
   const [version, authToken] =
     ctx.request.headers.get("sec-websocket-protocol")?.split(", ") ?? [];
 
   if (version !== AUTORENDER_V1) {
-    return ctx.throw(Status.NotAcceptable);
+    return Err(ctx, Status.NotAcceptable);
   }
 
   type TokenSelect = Pick<
@@ -488,7 +658,7 @@ router.get("/connect/client", async (ctx) => {
   );
 
   if (!accessToken) {
-    return ctx.throw(Status.Unauthorized);
+    return Err(ctx, Status.Unauthorized);
   }
 
   const clientId =
@@ -505,348 +675,222 @@ router.get("/connect/client", async (ctx) => {
 
   ws.onmessage = async (message) => {
     try {
-      if (message.data instanceof ArrayBuffer) {
-        const buffer = message.data;
-        const videoId = new TextDecoder().decode(buffer.slice(0, 36));
+      if (typeof message.data !== "string") {
+        throw new Error("Invalid payload data type");
+      }
 
-        const [video] = await db.query<Video>(
-          `select *
-                , BIN_TO_UUID(video_id) as video_id
-             from videos
-            where video_id = UUID_TO_BIN(?)
-              and pending = ?`,
-          [videoId, PendingStatus.StartedRender],
-        );
+      const { type, data } = JSON.parse(message.data);
 
-        if (!video) {
-          return ws.send(
-            JSON.stringify({
-              type: "error",
-              data: { status: Status.NotFound },
-            }),
-          );
-        }
-
-        const fileName = `${video.video_id}.mp4`;
-
-        // TODO: Is it useful to store the video temporarily? Maybe for debugging?
-        //const videoFile = join("./videos", fileName);
-
-        try {
-          const videoBuffer = buffer.slice(36);
-          //await Deno.writeFile(videoFile, new Uint8Array(videoBuffer));
-
-          logger.info("Uploading video file", fileName);
-
-          const upload = await b2.uploadFile({
-            bucketId: B2_BUCKET_ID,
-            fileName,
-            fileContents: videoBuffer,
-            contentType: "video/mp4",
-          });
-
-          const videoUrl = b2.getDownloadUrl(upload.fileName);
-
-          logger.info("Uploaded", upload, videoUrl);
-
-          // TODO: Video length, video preview, small/large thumbnails.
-
-          await db.execute(
-            `update videos
-                set pending = ?
-                  , video_url = ?
-                  , video_size = ?
-                  , rendered_at = current_timestamp()
-               where video_id = UUID_TO_BIN(?)
-                 and pending = ?`,
-            [
-              PendingStatus.FinishedRender,
-              videoUrl,
-              videoBuffer.byteLength,
-              video.video_id,
-              PendingStatus.StartedRender,
-            ],
-          );
-
-          type VideoUpload = Pick<
-            Video,
-            | "video_id"
-            | "title"
-            | "requested_by_id"
-            | "requested_in_guild_id"
-            | "requested_in_channel_id"
-          >;
-
-          const uploadMessage: VideoUpload = {
-            video_id: video.video_id,
-            title: video.title,
-            requested_by_id: video.requested_by_id,
-            requested_in_guild_id: video.requested_in_guild_id,
-            requested_in_channel_id: video.requested_in_channel_id,
-          };
-
-          if (discordBot) {
-            discordBot.send(
-              JSON.stringify({ type: "upload", data: uploadMessage }),
-            );
-          } else {
-            logger.warn(
-              "Bot not connected. Failed to send upload message.",
-              uploadMessage,
-            );
-          }
-        } catch (err) {
-          logger.error(err);
-
-          ws.send(
-            JSON.stringify({
-              type: "error",
-              data: { status: Status.InternalServerError },
-            }),
-          );
-
-          try {
-            await db.execute(
-              `update videos
-                  set pending = ?
-                 where video_id = UUID_TO_BIN(?)
-                   and pending = ?`,
-              [
-                PendingStatus.FinishedRender,
-                video.video_id,
-                PendingStatus.StartedRender,
-              ],
-            );
-          } catch (err) {
-            logger.error(err);
-          }
-        } finally {
-          // try {
-          //   Deno.remove(videoFile);
-          // } catch (err) {
-          //   logger.error("Failed to remove video file:", err.toString());
-          // }
-
-          try {
-            Deno.remove(video.file_path);
-          } catch (err) {
-            logger.error("Failed to remove demo file:", err.toString());
-          }
-        }
-      } else {
-        const { type, data } = JSON.parse(message.data);
-
-        switch (type) {
-          case "videos": {
-            if (accessToken.permissions & AccessPermission.CreateVideos) {
-              const videos = await db.query<Pick<Video, "video_id">>(
-                `select BIN_TO_UUID(video_id) as video_id
+      switch (type) {
+        case "videos": {
+          if (accessToken.permissions & AccessPermission.CreateVideos) {
+            const videos = await db.query<Pick<Video, "video_id">>(
+              `select BIN_TO_UUID(video_id) as video_id
                    from videos
                   where pending = ?
                   limit ?`,
-                [PendingStatus.RequiresRender, MAX_VIDEOS_PER_REQUEST],
-              );
+              [PendingStatus.RequiresRender, MAX_VIDEOS_PER_REQUEST],
+            );
 
-              ws.send(JSON.stringify({ type: "videos", data: videos }));
-            } else {
-              ws.send(
-                JSON.stringify({
-                  type: "error",
-                  data: {
-                    status: Status.Unauthorized,
-                    message: "Create videos permission required.",
-                  },
-                }),
-              );
-            }
-            break;
+            ws.send(JSON.stringify({ type: "videos", data: videos }));
+          } else {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                data: {
+                  status: Status.Unauthorized,
+                  message: "Create videos permission required.",
+                },
+              }),
+            );
           }
-          case "demo": {
-            if (accessToken.permissions & AccessPermission.WriteVideos) {
-              const videoId = data.video_id;
+          break;
+        }
+        case "demo": {
+          if (accessToken.permissions & AccessPermission.WriteVideos) {
+            const videoId = data.video_id;
 
-              const update = await db.execute(
-                `update videos
+            const update = await db.execute(
+              `update videos
                  set pending = ?
                    , rendered_by = ?
                    , rendered_by_token = ?
                    , render_node = ?
                  where video_id = UUID_TO_BIN(?)
                    and pending = ?`,
-                [
-                  PendingStatus.StartedRender,
-                  accessToken.user_id,
-                  accessToken.access_token_id,
-                  accessToken.token_name,
-                  videoId,
-                  PendingStatus.RequiresRender,
-                ],
-              );
-
-              if (update.affectedRows === 0) {
-                ws.send(
-                  JSON.stringify({
-                    type: "error",
-                    data: {
-                      status: Status.NotFound,
-                      message: "Update failed.",
-                    },
-                  }),
-                );
-                break;
-              }
-
-              type VideoSelect = Pick<
-                Video,
-                "video_id" | "file_url" | "full_map_name" | "file_path"
-              >;
-
-              const [{ file_path, ...video }] = await db.query<VideoSelect>(
-                `
-                select BIN_TO_UUID(video_id) as video_id
-                     , file_url
-                     , full_map_name
-                     , file_path
-                  from videos
-                 where video_id = UUID_TO_BIN(?)`,
-                [videoId],
-              );
-
-              if (!video) {
-                ws.send(
-                  JSON.stringify({
-                    type: "error",
-                    data: {
-                      status: Status.NotFound,
-                      message: "Video not found.",
-                    },
-                  }),
-                );
-                break;
-              }
-
-              const buffer = new Buffer();
-              const payload = new TextEncoder().encode(JSON.stringify(video));
-              const length = new Uint8Array(4);
-              new DataView(length.buffer).setUint32(0, payload.byteLength);
-
-              await buffer.write(length);
-              await buffer.write(payload);
-              await buffer.write(await Deno.readFile(file_path));
-
-              ws.send(buffer.bytes());
-            } else {
-              ws.send(
-                JSON.stringify({
-                  type: "error",
-                  data: {
-                    status: Status.Unauthorized,
-                    message: "Write videos permission required.",
-                  },
-                }),
-              );
-            }
-            break;
-          }
-          case "downloaded": {
-            const downloaded = data as { video_ids: Video["video_id"][] };
-            const videoIds = downloaded.video_ids.slice(
-              0,
-              MAX_VIDEOS_PER_REQUEST,
+              [
+                PendingStatus.StartedRender,
+                accessToken.user_id,
+                accessToken.access_token_id,
+                accessToken.token_name,
+                videoId,
+                PendingStatus.RequiresRender,
+              ],
             );
 
-            if (
-              !videoIds.length ||
-              downloaded.video_ids.length > MAX_VIDEOS_PER_REQUEST
-            ) {
+            if (update.affectedRows === 0) {
               ws.send(
                 JSON.stringify({
                   type: "error",
                   data: {
-                    status: Status.BadRequest,
-                    message: "Invalid amount of video IDs.",
+                    status: Status.NotFound,
+                    message: "Update failed.",
                   },
                 }),
               );
               break;
             }
 
-            // For all videos which did not come back here mark them as finished.
+            type VideoSelect = Pick<
+              Video,
+              "video_id" | "file_url" | "full_map_name" | "file_path"
+            >;
 
-            const failedVideos = await db.query<Video>(
-              `select *
-                    , BIN_TO_UUID(video_id) as video_id
-                 from videos
-                where pending = ?
-                  and rendered_by_token = ?
-                  and video_id not in (${
-                videoIds.map(() => `UUID_TO_BIN(?)`).join(",")
-              })`,
-              [
-                PendingStatus.StartedRender,
-                accessToken.access_token_id,
-                ...videoIds,
-              ],
+            const [{ file_path, ...video }] = await db.query<VideoSelect>(
+              `
+                select BIN_TO_UUID(video_id) as video_id
+                     , file_url
+                     , full_map_name
+                     , file_path
+                  from videos
+                 where video_id = UUID_TO_BIN(?)`,
+              [videoId],
             );
 
-            for (const video of failedVideos) {
-              await db.execute(
-                `update videos
-                    set pending = ?
-                  where video_id = UUID_TO_BIN(?)`,
-                [
-                  PendingStatus.FinishedRender,
-                  video.video_id,
-                ],
+            if (!video) {
+              ws.send(
+                JSON.stringify({
+                  type: "error",
+                  data: {
+                    status: Status.NotFound,
+                    message: "Video not found.",
+                  },
+                }),
               );
-
-              // sendErrorToBot({
-              //   status: Status.InternalServerError,
-              //   message: `Failed to render video "${video.title}".`,
-              //   requested_by_id: video.requested_by_id,
-              //   requested_in_guild_id: video.requested_in_guild_id,
-              //   requested_in_channel_id: video.requested_in_channel_id,
-              // });
+              break;
             }
 
+            const buffer = new Buffer();
+            const payload = new TextEncoder().encode(JSON.stringify(video));
+            const length = new Uint8Array(4);
+            new DataView(length.buffer).setUint32(0, payload.byteLength);
+
+            await buffer.write(length);
+            await buffer.write(payload);
+            await buffer.write(await Deno.readFile(file_path));
+
+            ws.send(buffer.bytes());
+          } else {
             ws.send(
               JSON.stringify({
-                type: "start",
+                type: "error",
+                data: {
+                  status: Status.Unauthorized,
+                  message: "Write videos permission required.",
+                },
               }),
             );
-            break;
           }
-          case "error": {
-            const { video_id } = data as {
-              video_id: Video["video_id"] | undefined;
-              message: string;
-            };
+          break;
+        }
+        case "downloaded": {
+          const downloaded = data as { video_ids: Video["video_id"][] };
+          const videoIds = downloaded.video_ids.slice(
+            0,
+            MAX_VIDEOS_PER_REQUEST,
+          );
 
-            if (video_id) {
-              await db.execute(
-                `update videos
-                    set pending = ?
-                  where video_id = UUID_TO_BIN(?)`,
-                [
-                  PendingStatus.FinishedRender,
-                  video_id,
-                ],
-              );
-            }
-            break;
-          }
-          default: {
+          if (
+            !videoIds.length ||
+            downloaded.video_ids.length > MAX_VIDEOS_PER_REQUEST
+          ) {
             ws.send(
               JSON.stringify({
                 type: "error",
                 data: {
                   status: Status.BadRequest,
-                  message: "Unknown message type.",
+                  message: "Invalid amount of video IDs.",
                 },
               }),
             );
             break;
           }
+
+          // For all videos which did not come back here mark them as finished.
+
+          const failedVideos = await db.query<Video>(
+            `select *
+                    , BIN_TO_UUID(video_id) as video_id
+                 from videos
+                where pending = ?
+                  and rendered_by_token = ?
+                  and video_id not in (${
+              videoIds.map(() => `UUID_TO_BIN(?)`).join(",")
+            })`,
+            [
+              PendingStatus.StartedRender,
+              accessToken.access_token_id,
+              ...videoIds,
+            ],
+          );
+
+          for (const video of failedVideos) {
+            await db.execute(
+              `update videos
+                    set pending = ?
+                  where video_id = UUID_TO_BIN(?)`,
+              [
+                PendingStatus.FinishedRender,
+                video.video_id,
+              ],
+            );
+
+            // sendErrorToBot({
+            //   status: Status.InternalServerError,
+            //   message: `Failed to render video "${video.title}".`,
+            //   requested_by_id: video.requested_by_id,
+            //   requested_in_guild_id: video.requested_in_guild_id,
+            //   requested_in_channel_id: video.requested_in_channel_id,
+            // });
+          }
+
+          ws.send(
+            JSON.stringify({
+              type: "start",
+            }),
+          );
+          break;
+        }
+        case "error": {
+          const { video_id } = data as {
+            video_id: Video["video_id"] | undefined;
+            message: string;
+          };
+
+          if (video_id) {
+            await db.execute(
+              `update videos
+                    set pending = ?
+                  where video_id = UUID_TO_BIN(?)`,
+              [
+                PendingStatus.FinishedRender,
+                video_id,
+              ],
+            );
+          }
+          break;
+        }
+        default: {
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              data: {
+                status: Status.BadRequest,
+                message: "Unknown message type.",
+              },
+            }),
+          );
+          break;
         }
       }
     } catch (err) {
@@ -879,7 +923,7 @@ router.get("/connect/client", async (ctx) => {
 router.get("/login/discord/authorize", useSession, async (ctx) => {
   const code = ctx.request.url.searchParams.get("code");
   if (!code) {
-    //return ctx.throw(Status.BadRequest);
+    //return Err(ctx, Status.BadRequest);
     return ctx.response.redirect("/");
   }
 
@@ -912,7 +956,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
   );
 
   if (!oauthResponse.ok) {
-    //return ctx.throw(Status.Unauthorized);
+    //return Err(ctx, Status.Unauthorized);
     return ctx.response.redirect("/");
   }
 
@@ -975,7 +1019,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
   );
 
   if (!user) {
-    //return ctx.throw(Status.InternalServerError);
+    //return Err(ctx, Status.InternalServerError);
     return ctx.response.redirect("/");
   }
 
@@ -992,7 +1036,7 @@ router.get("/users/:user_id(\\+d)", useSession, requiresAuth, async (ctx) => {
 
   const user = rows?.at(0);
   if (!user) {
-    return ctx.throw(Status.NotFound);
+    return Err(ctx, Status.NotFound);
   }
 
   Ok(ctx, user);
@@ -1066,7 +1110,6 @@ type AppState = {
 
 const app = new Application<AppState>();
 
-// TODO: error handling
 app.addEventListener("error", (ev) => {
   try {
     logger.error(ev.error);

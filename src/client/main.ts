@@ -9,7 +9,6 @@
 
 import "https://deno.land/std@0.177.0/dotenv/load.ts";
 import { dirname, join } from "https://deno.land/std@0.190.0/path/mod.ts";
-import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
 import { logger } from "./logger.ts";
 import {
   AutorenderDataType,
@@ -21,6 +20,7 @@ import {
 } from "./protocol.ts";
 import { Video as VideoModel } from "../server/models.ts";
 import { ClientState, ClientStatus } from "./state.ts";
+import { UploadWorkerDataType } from "./upload.ts";
 
 const GAME_DIR = Deno.env.get("GAME_DIR")!;
 const GAME_MOD = Deno.env.get("GAME_MOD")!;
@@ -60,6 +60,11 @@ const worker = new Worker(new URL("./worker.ts", import.meta.url).href, {
   type: "module",
 });
 
+// Upload worker thread for uploading files to the server.
+const upload = new Worker(new URL("./upload.ts", import.meta.url).href, {
+  type: "module",
+});
+
 worker.addEventListener("message", async (message: MessageEvent) => {
   if (message.data instanceof ArrayBuffer) {
     await onMessage(message.data);
@@ -86,8 +91,25 @@ worker.addEventListener("message", async (message: MessageEvent) => {
   }
 });
 
+upload.addEventListener("message", (message: MessageEvent) => {
+  const { type, data } = message.data;
+  switch (type) {
+    case "error":
+      send({
+        type: AutorenderSendDataType.Error,
+        data,
+      });
+      break;
+    default:
+      logger.error(
+        `Unhandled message type from upload worker: ${message.data.type}`,
+      );
+      break;
+  }
+});
+
 const send = (
-  data: Uint8Array | AutorenderSendMessages,
+  data: AutorenderSendMessages,
   options?: { dropDataIfDisconnected: boolean },
 ) => {
   worker.postMessage({
@@ -200,31 +222,14 @@ const handleMessageStart = async () => {
 
     gameProcess = null;
 
-    const encoder = new TextEncoder();
-
-    for (const { video_id } of state.videos) {
-      try {
-        const buffer = new Buffer();
-        await buffer.write(encoder.encode(video_id));
-        await buffer.write(
-          await Deno.readFile(
-            join(AUTORENDER_DIR, `${video_id}.dem.mp4`),
-          ),
-        );
-
-        send(buffer.bytes());
-      } catch (err) {
-        logger.error(err);
-
-        send({
-          type: AutorenderSendDataType.Error,
-          data: {
-            video_id,
-            message: err.toString(),
-          },
-        });
-      }
-    }
+    // Let the upload thread do the work.
+    upload.postMessage({
+      type: UploadWorkerDataType.Upload,
+      data: {
+        videos: state.videos,
+        autorenderDir: AUTORENDER_DIR,
+      },
+    });
   } finally {
     state.toDownload = 0;
     state.videos = [];

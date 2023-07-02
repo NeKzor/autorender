@@ -15,6 +15,7 @@ import {
 import { createCommand } from "./mod.ts";
 
 const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
+const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 
 createCommand({
   name: "render",
@@ -48,6 +49,23 @@ createCommand({
     },
   ],
   execute: async (bot: Bot, interaction: Interaction) => {
+    const args = [...(interaction.data?.options?.values() ?? [])];
+    const attachment = interaction.data?.resolved?.attachments?.first()!;
+
+    if (attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE) {
+      await bot.helpers.sendInteractionResponse(
+        interaction.id,
+        interaction.token,
+        {
+          type: InteractionResponseTypes.ChannelMessageWithSource,
+          data: {
+            content: `❌️ File is too big. Uploads are limited to 6 MB.`,
+          },
+        },
+      );
+      return;
+    }
+
     await bot.helpers.sendInteractionResponse(
       interaction.id,
       interaction.token,
@@ -60,9 +78,6 @@ createCommand({
     );
 
     try {
-      const args = [...(interaction.data?.options?.values() ?? [])];
-      const attachment = interaction.data?.resolved?.attachments?.first()!;
-      
       const demo = await fetch(attachment.url, {
         method: "GET",
         headers: {

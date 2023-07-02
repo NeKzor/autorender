@@ -81,7 +81,7 @@ worker.addEventListener("message", (message) => {
     case BotDataType.Upload: {
       const content = [
         `📽️ Rendered video "${data.title ?? "*untitled*"}".`,
-        `📺️ ${videoUrl}/${data.video_id}`,
+        `${videoUrl}/${data.video_id}`,
       ].join("\n");
 
       if (data.requested_in_guild_id && data.requested_in_channel_id) {
