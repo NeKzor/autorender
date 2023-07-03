@@ -570,7 +570,7 @@ apiV1
             , IF(video_url IS NOT NULL, TRUE, FALSE) as rendered
          from videos
          where requested_by_id = ?
-      order by created_at
+      order by created_at desc
          limit 5`,
       [
         PendingStatus.FinishedRender,
