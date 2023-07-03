@@ -32,7 +32,7 @@ const render = async (
   interactionData: Interaction["data"],
   attachment?: Attachment,
 ) => {
-  attachment ??= interactionData?.resolved?.attachments?.first()!;
+  attachment ??= interaction.data?.resolved?.attachments?.first()!;
 
   if (attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE) {
     await bot.helpers.sendInteractionResponse(
