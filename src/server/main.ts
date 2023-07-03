@@ -520,7 +520,7 @@ apiV1
   // Get video views and increment.
   // deno-lint-ignore no-explicit-any
   .post("/videos/:video_id(\\d+)/views", useRateLimiter as any, async (ctx) => {
-    const { rows } = await db.execute(
+    const [video] = await db.query<Pick<Video, "video_id" | "views">>(
       `select BIN_TO_UUID(video_id) as video_id
             , views
          from videos
@@ -528,20 +528,58 @@ apiV1
       [Number(ctx.params.video_id)],
     );
 
-    const video = rows?.at(0) as Video | undefined;
     if (!video) {
       return Err(ctx, Status.NotFound);
     }
 
     await db.execute(
-      `
-      update videos
+      `update videos
          set views = views + 1
        where video_id = UUID_TO_BIN(?)`,
       [video.video_id],
     );
 
     Ok(ctx, video);
+  })
+  // Get a random rendered videos.
+  .get("/videos/random/:count(\\d+)", async (ctx) => {
+    const videos = await db.query<Pick<Video, "video_id">>(
+      `select BIN_TO_UUID(video_id) as video_id
+         from videos
+        where video_url IS NOT NULL
+     order by RAND()
+        limit ?`,
+      [Math.min(1, Math.max(10, Number(ctx.params.count)))],
+    );
+
+    Ok(ctx, videos);
+  })
+  // Get status of videos of requested user.
+  .get("/videos/status/:requested_by_id(\\d+)", async (ctx) => {
+    type VideoStatus = Pick<Video, "video_id" | "title"> & {
+      errored: boolean;
+      rendering: boolean;
+      rendered: boolean;
+    };
+
+    const videos = await db.query<VideoStatus>(
+      `select BIN_TO_UUID(video_id) as video_id
+            , title
+            , IF(video_url IS NULL AND pending = ?, TRUE, FALSE) as errored
+            , IF(video_url IS NULL AND pending <> ?, TRUE, FALSE) as rendering
+            , IF(video_url IS NOT NULL, TRUE, FALSE) as rendered
+         from videos
+         where requested_by_id = ?
+      order by created_at
+         limit 5`,
+      [
+        PendingStatus.FinishedRender,
+        PendingStatus.FinishedRender,
+        BigInt(ctx.params.requested_by_id),
+      ],
+    );
+
+    Ok(ctx, videos);
   })
   .get("/(.*)", (ctx) => {
     Err(ctx, Status.NotFound, "Route not found :(");
@@ -1045,21 +1083,9 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
   ctx.state.session.set("user", user);
   ctx.response.redirect("/");
 });
-router.get("/users/@me", useSession, requiresAuth, (ctx) => {
-  Ok(ctx, ctx.state.session.get("user"));
-});
-router.get("/users/:user_id(\\+d)", useSession, requiresAuth, async (ctx) => {
-  const { rows } = await db.execute(`select * from users where user_id = ?`, [
-    Number(ctx.params.user_id),
-  ]);
-
-  const user = rows?.at(0);
-  if (!user) {
-    return Err(ctx, Status.NotFound);
-  }
-
-  Ok(ctx, user);
-});
+// router.get("/users/@me", useSession, requiresAuth, (ctx) => {
+//   Ok(ctx, ctx.state.session.get("user"));
+// });
 router.get("/logout", useSession, async (ctx) => {
   await ctx.state.session.deleteSession();
   await ctx.cookies.delete("session");
