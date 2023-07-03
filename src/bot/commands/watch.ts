@@ -76,12 +76,28 @@ createCommand({
           const videos = await res.json() as VideoStatus[];
 
           if (videos.length) {
+            const getStatus = (video: VideoStatus) => {
+              if (video.errored) {
+                return "❌️";
+              }
+
+              if (video.rendering) {
+                return "⌛️";
+              }
+
+              if (video.rendered) {
+                return "📺️";
+              }
+
+              return "";
+            };
+
             await bot.helpers.editOriginalInteractionResponse(
               interaction.token,
               {
                 content: videos.map((video) => {
                   // TODO: Use Markdown links once it rolls out everywhere
-                  return `${video.title}\n<${videoUrl}/${video.video_id}>`;
+                  return `${getStatus(video)} ${video.title}\n<${videoUrl}/${video.video_id}>`;
                 }).join("\n"),
               },
             );
