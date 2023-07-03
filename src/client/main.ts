@@ -36,7 +36,7 @@ const AUTORENDER_PATCHED_SAR = true;
 // Timeout interval in ms to check if there are new videos to render.
 const AUTORENDER_CHECK_INTERVAL = 1_000;
 // Approximated scaling factor for multiplying the demo playback time.
-const AUTORENDER_SCALE_TIMEOUT = 7;
+const AUTORENDER_SCALE_TIMEOUT = 9;
 // Approximated time in seconds of how long it takes to load a demo.
 const AUTORENDER_LOAD_TIMEOUT = 5;
 // Approximated time in seconds of how long it takes to start/exit the game process.
