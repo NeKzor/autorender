@@ -1,12 +1,32 @@
 # autorender
 
-Convert any Portal 2 demo file into a video with: `/render <attachment>`
+Convert any Portal 2 demo file into a video with: `/render demo <file>`
+
+- [Features](#features)
+- [Commands](#commands)
+- [Local Development](#local-development)
+  - [Network Topology](#network-topology)
+  - [Requirements](#requirements)
+  - [Setup](#setup)
+  - [Install & Run Server](#install--run-server)
+  - [User Setup](#user-setup)
+    - [src/server/.env](#srcserverenv)
+  - [Install & Run Client](#install--run-client)
+    - [src/client/.env](#srcclientenv)
+  - [Install & Run Bot](#install--run-bot)
+    - [src/bot/.env](#srcbotenv)
+  - [Caveats](#caveats)
+- [Production](#production)
+  - [Proxy Example with Nginx + Certbot](#proxy-example-with-nginx--certbot)
+- [TODO](#todo)
+- [Credits](#credits)
+- [License](#license)
 
 ## Features
 
-- Render videos On-Demand in a Discord server
+- Render videos On-Demand!
 - Support for workshop maps, powered by [mirror.nekz.me]
-- Render files directly in a web platform (TODO)
+- Render files directly in the web platform (TODO)
 - Runs in a secure runtime with [Deno]
 - Written in 100% TypeScript
 - Hosted inside Docker containers (TODO)
@@ -14,36 +34,20 @@ Convert any Portal 2 demo file into a video with: `/render <attachment>`
 [mirror.nekz.me]: https://github.com/NeKzor/mirror
 [Deno]: https://deno.com/runtime
 
-## TODO
+## Commands
 
-- Resolves render options
-- Generate video preview + thumbnails
-- Design frontend platform
-  - Profiles
-  - Search
-  - Users
-  - Audit logs
-  - Demo upload
-- Support game mods
-- Unlisted videos
-- Figure out how private videos would work
-- Package client code
-  - Installer CLI
-  - Download SAR/autorender.cfg automatically
-  - Single executable
-- Figure out docker + easier setup
-- Figure out a way to fix the server's [net permission](#caveats)
-- SAR wishlist:
-  - ~~Remove unnecessary watermark~~
-  - Sandbox commands like in 1.0
-  - IPC between client and game process
-  - Detect if demo could be played
-  - Do not capture mouse input during render
-  - Remove Steam
-- Write own demo fixup tool
-- Clean up some anti-patterns, code duplications etc.
+|Command|Description|
+|---|---|
+|`/render demo`|Render a demo file by uploading it as an attachment.|
+|`/render message`|Render an already uploaded demo file by providing the message link or the ID of the message.|
+|`/render latest`|Render an already uploaded demo file by automatically finding the latest message within the current channel.|
+|`/watch latest`|List latest requested videos.|
+|`/watch random`|Watch a random requested video.|
+|`/fixup`|Fix an old Portal 2 demo file to make it work on the latest engine version.|
 
-## Network Topology
+## Local Development
+
+### Network Topology
 
 ```mermaid
 sequenceDiagram
@@ -83,8 +87,6 @@ sequenceDiagram
     Bot->>Discord: Send video link
 ```
 
-## Local Development
-
 ### Requirements
 
 - [deno runtime]
@@ -93,6 +95,7 @@ sequenceDiagram
 - [Backblaze Bucket]
 - [Docker Engine]
 - [mkcert] (optional)
+- [demofixup] (optional)
 
 [deno runtime]: https://deno.com/runtime
 [FFmpeg]: https://ffmpeg.org/download.html
@@ -100,6 +103,7 @@ sequenceDiagram
 [Backblaze Bucket]: https://www.backblaze.com
 [Docker Engine]: https://docs.docker.com/engine/install
 [mkcert]: https://github.com/FiloSottile/mkcert
+[demofixup]: https://github.com/p2sr/demofixup
 
 ### Setup
 
@@ -237,10 +241,43 @@ server {
 }
 ```
 
+## TODO
+
+- Resolves render options
+- Design frontend platform
+  - Profiles
+  - Search
+  - Users
+  - Audit logs
+  - Demo upload
+- Integrate into [board.nekz.me]
+- Package client code
+  - Installer CLI
+  - Download SAR/autorender.cfg automatically
+  - Single executable
+- Generate video preview + thumbnails
+- Support game mods
+- Unlisted videos
+- Figure out how private videos would work
+- Figure out docker + easier setup
+- Write own demo fixup tool
+- SAR wishlist:
+  - ~~Remove unnecessary watermark~~
+  - Sandbox commands like in 1.0
+  - IPC between client and game process
+  - Detect if demo could be played
+  - Do not capture mouse input during render
+  - Remove Steam requirement
+- Figure out a decent way to deploy this to other GPU instances (maybe use DepotDownloader?)
+- Clean up some anti-patterns, code duplications etc.
+
+[board.nekz.me]: https://github.com/NeKzor/board
+
 ## Credits
 
 - [@PortalRex] for idea and motivation
 - [@ThatFridgeFella] for testing
+- [p2sr/demofixup] for fixing old demos
 - [p2sr/SourceAutoRecord] for a renderer crashes!
 - [p2sr/portal2-cm-autorender] for making me not want to use Python!!
 
@@ -248,6 +285,7 @@ server {
 [@ThatFridgeFella]: https://github.com/ThatFridgeFella
 [p2sr/portal2-cm-autorender]: https://github.com/p2sr/portal2-cm-autorender
 [p2sr/SourceAutoRecord]: https://github.com/p2sr/SourceAutoRecord
+[p2sr/demofixup]: https://github.com/p2sr/demofixup
 
 ## License
 
