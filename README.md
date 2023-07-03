@@ -40,6 +40,8 @@ Convert any Portal 2 demo file into a video with: `/render <attachment>`
   - Detect if demo could be played
   - Do not capture mouse input during render
   - Remove Steam
+- Write own demo fixup tool
+- Clean up some anti-patterns, code duplications etc.
 
 ## Network Topology
 
