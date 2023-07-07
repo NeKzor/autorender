@@ -1165,17 +1165,16 @@ const routeToApp = async (ctx: Context) => {
 
 if (!B2_ENABLED) {
   router.get("/storage/videos/:video_id", async (ctx) => {
-    try {
-      if (!uuid.validate(ctx.params.video_id)) {
-        await routeToApp(ctx);
-        return;
-      }
+    if (!uuid.validate(ctx.params.video_id)) {
+      await routeToApp(ctx);
+      return;
+    }
 
+    try {
       const video = await Deno.readFile(getVideoFilePath(ctx.params.video_id));
 
       Ok(ctx, video, "video/mp4");
     } catch (err) {
-      logger.error(err);
       if (err instanceof Deno.errors.NotFound) {
         await routeToApp(ctx);
       } else {
@@ -1184,6 +1183,25 @@ if (!B2_ENABLED) {
     }
   });
 }
+
+router.get("/storage/demos/:video_id", async (ctx) => {
+  if (!uuid.validate(ctx.params.video_id)) {
+    await routeToApp(ctx);
+    return;
+  }
+
+  try {
+    const demo = await Deno.readFile(getDemoFilePath(ctx.params.video_id));
+
+    Ok(ctx, demo, "application/octet-stream");
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      await routeToApp(ctx);
+    } else {
+      logger.error(err);
+    }
+  }
+});
 
 router.get("/favicon.ico", (ctx) => (ctx.response.status = Status.NotFound));
 router.post("/tokens/:access_token_id(\\d+)", useSession, routeToApp);

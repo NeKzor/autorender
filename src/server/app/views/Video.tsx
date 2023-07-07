@@ -78,6 +78,11 @@ export const VideoView = () => {
             </div>
           )}
           <br />
+          <div>
+            <a href={`/storage/demos/${data.video_id}`} target="_blank">
+              Download demo
+            </a>
+          </div>
           <div>Comment: {data.comment ?? "-"}</div>
           <div>Render options: {data.render_options ?? "-"}</div>
           <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
