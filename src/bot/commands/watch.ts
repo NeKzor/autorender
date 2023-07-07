@@ -96,8 +96,7 @@ createCommand({
               interaction.token,
               {
                 content: videos.map((video) => {
-                  // TODO: Use Markdown links once it rolls out everywhere
-                  return `${getStatus(video)} ${video.title}\n<${videoUrl}/${video.video_id}>`;
+                  return `${getStatus(video)} [${video.title}](${videoUrl}/${video.video_id})`;
                 }).join("\n"),
               },
             );
