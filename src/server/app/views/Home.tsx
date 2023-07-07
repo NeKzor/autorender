@@ -129,23 +129,20 @@ export const Home = () => {
 
   const data = useLoaderData<Data>();
 
-  if (!state?.user) {
-    return (
-      <>
+  return (
+    <>
+      {state?.user ? (
+        <>
+          <div>Hey {state.user.username}!</div>
+          <div>
+            <a href={`/profile/${state.user.username}`}>Profile</a>
+          </div>
+        </>
+      ) : (
         <div>
           <a href={state?.discordAuthorizeLink}>Login with Discord</a>
         </div>
-        <Footer />
-      </>
-    );
-  }
-
-  return (
-    <>
-      <div>Hey {state.user.username}!</div>
-      <div>
-        <a href={`/profile/${state.user.username}`}>Profile</a>
-      </div>
+      )}
       {data !== null && (
         <>
           <br />
@@ -187,8 +184,8 @@ export const Home = () => {
                       <a href={`/profile/${stat.username}`}>{stat.username}</a>
                     ) : (
                       <span>{stat.requested_by_id}</span>
-                    )}
-                    {" "} | {stat.number_of_requests} videos
+                    )}{" "}
+                    | {stat.number_of_requests} videos
                   </li>
                 );
               })}
@@ -200,8 +197,8 @@ export const Home = () => {
               {data.rendererStats.map((stat) => {
                 return (
                   <li>
-                    <a href={`/profile/${stat.username}`}>{stat.username}</a>
-                    {" "} | {stat.number_of_renders} videos
+                    <a href={`/profile/${stat.username}`}>{stat.username}</a> |{" "}
+                    {stat.number_of_renders} videos
                   </li>
                 );
               })}
@@ -210,14 +207,17 @@ export const Home = () => {
           <br />
         </>
       )}
-      {!!(state.user.permissions & UserPermissions.CreateTokens) && (
+      {state?.user &&
+        !!(state.user.permissions & UserPermissions.CreateTokens) && (
+          <div>
+            <a href="/tokens">Tokens</a>
+          </div>
+        )}
+      {state?.user && (
         <div>
-          <a href="/tokens">Tokens</a>
+          <a href="/logout">Logout</a>
         </div>
       )}
-      <div>
-        <a href="/logout">Logout</a>
-      </div>
       <Footer />
     </>
   );
