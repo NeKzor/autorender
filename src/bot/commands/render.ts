@@ -29,6 +29,7 @@ const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const render = async (
   bot: Bot,
   interaction: Interaction,
+  interactionData: Interaction["data"],
   attachment?: Attachment,
 ) => {
   attachment ??= interaction.data?.resolved?.attachments?.first()!;
@@ -74,7 +75,7 @@ const render = async (
     }
 
     const body = new FormData();
-    const args = [...(interaction.data?.options?.values() ?? [])];
+    const args = [...(interactionData?.options?.values() ?? [])];
 
     for (const option of ["title", "comment", "render_options"]) {
       const value = args.find((arg) => arg.name === option)?.value;
@@ -240,7 +241,7 @@ createCommand({
 
     switch (subCommand.name) {
       case "demo":
-        render(bot, interaction);
+        render(bot, interaction, subCommand);
         break;
       case "latest": {
         const messages = await getMessages(bot, interaction.channelId!, {
@@ -254,7 +255,7 @@ createCommand({
         })?.attachments.at(0);
 
         if (attachment) {
-          render(bot, interaction, attachment);
+          render(bot, interaction, subCommand, attachment);
         } else {
           await bot.helpers.sendInteractionResponse(
             interaction.id,
@@ -335,7 +336,7 @@ createCommand({
         const attachment = message.attachments.at(0);
 
         if (attachment) {
-          render(bot, interaction, attachment);
+          render(bot, interaction, subCommand, attachment);
         } else {
           await bot.helpers.sendInteractionResponse(
             interaction.id,
