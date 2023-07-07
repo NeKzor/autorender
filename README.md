@@ -252,8 +252,8 @@ server {
 
 - ~~Offline storage service~~
 - ~~Demo download link~~
-- Automatic demo fixup
-- Use embeds for links + show profile
+- ~~Automatic demo fixup~~
+- ~~Markdown links~~
 - Resolves render options
 - Design frontend platform
   - Profiles
