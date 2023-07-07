@@ -129,7 +129,8 @@ The server should now be available at: `http://autorender.portal2.local`
 
 ### Storage
 
-By default all demos and videos are stored locally. Video upload to the b2 cloud storage is optional.
+By default all demos and videos are stored locally. Video upload to the b2 cloud storage is optional. However, it is
+recommended to use local storage during development since every request to b2 will count towards the daily API cap.
 
 ### src/server/.env
 
