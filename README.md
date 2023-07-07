@@ -1,6 +1,6 @@
 # autorender
 
-Convert any Portal 2 demo file into a video with: `/render demo <file>`
+Convert Portal 2 demos into videos with: `/render demo <file>`
 
 - [Features](#features)
 - [Commands](#commands)

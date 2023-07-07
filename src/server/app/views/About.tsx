@@ -10,7 +10,7 @@ import Footer from "../components/Footer.tsx";
 export const About = () => {
   return (
     <>
-      <div>Automatic render of any Portal 2 demo file!</div>
+      <div>Convert Portal 2 demos into videos!</div>
       <div>
         Source Code is on{" "}
         <a href="https://github.com/NeKzor/autorender" target="_blank">
