@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: MIT
  *
- *
  * This provides a small and simple client that interacts
  * with the Backblaze API.
  *
@@ -171,7 +170,7 @@ export interface UploadFileOptions {
 
 /** SHA-1 hash function. */
 export type Sha1HashFunction = (
-  buffer: BufferSource
+  buffer: BufferSource,
 ) => string | Promise<string>;
 
 /**
@@ -188,6 +187,12 @@ export interface BackblazeClientOptions {
   apiVersion?: `v${number}`;
   /** Custom SHA-1 hash function. Used to generate the required SHA-1 checksum for every file upload. */
   hasher?: Sha1HashFunction;
+  /**
+   * Automatically call authorizeAccount() on 401 response status.
+   * A call to authorizeAccount() itself will not cause a retry.
+   * This is on by default.
+   * */
+  automaticRetryOnUnauthorizedStatus?: boolean;
 }
 
 type ApiOperationOptions = {
@@ -207,9 +212,12 @@ export class BackblazeClient {
   readonly #baseApi: string;
   readonly #apiVersion: string;
   readonly #hasher: Sha1HashFunction;
+  readonly #automaticRetryOnUnauthorizedStatus: boolean;
 
   /** Authorization object. Will be set by calling `authorizeAccount()`. */
   authorization: AuthorizeAccountResponse | null;
+
+  #accountCredentials?: string;
 
   /**
    * Constructs a new Backblaze client.
@@ -220,21 +228,22 @@ export class BackblazeClient {
     this.#userAgent = options.userAgent;
     this.#baseApi = options.baseApi ?? "https://api.backblazeb2.com";
     this.#apiVersion = options.apiVersion ?? "v2";
-    this.#hasher =
-      options.hasher ??
+    this.#hasher = options.hasher ??
       (async (buffer: BufferSource) => {
         const hash = await crypto.subtle.digest("SHA-1", buffer);
         return Array.from(new Uint8Array(hash))
           .map((b) => b.toString(16).padStart(2, "0"))
           .join("");
       });
+    this.#automaticRetryOnUnauthorizedStatus =
+      options.automaticRetryOnUnauthorizedStatus ?? true;
     this.authorization = null;
   }
 
   protected checkAuthorization() {
     if (!this.authorization) {
       throw new Error(
-        "Client is not authorized. Did you forget to call authorizeAccount()?"
+        "Client is not authorized. Did you forget to call authorizeAccount()?",
       );
     }
   }
@@ -253,7 +262,7 @@ export class BackblazeClient {
 
   protected async call<TResponse>(
     operation: BackblazeApiOperation,
-    options: ApiOperationOptions
+    options: ApiOperationOptions,
   ): Promise<TResponse> {
     const headers = new Headers({
       ...options.headers,
@@ -264,11 +273,10 @@ export class BackblazeClient {
       headers.append("Content-Type", "application/json");
     }
 
-    const uri =
-      options.url ??
-      `${options.baseApi ?? this.#baseApi}/b2api/${
-        this.#apiVersion
-      }/${operation}`;
+    const uri = options.url ??
+      `${
+        options.baseApi ?? this.#baseApi
+      }/b2api/${this.#apiVersion}/${operation}`;
 
     const res = await fetch(uri, {
       method: options.body ? "POST" : "GET",
@@ -277,13 +285,16 @@ export class BackblazeClient {
     });
 
     if (!res.ok) {
-      const cause = res.headers
-        .get("Content-Type")
-        ?.includes("application/json")
-        ? await res.json()
-        : await res.text();
+      if (
+        res.status !== 401 &&
+        this.#automaticRetryOnUnauthorizedStatus &&
+        operation !== "b2_authorize_account"
+      ) {
+        await this.internalAuthorizeAccount();
+      }
 
-      throw new Error(`Call to ${uri} failed: ${res.status}`, { cause });
+      const text = await res.text();
+      throw new Error(`Call to ${uri} failed: ${res.status}\n${text}`);
     }
 
     return await res.json();
@@ -297,17 +308,24 @@ export class BackblazeClient {
    * @see https://www.backblaze.com/b2/docs/b2_authorize_account.html
    */
   public async authorizeAccount(account: BackblazeAccount) {
+    this.#accountCredentials = btoa(
+      `${account.accountId}:${account.applicationKey}`,
+    );
+
+    await this.internalAuthorizeAccount();
+
+    return this.authorization!;
+  }
+
+  protected async internalAuthorizeAccount() {
     this.authorization = await this.call<AuthorizeAccountResponse>(
       "b2_authorize_account",
       {
         headers: {
-          Authorization: `Basic ${btoa(
-            `${account.accountId}:${account.applicationKey}`
-          )}`,
+          Authorization: `Basic ${this.#accountCredentials}`,
         },
-      }
+      },
     );
-    return this.authorization!;
   }
 
   /**
@@ -351,15 +369,15 @@ export class BackblazeClient {
     const { authorizationToken, uploadUrl } = options.uploadUrl
       ? options.uploadUrl
       : await this.getUploadUrl({
-          bucketId: options.bucketId,
-        });
+        bucketId: options.bucketId,
+      });
 
-    const hash =
-      options.fileHash ?? (await this.generateHash(options.fileContents));
+    const hash = options.fileHash ??
+      (await this.generateHash(options.fileContents));
 
     if (hash.length !== 40) {
       throw new Error(
-        `Invalid file hash length. The generate SHA-1 hash should be 40 bytes long.`
+        `Invalid file hash length. The generate SHA-1 hash should be 40 bytes long.`,
       );
     }
 
@@ -395,7 +413,7 @@ export class BackblazeClient {
 
     const url = new URL(
       `/file/${this.authorization!.allowed.bucketName}/${fileName}`,
-      this.authorization!.downloadUrl
+      this.authorization!.downloadUrl,
     );
 
     return url.toString();
