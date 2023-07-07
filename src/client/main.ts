@@ -177,8 +177,8 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos["data"]) => {
         Deno.remove(filename);
       } catch (err) {
         logger.error(
-          `failed to remove file ${filename}:`,
-          err.toString(),
+          `Failed to remove file ${filename}:`,
+          err,
         );
       }
     }

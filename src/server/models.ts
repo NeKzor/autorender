@@ -100,7 +100,6 @@ export interface Video {
   created_at: number;
   render_options: string;
   file_name: string;
-  file_path: string;
   file_url: string;
   full_map_name: string;
   demo_size: number;

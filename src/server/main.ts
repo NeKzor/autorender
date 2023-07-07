@@ -10,6 +10,8 @@
  */
 
 import "https://deno.land/std@0.177.0/dotenv/load.ts";
+import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
+import * as uuid from "https://deno.land/std@0.192.0/uuid/mod.ts";
 import {
   Application,
   Context,
@@ -59,23 +61,28 @@ import {
   routes,
 } from "./app/Routes.ts";
 import { getDemoInfo } from "./demo.ts";
+import { basename } from "https://deno.land/std@0.190.0/path/win32.ts";
 
 const SERVER_HOST = Deno.env.get("SERVER_HOST")!;
 const SERVER_PORT = parseInt(Deno.env.get("SERVER_PORT")!, 10);
-const SERVER_SSL_CERT = Deno.env.get("SERVER_SSL_CERT");
-const SERVER_SSL_KEY = Deno.env.get("SERVER_SSL_KEY");
+const SERVER_SSL_CERT = Deno.env.get("SERVER_SSL_CERT")!;
+const SERVER_SSL_KEY = Deno.env.get("SERVER_SSL_KEY")!;
 const IS_HTTPS = SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none";
 const MAX_VIDEOS_PER_REQUEST = 3;
+const AUTORENDER_PUBLIC_URI = Deno.env.get("AUTORENDER_PUBLIC_URI")!;
 const AUTORENDER_V1 = "autorender-v1";
 const DISCORD_AUTHORIZE_LINK = (() => {
   const params = new URLSearchParams();
   params.set("client_id", Deno.env.get("DISCORD_CLIENT_ID")!);
-  params.set("redirect_uri", Deno.env.get("DISCORD_REDIRECT_URI")!);
+  params.set(
+    "redirect_uri",
+    `${AUTORENDER_PUBLIC_URI}/login/discord/authorize`,
+  );
   params.set("response_type", "code");
   params.set("scope", "identify");
   return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 })();
-const SERVER_DOMAIN = new URL(Deno.env.get("DISCORD_REDIRECT_URI")!).host;
+const SERVER_DOMAIN = new URL(AUTORENDER_PUBLIC_URI).host;
 const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
   Deno.env.get("AUTORENDER_BOT_TOKEN")!,
 );
@@ -83,11 +90,15 @@ const AUTORENDER_BOARD_TOKEN_HASH = (() => {
   const boardToken = Deno.env.get("AUTORENDER_BOARD_TOKEN")!;
   return boardToken !== "none" ? bcrypt.hashSync(boardToken) : null;
 })();
-const AUTORENDER_TEMP_DEMOS_FOLDER = "./demos";
-const AUTORENDER_TEMP_VIDEOS_FOLDER = "./videos";
+const AUTORENDER_DEMOS_FOLDER = Deno.env.get("AUTORENDER_DEMOS_FOLDER")!;
+const AUTORENDER_VIDEOS_FOLDER = Deno.env.get("AUTORENDER_VIDEOS_FOLDER")!;
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
+const B2_ENABLED = Deno.env.get("B2_ENABLED")! === "yes";
 const B2_BUCKET_ID = Deno.env.get("B2_BUCKET_ID")!;
+
+const getDemoFilePath = (videoId: string) => join(AUTORENDER_DEMOS_FOLDER, `${videoId}.dem`);
+const getVideoFilePath = (videoId: string) => join(AUTORENDER_VIDEOS_FOLDER, `${videoId}.mp4`);
 
 const cookieOptions: CookiesSetDeleteOptions = {
   expires: new Date(Date.now() + 86_400_000 * 30),
@@ -102,7 +113,7 @@ const useSession = Session.initMiddleware(store, {
   cookieSetOptions: cookieOptions,
 });
 
-const requiresAuth: Middleware<AppState> = (ctx) => {
+const _requiresAuth: Middleware<AppState> = (ctx) => {
   if (!ctx.state.session.get("user")) {
     return Err(ctx, Status.Unauthorized);
   }
@@ -132,12 +143,16 @@ const _sendErrorToBot = (error: {
 
 const b2 = new BackblazeClient({ userAgent: AUTORENDER_V1 });
 
-b2.authorizeAccount({
-  accountId: Deno.env.get("B2_KEY_ID")!,
-  applicationKey: Deno.env.get("B2_APP_KEY")!,
-}).then(() => {
-  logger.info("Connected to b2");
-});
+if (B2_ENABLED) {
+  b2.authorizeAccount({
+    accountId: Deno.env.get("B2_KEY_ID")!,
+    applicationKey: Deno.env.get("B2_APP_KEY")!,
+  }).then(() => {
+    logger.info("Connected to b2");
+  });
+} else {
+  logger.info("⚠️ Connection to b2 disabled. Using directory to store videos.");
+}
 
 await logger.initFileLogger("log/server", {
   rotate: true,
@@ -226,7 +241,7 @@ apiV1
       customContentTypes: {
         "application/octet-stream": "dem",
       },
-      outPath: AUTORENDER_TEMP_DEMOS_FOLDER,
+      outPath: AUTORENDER_DEMOS_FOLDER,
       maxFileSize: AUTORENDER_MAX_DEMO_FILE_SIZE,
     });
 
@@ -237,11 +252,15 @@ apiV1
       return Err(ctx, Status.BadRequest);
     }
 
+    const video_id = uuid.v1.generate() as string;
+
+    const filePath = getDemoFilePath(video_id);
+    await Deno.rename(file.filename, filePath);
+
     // TODO:
     //    * Figure out if UGC changes when the revision of a workshop item updates.
     //    * Should we save map data in the database?
 
-    const filePath = file.filename;
     const demoInfo = await getDemoInfo(await Deno.readFile(filePath));
 
     if (demoInfo === null || typeof demoInfo === "string") {
@@ -261,31 +280,6 @@ apiV1
     const requestedInChannelName = data.fields.requested_in_channel_name ??
       null;
 
-    const [{ video_id }] = await db.query<Pick<Video, "video_id">>(
-      `select UUID() as video_id`,
-    );
-
-    const fields = [
-      data.fields.title,
-      data.fields.comment,
-      requestedByName,
-      requestedById,
-      requestedInGuildId,
-      requestedInGuildName,
-      requestedInChannelId,
-      requestedInChannelName,
-      data.fields.render_options,
-      file.originalName,
-      filePath,
-      demoInfo.fileUrl,
-      demoInfo.fullMapName,
-      demoInfo.size,
-      demoInfo.mapCrc,
-      demoInfo.gameDir,
-      demoInfo.playbackTime,
-      PendingStatus.RequiresRender,
-    ];
-
     await db.execute(
       `insert into videos (
             video_id
@@ -299,7 +293,6 @@ apiV1
           , requested_in_channel_name
           , render_options
           , file_name
-          , file_path
           , file_url
           , full_map_name
           , demo_size
@@ -307,10 +300,26 @@ apiV1
           , demo_game_dir
           , demo_playback_time
           , pending
-        ) values (UUID_TO_BIN(?), ${fields.map(() => "?").join(",")})`,
+        ) values (UUID_TO_BIN(?), ${new Array(17).fill("?").join(",")})`,
       [
         video_id,
-        ...fields,
+        data.fields.title,
+        data.fields.comment,
+        requestedByName,
+        requestedById,
+        requestedInGuildId,
+        requestedInGuildName,
+        requestedInChannelId,
+        requestedInChannelName,
+        data.fields.render_options,
+        file.originalName,
+        demoInfo.fileUrl,
+        demoInfo.fullMapName,
+        demoInfo.size,
+        demoInfo.mapCrc,
+        demoInfo.gameDir,
+        demoInfo.playbackTime,
+        PendingStatus.RequiresRender,
       ],
     );
 
@@ -386,7 +395,7 @@ apiV1
       customContentTypes: {
         "video/mp4": "mp4",
       },
-      outPath: AUTORENDER_TEMP_VIDEOS_FOLDER,
+      outPath: AUTORENDER_VIDEOS_FOLDER,
       maxFileSize: AUTORENDER_MAX_VIDEO_FILE_SIZE,
     });
 
@@ -418,23 +427,32 @@ apiV1
       return Err(ctx, Status.NotFound);
     }
 
-    const fileName = `${video.video_id}.mp4`;
+    const filePath = getVideoFilePath(video.video_id);
+    const fileName = basename(filePath);
 
     try {
-      logger.info("Uploading video file", fileName);
+      await Deno.rename(file.filename, filePath);
 
-      const fileContents = await Deno.readFile(file.filename);
+      logger.info("Uploading video file", filePath);
 
-      const upload = await b2.uploadFile({
-        bucketId: B2_BUCKET_ID,
-        fileName,
-        fileContents,
-        contentType: "video/mp4",
-      });
+      const fileContents = await Deno.readFile(filePath);
 
-      const videoUrl = b2.getDownloadUrl(upload.fileName);
+      let videoUrl = "";
 
-      logger.info("Uploaded", upload, videoUrl);
+      if (B2_ENABLED) {
+        const upload = await b2.uploadFile({
+          bucketId: B2_BUCKET_ID,
+          fileName,
+          fileContents,
+          contentType: "video/mp4",
+        });
+
+        videoUrl = b2.getDownloadUrl(upload.fileName);
+
+        logger.info("Uploaded", upload, videoUrl);
+      } else {
+        videoUrl = `${AUTORENDER_PUBLIC_URI}/storage/videos/${video.video_id}`;
+      }
 
       // TODO: Determine video length, create video preview and
       //       small/large thumbnails in a different thread.
@@ -510,10 +528,12 @@ apiV1
         logger.error(err);
       }
     } finally {
-      try {
-        Deno.remove(video.file_path);
-      } catch (err) {
-        logger.error("Failed to remove video file:", err.toString());
+      if (B2_ENABLED) {
+        try {
+          Deno.remove(filePath);
+        } catch (err) {
+          logger.error("Failed to remove video file:", err);
+        }
       }
     }
   })
@@ -800,15 +820,13 @@ router.get("/connect/client", async (ctx) => {
               | "file_url"
               | "full_map_name"
               | "demo_playback_time"
-              | "file_path"
             >;
 
-            const [{ file_path, ...video }] = await db.query<VideoSelect>(
+            const [video] = await db.query<VideoSelect>(
               `select BIN_TO_UUID(video_id) as video_id
                      , file_url
                      , full_map_name
                      , demo_playback_time
-                     , file_path
                   from videos
                  where video_id = UUID_TO_BIN(?)`,
               [videoId],
@@ -834,7 +852,9 @@ router.get("/connect/client", async (ctx) => {
 
             await buffer.write(length);
             await buffer.write(payload);
-            await buffer.write(await Deno.readFile(file_path));
+
+            const filePath = getDemoFilePath(video.video_id);
+            await buffer.write(await Deno.readFile(filePath));
 
             ws.send(buffer.bytes());
           } else {
@@ -992,7 +1012,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
     client_id: Deno.env.get("DISCORD_CLIENT_ID")!,
     client_secret: Deno.env.get("DISCORD_CLIENT_SECRET")!,
     code,
-    redirect_uri: Deno.env.get("DISCORD_REDIRECT_URI")!,
+    redirect_uri: `${AUTORENDER_PUBLIC_URI}/login/discord/authorize`,
   };
 
   const oauthResponse = await fetch(
@@ -1095,7 +1115,7 @@ router.get("/logout", useSession, async (ctx) => {
 
 const routeToApp = async (ctx: Context) => {
   const request = await createFetchRequest(ctx.request);
-  const user = ctx.state.session.get("user") ?? null;
+  const user = ctx.state.session?.get("user") ?? null;
 
   const requestContext: RequestContext = {
     user,
@@ -1142,6 +1162,28 @@ const routeToApp = async (ctx: Context) => {
   ctx.response.body = await index(router, context, initialState);
   ctx.response.headers.set("content-type", "text/html");
 };
+
+if (!B2_ENABLED) {
+  router.get("/storage/videos/:video_id", async (ctx) => {
+    try {
+      if (!uuid.validate(ctx.params.video_id)) {
+        await routeToApp(ctx);
+        return;
+      }
+
+      const video = await Deno.readFile(getVideoFilePath(ctx.params.video_id));
+
+      Ok(ctx, video, "video/mp4");
+    } catch (err) {
+      logger.error(err);
+      if (err instanceof Deno.errors.NotFound) {
+        await routeToApp(ctx);
+      } else {
+        logger.error(err);
+      }
+    }
+  });
+}
 
 router.get("/favicon.ico", (ctx) => (ctx.response.status = Status.NotFound));
 router.post("/tokens/:access_token_id(\\d+)", useSession, routeToApp);

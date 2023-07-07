@@ -58,7 +58,12 @@ self.addEventListener(
             //       https://github.com/oakserver/oak/issues/581
 
             const body = new FormData();
-            body.append("files", new Blob([await Deno.readFile(videoFile)]));
+
+            body.append(
+              "files",
+              new Blob([await Deno.readFile(videoFile)], { type: "video/mp4" }),
+            );
+
             body.append("video_id", video_id);
 
             const response = await fetch(

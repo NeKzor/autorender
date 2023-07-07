@@ -45,7 +45,6 @@ CREATE TABLE videos (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     render_options VARCHAR(1024),
     file_name VARCHAR(64),
-    file_path VARCHAR(4096),
     file_url VARCHAR(1024),
     full_map_name VARCHAR(64),
     demo_size INT,
