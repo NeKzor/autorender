@@ -9,11 +9,14 @@ import {
   ApplicationCommandOption,
   Attachment,
   Bot,
+  ButtonComponent,
+  ButtonStyles,
   getChannel,
   getGuild,
   getMessage,
   getMessages,
   Message,
+  MessageComponentTypes,
 } from "../deps.ts";
 import { Interaction } from "../deps.ts";
 import {
@@ -142,11 +145,37 @@ const render = async (
 
     if (response.ok) {
       const video = await response.json() as Video;
+
       const title = escapeMarkdown(video.title);
       const link = getPublicUrl(`/queue/${video.video_id}`);
+      const demoLink = getPublicUrl(`/storage/demos/${video.video_id}`);
+
+      const buttons: [ButtonComponent] | [ButtonComponent, ButtonComponent] = [
+        {
+          type: MessageComponentTypes.Button,
+          label: "Download Demo",
+          style: ButtonStyles.Link,
+          url: demoLink,
+        },
+      ];
+
+      if (video.demo_required_fix) {
+        buttons.push({
+          type: MessageComponentTypes.Button,
+          label: "Download Fixed Demo",
+          style: ButtonStyles.Link,
+          url: demoLink,
+        });
+      }
 
       await bot.helpers.editOriginalInteractionResponse(interaction.token, {
         content: `⏳️ Queued video [${title}](<${link}>) for rendering.`,
+        components: [
+          {
+            type: MessageComponentTypes.ActionRow,
+            components: buttons,
+          },
+        ],
       });
     } else {
       if (
