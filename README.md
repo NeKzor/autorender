@@ -6,6 +6,7 @@ Convert any Portal 2 demo file into a video with: `/render demo <file>`
 - [Commands](#commands)
 - [Local Development](#local-development)
   - [Network Topology](#network-topology)
+  - [Storage](#storage)
   - [Requirements](#requirements)
   - [Setup](#setup)
   - [Install & Run Server](#install--run-server)
@@ -92,8 +93,8 @@ sequenceDiagram
 - [deno runtime]
 - [FFmpeg]
 - [Discord Application]
-- [Backblaze Bucket]
 - [Docker Engine]
+- [Backblaze Bucket] (optional)
 - [mkcert] (optional)
 - [demofixup] (optional)
 
@@ -126,6 +127,10 @@ The server should now be available at: `http://autorender.portal2.local`
 - Set all permissions for the account with `deno task dev`
 - Logout and login again
 
+### Storage
+
+By default all demos and videos are stored locally. Video upload to the b2 cloud storage is optional.
+
 ### src/server/.env
 
 |Variable|Description|
@@ -134,9 +139,10 @@ The server should now be available at: `http://autorender.portal2.local`
 |DISCORD_USER_ID|Discord user ID of developer account. This is only used to reset the permissions.|
 |DISCORD_CLIENT_ID|Client ID of the Discord OAuth2 application.|
 |DISCORD_CLIENT_SECRET|Client secret of the Discord OAuth2 application.|
-|DISCORD_REDIRECT_URI|OAuth redirect URI of the Discord OAuth2 application.|
+|AUTORENDER_PUBLIC_URI|This is used for public links which the server generates e.g. the redirect URI of the Discord OAuth2 application.|
 |AUTORENDER_BOT_TOKEN|Generated token which is shared between the server and the bot.<br>Example: `openssl rand -hex 12`|
 |COOKIE_SECRET_KEY|Non-predictable key used to encrypt/decrypt session cookies.|
+|B2_ENABLED|Value `yes` enables video storage on Backblaze.|
 |B2_BUCKET_ID|Bucket ID from Backblaze.|
 |B2_KEY_ID|Key ID from Backblaze.|
 |B2_KEY_NAME|Key name from Backblaze.|
@@ -243,6 +249,10 @@ server {
 
 ## TODO
 
+- ~~Offline storage service~~
+- ~~Demo download link~~
+- Automatic demo fixup
+- Use embeds for links + show profile
 - Resolves render options
 - Design frontend platform
   - Profiles
@@ -259,7 +269,8 @@ server {
 - Support game mods
 - Unlisted videos
 - Figure out how private videos would work
-- Figure out docker + easier setup
+- Figure out docker
+- Write a CLI tool for setup
 - Write own demo fixup tool
 - SAR wishlist:
   - ~~Remove unnecessary watermark~~
