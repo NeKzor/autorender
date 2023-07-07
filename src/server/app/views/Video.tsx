@@ -81,24 +81,29 @@ export const VideoView = () => {
           {data.demo_required_fix === FixedDemoStatus.Required && (
             <>
               <div>
+                Download fixed:{" "}
                 <a
                   href={`/storage/demos/${data.video_id}/fixed`}
                   target="_blank"
                 >
-                  Download fixed demo
+                  {data.file_name.toLowerCase().endsWith(".dem")
+                    ? `${data.file_name.slice(0, -4)}_fixed.dem`
+                    : `${data.file_name}_fixed.dem`}
                 </a>
               </div>
               <div>
+                Download original:{" "}
                 <a href={`/storage/demos/${data.video_id}`} target="_blank">
-                  Download original demo
+                  {data.file_name}
                 </a>
               </div>
             </>
           )}
           {data.demo_required_fix === FixedDemoStatus.NotRequired && (
             <div>
+              Download:{" "}
               <a href={`/storage/demos/${data.video_id}`} target="_blank">
-                Download demo
+                {data.file_name}
               </a>
             </div>
           )}

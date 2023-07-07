@@ -1189,9 +1189,38 @@ if (!B2_ENABLED) {
     }
 
     try {
-      const video = await Deno.readFile(getVideoFilePath(ctx.params.video_id));
+      const [video] = await db.query<
+        Pick<Video, "video_id" | "file_name" | "title">
+      >(
+        `select BIN_TO_UUID(video_id) as video_id
+              , file_name
+              , title
+           from videos
+          where video_id = UUID_TO_BIN(?)`,
+        [ctx.params.video_id],
+      );
 
-      Ok(ctx, video, "video/mp4");
+      if (!video) {
+        await routeToApp(ctx);
+        return;
+      }
+
+      const file = await Deno.readFile(getVideoFilePath(video.video_id));
+
+      const filename = video.title === video.file_name
+        ? `${video.file_name} Video.mp4`
+        : `${video.title}.mp4`;
+
+      ctx.response.headers.set(
+        "Content-Disposition",
+        `filename="${
+          filename
+            .replaceAll("\\", "\\\\")
+            .replaceAll('"', '\\"')
+        }"`,
+      );
+
+      Ok(ctx, file, "video/mp4");
     } catch (err) {
       if (err instanceof Deno.errors.NotFound) {
         await routeToApp(ctx);
@@ -1202,18 +1231,48 @@ if (!B2_ENABLED) {
   });
 }
 
-router.get("/storage/demos/:video_id/:fixed?", async (ctx) => {
+router.get("/storage/demos/:video_id/:fixed(fixed)?", async (ctx) => {
   if (!uuid.validate(ctx.params.video_id)) {
     await routeToApp(ctx);
     return;
   }
 
   try {
-    const getFilePath = ctx.params.fixed
+    const [video] = await db.query<Pick<Video, "video_id" | "file_name">>(
+      `select BIN_TO_UUID(video_id) as video_id
+          , file_name
+       from videos
+      where video_id = UUID_TO_BIN(?)`,
+      [ctx.params.video_id],
+    );
+
+    if (!video) {
+      await routeToApp(ctx);
+      return;
+    }
+
+    const requestedFixedDemo = ctx.params.fixed !== undefined;
+
+    const getFilePath = requestedFixedDemo
       ? getFixedDemoFilePath
       : getDemoFilePath;
 
-    const demo = await Deno.readFile(getFilePath(ctx.params.video_id));
+    const demo = await Deno.readFile(getFilePath(video.video_id));
+
+    const filename = requestedFixedDemo
+      ? video.file_name.toLowerCase().endsWith(".dem")
+        ? `${video.file_name.slice(0, -4)}_fixed.dem`
+        : `${video.file_name}_fixed.dem`
+      : video.file_name;
+
+    ctx.response.headers.set(
+      "Content-Disposition",
+      `attachment; filename="${
+        filename
+          .replaceAll("\\", "\\\\")
+          .replaceAll('"', '\\"')
+      }"`,
+    );
 
     Ok(ctx, demo, "application/octet-stream");
   } catch (err) {
