@@ -131,10 +131,6 @@ const specialCharacters = [
   "]",
   "(",
   ")",
-  "`",
-  "*",
-  "_",
-  "~",
 ];
 
 export function escapeMarkdown(text: string) {
