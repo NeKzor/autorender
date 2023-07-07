@@ -77,8 +77,11 @@ worker.addEventListener("message", (message) => {
       const title = escapeMarkdown(data.title);
       const link = getPublicUrl(`/videos/${data.video_id}`);
 
+      // TODO: Wait for Discord to fix their stuff...
       const content = [
-        `📽️ Rendered video [${title}](${link}).`,
+        //`📽️ Rendered video [${title}](${link}).`,
+        `📽️ Rendered video: ${title}`,
+        link,
       ].join("\n");
 
       if (data.requested_in_guild_id && data.requested_in_channel_id) {
