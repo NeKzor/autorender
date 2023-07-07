@@ -51,6 +51,7 @@ CREATE TABLE videos (
     demo_map_crc INT,
     demo_game_dir VARCHAR(64),
     demo_playback_time INT,
+    demo_required_fix NOT NULL DEFAULT 0,
     pending INT NOT NULL DEFAULT 0,
     rendered_by BIGINT,
     rendered_by_token BIGINT,

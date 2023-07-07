@@ -43,6 +43,7 @@ import {
   AuditSource,
   AuditType,
   DiscordUser,
+  FixedDemoStatus,
   PendingStatus,
   User,
   UserPermissions,
@@ -97,8 +98,12 @@ const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 const B2_ENABLED = Deno.env.get("B2_ENABLED")! === "yes";
 const B2_BUCKET_ID = Deno.env.get("B2_BUCKET_ID")!;
 
-const getDemoFilePath = (videoId: string) => join(AUTORENDER_DEMOS_FOLDER, `${videoId}.dem`);
-const getVideoFilePath = (videoId: string) => join(AUTORENDER_VIDEOS_FOLDER, `${videoId}.mp4`);
+const getDemoFilePath = (videoId: string) =>
+  join(AUTORENDER_DEMOS_FOLDER, `${videoId}.dem`);
+const getFixedDemoFilePath = (videoId: string) =>
+  join(AUTORENDER_DEMOS_FOLDER, `${videoId}_fixed.dem`);
+const getVideoFilePath = (videoId: string) =>
+  join(AUTORENDER_VIDEOS_FOLDER, `${videoId}.mp4`);
 
 const cookieOptions: CookiesSetDeleteOptions = {
   expires: new Date(Date.now() + 86_400_000 * 30),
@@ -261,7 +266,7 @@ apiV1
     //    * Figure out if UGC changes when the revision of a workshop item updates.
     //    * Should we save map data in the database?
 
-    const demoInfo = await getDemoInfo(await Deno.readFile(filePath));
+    const demoInfo = await getDemoInfo(filePath);
 
     if (demoInfo === null || typeof demoInfo === "string") {
       return Err(ctx, Status.BadRequest, demoInfo ?? undefined);
@@ -279,6 +284,9 @@ apiV1
     const requestedInChannelId = data.fields.requested_in_channel_id ?? null;
     const requestedInChannelName = data.fields.requested_in_channel_name ??
       null;
+    const requiredDemoFix = demoInfo.useFixedDemo
+      ? FixedDemoStatus.Required
+      : FixedDemoStatus.NotRequired;
 
     await db.execute(
       `insert into videos (
@@ -299,8 +307,9 @@ apiV1
           , demo_map_crc
           , demo_game_dir
           , demo_playback_time
+          , demo_required_fix
           , pending
-        ) values (UUID_TO_BIN(?), ${new Array(17).fill("?").join(",")})`,
+        ) values (UUID_TO_BIN(?), ${new Array(18).fill("?").join(",")})`,
       [
         video_id,
         data.fields.title,
@@ -319,6 +328,7 @@ apiV1
         demoInfo.mapCrc,
         demoInfo.gameDir,
         demoInfo.playbackTime,
+        requiredDemoFix,
         PendingStatus.RequiresRender,
       ],
     );
@@ -820,13 +830,17 @@ router.get("/connect/client", async (ctx) => {
               | "file_url"
               | "full_map_name"
               | "demo_playback_time"
+              | "demo_required_fix"
             >;
 
-            const [video] = await db.query<VideoSelect>(
+            const [{ demo_required_fix, ...video }] = await db.query<
+              VideoSelect
+            >(
               `select BIN_TO_UUID(video_id) as video_id
                      , file_url
                      , full_map_name
                      , demo_playback_time
+                     , demo_required_fix
                   from videos
                  where video_id = UUID_TO_BIN(?)`,
               [videoId],
@@ -853,7 +867,11 @@ router.get("/connect/client", async (ctx) => {
             await buffer.write(length);
             await buffer.write(payload);
 
-            const filePath = getDemoFilePath(video.video_id);
+            const getFilePath = demo_required_fix === FixedDemoStatus.Required
+              ? getFixedDemoFilePath
+              : getDemoFilePath;
+
+            const filePath = getFilePath(video.video_id);
             await buffer.write(await Deno.readFile(filePath));
 
             ws.send(buffer.bytes());
@@ -1184,14 +1202,18 @@ if (!B2_ENABLED) {
   });
 }
 
-router.get("/storage/demos/:video_id", async (ctx) => {
+router.get("/storage/demos/:video_id/:fixed?", async (ctx) => {
   if (!uuid.validate(ctx.params.video_id)) {
     await routeToApp(ctx);
     return;
   }
 
   try {
-    const demo = await Deno.readFile(getDemoFilePath(ctx.params.video_id));
+    const getFilePath = ctx.params.fixed
+      ? getFixedDemoFilePath
+      : getDemoFilePath;
+
+    const demo = await Deno.readFile(getFilePath(ctx.params.video_id));
 
     Ok(ctx, demo, "application/octet-stream");
   } catch (err) {

@@ -7,7 +7,7 @@
 import * as React from "https://esm.sh/react@18.2.0";
 import Footer from "../components/Footer.tsx";
 import { DataLoader, PageMeta, json, useLoaderData } from "../Routes.ts";
-import { PendingStatus, Video } from "../../models.ts";
+import { FixedDemoStatus, PendingStatus, Video } from "../../models.ts";
 
 type JoinedVideo = Video & {
   requested_by_username: string;
@@ -78,11 +78,30 @@ export const VideoView = () => {
             </div>
           )}
           <br />
-          <div>
-            <a href={`/storage/demos/${data.video_id}`} target="_blank">
-              Download demo
-            </a>
-          </div>
+          {data.demo_required_fix === FixedDemoStatus.Required && (
+            <>
+              <div>
+                <a
+                  href={`/storage/demos/${data.video_id}/fixed`}
+                  target="_blank"
+                >
+                  Download fixed demo
+                </a>
+              </div>
+              <div>
+                <a href={`/storage/demos/${data.video_id}`} target="_blank">
+                  Download original demo
+                </a>
+              </div>
+            </>
+          )}
+          {data.demo_required_fix === FixedDemoStatus.NotRequired && (
+            <div>
+              <a href={`/storage/demos/${data.video_id}`} target="_blank">
+                Download demo
+              </a>
+            </div>
+          )}
           <div>Comment: {data.comment ?? "-"}</div>
           <div>Render options: {data.render_options ?? "-"}</div>
           <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>

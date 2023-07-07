@@ -4,18 +4,33 @@
  * SPDX-License-Identifier: MIT
  */
 
-// TODO: Fix exports in sdp
-import { DemoMessages, NetMessages, SourceDemoParser } from "npm:@nekz/sdp";
-import { DataTable } from "npm:@nekz/sdp/messages";
+import {
+  Messages,
+  NetMessages,
+  SourceDemo,
+  SourceDemoParser,
+} from "npm:@nekz/sdp";
 import { logger } from "./logger.ts";
+import {
+  basename,
+  dirname,
+  join,
+} from "https://deno.land/std@0.190.0/path/mod.ts";
 
 const AUTORENDER_MIN_PLAYBACK_TIME = 1;
 const AUTORENDER_MAX_PLAYBACK_TIME = 6 * 60;
 
-export const getDemoInfo = async (buffer: ArrayBuffer) => {
+export const getDemoInfo = async (filePath: string) => {
+  const buffer = await Deno.readFile(filePath);
+
   try {
-    const demo = SourceDemoParser.default()
-      .setOptions({ messages: true, packets: true, dataTables: true })
+    const parser = SourceDemoParser.default()
+      .setOptions({
+        packets: true,
+        dataTables: true,
+      });
+
+    const demo = parser
       .parse(buffer)
       .adjustTicks()
       .adjustRange();
@@ -28,26 +43,28 @@ export const getDemoInfo = async (buffer: ArrayBuffer) => {
       return "Demo is too long.";
     }
 
-    // TODO: Detect if this is the latest version of Portal 2
-    const dt = demo.findMessage<DataTable>(DemoMessages.DataTable).dataTable;
+    let fixupResult: Awaited<ReturnType<typeof tryToFixOldPortal2Demos>> =
+      false;
 
-    // Thank you Valve for the amazing backwards compatibility!
-    if (
-      // deno-lint-ignore no-explicit-any
-      dt.tables.find((table: any) => table.netTableName === "DT_PointSurvey") ||
-      // deno-lint-ignore no-explicit-any
-      dt.serverClasses.find((svc: any) =>
-        svc.dataTableName === "DT_PointSurvey"
-      )
-    ) {
-      return "Demo is too old.";
+    if (demo.gameDirectory === "portal2") {
+      fixupResult = await tryToFixOldPortal2Demos(
+        demo,
+        parser,
+        buffer,
+        filePath,
+      );
+
+      if (fixupResult === null || typeof fixupResult === "string") {
+        return fixupResult;
+      }
     }
 
-    // deno-lint-ignore no-explicit-any
-    const info = demo.findPacket(NetMessages.SvcServerInfo) as any;
-
-    if (!info) {
-      return null;
+    const info = demo.findPacket(NetMessages.SvcServerInfo);
+    if (!info?.mapName) {
+      logger.error(
+        `SvcServerInfo packet or map name not found in demo: ${filePath}`,
+      );
+      return "Corrupted demo.";
     }
 
     const isWorkshopMap = demo.mapName !== info.mapName;
@@ -62,6 +79,7 @@ export const getDemoInfo = async (buffer: ArrayBuffer) => {
       fileUrl: isWorkshopMap ? await resolveFileUrl(fullMapName) : null,
       gameDir: demo.gameDirectory,
       playbackTime: demo.playbackTime,
+      useFixedDemo: fixupResult === true,
     };
   } catch (err) {
     logger.error(err);
@@ -96,4 +114,67 @@ export const resolveFileUrl = async (mapName: string) => {
   }
 
   return null;
+};
+
+// Valve, please fix.
+const tryToFixOldPortal2Demos = async (
+  demo: SourceDemo,
+  parser: SourceDemoParser,
+  buffer: ArrayBuffer,
+  filePath: string,
+) => {
+  try {
+    const dt = demo.findMessage(Messages.DataTable)?.dataTable;
+    if (!dt) {
+      logger.error(`DataTable message not found in demo: ${filePath}`);
+      return "Corrupted demo.";
+    }
+
+    const pointSurvey = dt.tables
+      .findIndex((table) => table.netTableName === "DT_PointSurvey");
+
+    // Fixup not needed for already fixed or new demos.
+    if (pointSurvey === -1) {
+      return false;
+    }
+
+    // Current fixup method does not work on these maps :>
+    const mapsWhichUsePointSurvey = [
+      "sp_a2_bts2",
+      "sp_a2_bts3",
+      "sp_a3_portal_intro",
+      "sp_a2_core",
+      "sp_a2_bts4",
+    ];
+
+    if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
+      return "Unable to fix old Portal 2 demo.";
+    }
+
+    dt.tables.splice(pointSurvey, 1);
+
+    const svc = dt.serverClasses.find((table) =>
+      table.dataTableName === "DT_PointSurvey"
+    );
+
+    if (!svc) {
+      logger.error(`CPointCamera server class not found in demo: ${filePath}`);
+      return "Corrupted demo.";
+    }
+
+    svc.className = "CPointCamera";
+    svc.dataTableName = "DT_PointCamera";
+
+    const saved = parser.save(demo, buffer.byteLength);
+
+    const filename = basename(filePath).slice(0, -4);
+    const fixedFilePath = join(dirname(filePath), `${filename}_fixed.dem`);
+
+    await Deno.writeFile(fixedFilePath, saved);
+
+    return true;
+  } catch (err) {
+    logger.error(err);
+    return null;
+  }
 };

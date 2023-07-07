@@ -76,6 +76,14 @@ export enum PendingStatus {
 }
 
 /**
+ * Fixed demo status of a video.
+ */
+export enum FixedDemoStatus {
+  NotRequired = 0,
+  Required = 1,
+}
+
+/**
  * Visibility state of a video.
  */
 export enum VisibilityState {
@@ -106,6 +114,7 @@ export interface Video {
   demo_map_crc: number;
   demo_game_dir: string;
   demo_playback_time: number;
+  demo_required_fix: FixedDemoStatus;
   pending: PendingStatus;
   rendered_by: number;
   rendered_by_token: number;
