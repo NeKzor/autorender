@@ -29,7 +29,6 @@ const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const render = async (
   bot: Bot,
   interaction: Interaction,
-  interactionData: Interaction["data"],
   attachment?: Attachment,
 ) => {
   attachment ??= interaction.data?.resolved?.attachments?.first()!;
@@ -241,7 +240,7 @@ createCommand({
 
     switch (subCommand.name) {
       case "demo":
-        render(bot, interaction, subCommand);
+        render(bot, interaction);
         break;
       case "latest": {
         const messages = await getMessages(bot, interaction.channelId!, {
@@ -255,7 +254,7 @@ createCommand({
         })?.attachments.at(0);
 
         if (attachment) {
-          render(bot, interaction, subCommand, attachment);
+          render(bot, interaction, attachment);
         } else {
           await bot.helpers.sendInteractionResponse(
             interaction.id,
@@ -336,7 +335,7 @@ createCommand({
         const attachment = message.attachments.at(0);
 
         if (attachment) {
-          render(bot, interaction, subCommand, attachment);
+          render(bot, interaction, attachment);
         } else {
           await bot.helpers.sendInteractionResponse(
             interaction.id,
