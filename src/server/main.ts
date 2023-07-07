@@ -549,13 +549,14 @@ apiV1
   })
   // Get video views and increment.
   // deno-lint-ignore no-explicit-any
-  .post("/videos/:video_id(\\d+)/views", useRateLimiter as any, async (ctx) => {
+  .post("/videos/:video_id/views", useRateLimiter as any, async (ctx) => {
     const [video] = await db.query<Pick<Video, "video_id" | "views">>(
       `select BIN_TO_UUID(video_id) as video_id
             , views
          from videos
-        where video_id = UUID_TO_BIN(?)`,
-      [Number(ctx.params.video_id)],
+        where video_id = UUID_TO_BIN(?)
+          and video_url IS NOT NULL`,
+      [ctx.params.video_id],
     );
 
     if (!video) {
@@ -573,8 +574,9 @@ apiV1
   })
   // Get a random rendered videos.
   .get("/videos/random/:count(\\d+)", async (ctx) => {
-    const videos = await db.query<Pick<Video, "video_id">>(
+    const videos = await db.query<Pick<Video, "video_id" | "title">>(
       `select BIN_TO_UUID(video_id) as video_id
+            , title
          from videos
         where video_url IS NOT NULL
      order by RAND()

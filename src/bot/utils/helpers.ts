@@ -124,3 +124,24 @@ export function isSubCommand(data: subCommand | subCommandGroup): data is subCom
 export function isSubCommandGroup(data: subCommand | subCommandGroup): data is subCommandGroup {
   return hasProperty(data, 'subCommands')
 }
+
+const specialCharacters = [
+  "\\",
+  "[",
+  "]",
+  "(",
+  ")",
+  "`",
+  "*",
+  "_",
+  "~",
+];
+
+export function escapeMarkdown(text: string) {
+  return specialCharacters.reduce((title, char) => title.replaceAll(char, `\\${char}`), text);
+}
+
+
+export function getPublicUrl(url: string) {
+  return new URL(url, Deno.env.get("AUTORENDER_PUBLIC_URI")!).toString()
+}

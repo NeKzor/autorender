@@ -6,12 +6,18 @@
 
 import * as React from "https://esm.sh/react@18.2.0";
 import Footer from "../components/Footer.tsx";
-import { DataLoader, PageMeta, json, notFound, useLoaderData } from "../Routes.ts";
+import {
+  DataLoader,
+  PageMeta,
+  json,
+  redirect,
+  useLoaderData,
+} from "../Routes.ts";
 import { FixedDemoStatus, PendingStatus, Video } from "../../models.ts";
 
 type JoinedVideo = Video & {
-  requested_by_username: string | null;
-  rendered_by_username: string | null;
+  requested_by_username: string;
+  rendered_by_username: string;
 };
 
 type Data = JoinedVideo | undefined;
@@ -22,8 +28,6 @@ export const meta: PageMeta<Data> = (data) => {
     description: data?.comment,
     "og:title": data?.title,
     "og:description": data?.comment,
-    "og:type": "video",
-    "og:video": data?.video_url,
   };
 };
 
@@ -42,14 +46,14 @@ export const loader: DataLoader = async ({ params, context }) => {
     [params.video_id]
   );
 
-  if (video.pending !== PendingStatus.FinishedRender) {
-    notFound();
+  if (video.pending === PendingStatus.FinishedRender) {
+    return redirect("/videos/" + video.video_id);
   }
 
   return json<Data>(video);
 };
 
-export const VideoView = () => {
+export const Queue = () => {
   const data = useLoaderData<Data>();
 
   return (
@@ -66,22 +70,10 @@ export const VideoView = () => {
           )}
           <h2>{data.title}</h2>
           <br />
-          {!data.video_url && data.pending === PendingStatus.FinishedRender && (
-            <div>Failed to render video :(</div>
-          )}
-          {!data.video_url && data.pending !== PendingStatus.FinishedRender && (
-            <div>
-              Video is currently queued for rendering. Please come back again in
-              a few minutes.
-            </div>
-          )}
-          {data.video_url && (
-            <div>
-              <video controls>
-                <source src={data.video_url} itemType="video/mp4"></source>
-              </video>
-            </div>
-          )}
+          <div>
+            Video is currently queued for rendering. Please come back again in a
+            few minutes.
+          </div>
           <br />
           {data.demo_required_fix === FixedDemoStatus.Required && (
             <>

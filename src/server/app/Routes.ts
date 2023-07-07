@@ -29,6 +29,7 @@ import * as Token from "./views/tokens/Token.tsx";
 import * as Tokens from "./views/tokens/Index.tsx";
 import * as Privacy from "./views/Privacy.tsx";
 import * as ProfileView from "./views/Profile.tsx";
+import * as Queue from "./views/Queue.tsx";
 import * as VideoView from "./views/Video.tsx";
 import { Database } from "../db.ts";
 import { User } from "../models.ts";
@@ -122,6 +123,7 @@ export const routes: Route<RequestContext>[] = [
     path: "/",
     Component: Home.Home,
     meta: Home.meta,
+    loader: Home.loader,
   },
   {
     path: "/profile/:username",
@@ -159,8 +161,12 @@ export const routes: Route<RequestContext>[] = [
     action: Token.actionNew,
   },
   {
-    // TODO: Support unlisted/private videos.
-    //       This will require UUIDs... private videos will be tough :>
+    path: "/queue/:video_id",
+    Component: Queue.Queue,
+    meta: Queue.meta,
+    loader: Queue.loader,
+  },
+  {
     path: "/videos/:video_id",
     Component: VideoView.VideoView,
     meta: VideoView.meta,

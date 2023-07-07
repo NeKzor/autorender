@@ -7,7 +7,7 @@
 import * as React from "https://esm.sh/react@18.2.0";
 import Footer from "../components/Footer.tsx";
 import { DataLoader, PageMeta, json, useLoaderData } from "../Routes.ts";
-import { User, Video } from "../../models.ts";
+import { PendingStatus, User, Video } from "../../models.ts";
 
 type Data = {
   user: User | undefined;
@@ -44,18 +44,44 @@ export const loader: DataLoader = async ({ params, context }) => {
 export const Profile = () => {
   const { user, videos } = useLoaderData<Data>();
 
+  const queuedVideos = videos.filter(
+    (video) => video.pending !== PendingStatus.FinishedRender
+  );
+
+  const renderedVideos = videos.filter(
+    (video) => video.pending === PendingStatus.FinishedRender
+  );
+
   return (
     <>
       <div>{user?.username ?? "profile not found :("}</div>
       {user && (
         <>
-          <div>Requested {videos.length} videos</div>
+          {queuedVideos.length > 0 && (
+            <>
+              <div>Queued {queuedVideos.length} videos</div>
+              <ul>
+                {queuedVideos.map((video) => {
+                  return (
+                    <li>
+                      <a href={`/queue/${video.video_id}`}>
+                        {video.title}
+                      </a>{" "}
+                      | {new Date(video.created_at).toLocaleDateString()}
+                    </li>
+                  );
+                })}
+              </ul>
+              <br />
+            </>
+          )}
+          <div>Rendered {renderedVideos.length} videos</div>
           <ul>
-            {videos.map((video) => {
+            {renderedVideos.map((video) => {
               return (
                 <li>
                   <a href={`/videos/${video.video_id}`}>
-                    {video.title ?? "untitled"}
+                    {video.title}
                   </a>{" "}
                   | {new Date(video.created_at).toLocaleDateString()}
                 </li>

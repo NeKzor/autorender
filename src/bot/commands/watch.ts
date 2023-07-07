@@ -12,12 +12,10 @@ import {
   ApplicationCommandTypes,
   InteractionResponseTypes,
 } from "../deps.ts";
+import { escapeMarkdown, getPublicUrl } from "../utils/helpers.ts";
 import { createCommand } from "./mod.ts";
 
 const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
-
-const videoUrl = new URL("videos", Deno.env.get("AUTORENDER_PUBLIC_URI")!)
-  .toString();
 
 createCommand({
   name: "watch",
@@ -96,7 +94,9 @@ createCommand({
               interaction.token,
               {
                 content: videos.map((video) => {
-                  return `${getStatus(video)} [${video.title}](${videoUrl}/${video.video_id})`;
+                  const title = escapeMarkdown(video.title);
+                  const link = getPublicUrl(`/videos/${video.video_id}`);
+                  return `${getStatus(video)} [${title}](<${link}>)`;
                 }).join("\n"),
               },
             );
@@ -144,13 +144,16 @@ createCommand({
             throw new Error(`Videos request failed. Status: ${res.status}`);
           }
 
-          const [video] = await res.json();
+          const [video] = await res.json() as Pick<Video, "video_id" | "title">[];
           if (!video) {
             throw new Error("No videos found.");
           }
 
+          const title = escapeMarkdown(video.title);
+          const link = getPublicUrl(`/videos/${video.video_id}`);
+
           await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-            content: `${videoUrl}/${video.video_id}`,
+            content: `🎲️ [${title}](${link})`,
           });
         } catch (err) {
           console.error(err);

@@ -21,6 +21,7 @@ import {
   ApplicationCommandTypes,
   InteractionResponseTypes,
 } from "../deps.ts";
+import { escapeMarkdown, getPublicUrl } from "../utils/helpers.ts";
 import { createCommand } from "./mod.ts";
 
 const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
@@ -141,15 +142,18 @@ const render = async (
 
     if (response.ok) {
       const video = await response.json() as Video;
+      const title = escapeMarkdown(video.title);
+      const link = getPublicUrl(`/queue/${video.video_id}`);
 
       await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-        content: `⏳️ Queued video "${video.title}" for rendering.`,
+        content: `⏳️ Queued video [${title}](<${link}>) for rendering.`,
       });
     } else {
       if (
         response.headers.get("Content-Type")?.includes("application/json")
       ) {
         type ErrorResponse = { status: number; message: string };
+
         const error = await response.json() as ErrorResponse;
         console.error(error);
 

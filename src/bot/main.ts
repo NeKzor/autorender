@@ -22,13 +22,8 @@ import {
 } from "./deps.ts";
 import { logger } from "./utils/logger.ts";
 import { events } from "./events/mod.ts";
-import { updateCommands } from "./utils/helpers.ts";
+import { escapeMarkdown, getPublicUrl, updateCommands } from "./utils/helpers.ts";
 import { BotDataType, BotMessages } from "./protocol.ts";
-
-const videoUrl = new URL("videos", Deno.env.get("AUTORENDER_PUBLIC_URI")!)
-  .toString();
-
-console.log({ videoUrl });
 
 // TODO: file logging
 const log = logger({ name: "Main" });
@@ -79,9 +74,11 @@ worker.addEventListener("message", (message) => {
 
   switch (type) {
     case BotDataType.Upload: {
+      const title = escapeMarkdown(data.title);
+      const link = getPublicUrl(`/videos/${data.video_id}`);
+
       const content = [
-        `📽️ Rendered video "${data.title ?? "*untitled*"}".`,
-        `${videoUrl}/${data.video_id}`,
+        `📽️ Rendered video [${title}](${link}).`,
       ].join("\n");
 
       if (data.requested_in_guild_id && data.requested_in_channel_id) {
