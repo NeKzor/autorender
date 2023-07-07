@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Bot } from "../deps.ts";
+import { ApplicationCommandOptionTypes, Bot } from "../deps.ts";
 import { Interaction } from "../deps.ts";
 import { ApplicationCommandTypes, InteractionResponseTypes } from "../deps.ts";
 import { createCommand } from "./mod.ts";
@@ -12,10 +12,17 @@ import { createCommand } from "./mod.ts";
 const startTime = Date.now();
 
 createCommand({
-  name: "status",
-  description: "Bot status.",
+  name: "bot",
+  description: "Bot specific commands.",
   type: ApplicationCommandTypes.ChatInput,
   scope: "Global",
+  options: [
+    {
+      name: "info",
+      description: "Get info about the bot!",
+      type: ApplicationCommandOptionTypes.SubCommand,
+    },
+  ],
   execute: async (bot: Bot, interaction: Interaction) => {
     const sec = (Date.now() - startTime) / 1_000;
     const uptime = sec < 60
@@ -34,7 +41,7 @@ createCommand({
         data: {
           content: [
             `:robot: autorender.nekz.me`,
-            `:small_red_triangle: ${Deno.build.arch} ${Deno.build.os}`,
+            `:small_red_triangle: ${Deno.build.os} ${Deno.build.arch}`,
             `:up: ${uptime}`,
           ].join("\n"),
         },
