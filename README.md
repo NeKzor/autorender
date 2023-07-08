@@ -254,25 +254,26 @@ server {
 - ~~Demo download link~~
 - ~~Automatic demo fixup~~
 - ~~Markdown links~~
-- Resolves render options
+- ~~Quality options~~
+- Use yaml format for client settings
+- Support game mods
+- Advanced render options e.g. sar_ihud
+- Integrate into [board.nekz.me]
 - Design frontend platform
   - Profiles
   - Search
   - Users
   - Audit logs
   - Demo upload
-- Integrate into [board.nekz.me]
 - Package client code
   - Installer CLI
   - Download SAR/autorender.cfg automatically
   - Single executable
 - Generate video preview + thumbnails
-- Support game mods
-- Unlisted videos
-- Figure out how private videos would work
+- Unlisted/private videos
 - Figure out docker
 - Write a CLI tool for setup
-- Write own demo fixup tool
+- ~~Write own demo fixup tool~~
 - SAR wishlist:
   - ~~Remove unnecessary watermark~~
   - Sandbox commands like in 1.0
@@ -280,7 +281,7 @@ server {
   - Detect if demo could be played
   - Do not capture mouse input during render
   - Remove Steam requirement
-- Figure out a decent way to deploy this to other GPU instances (maybe use DepotDownloader?)
+- Figure out a way to deploy this to GPU instances (DepotDownloader?)
 - Clean up some anti-patterns, code duplications etc.
 
 [board.nekz.me]: https://github.com/NeKzor/board
