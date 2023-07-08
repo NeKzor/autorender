@@ -70,7 +70,8 @@ const SERVER_PORT = parseInt(Deno.env.get("SERVER_PORT")!, 10);
 const SERVER_SSL_CERT = Deno.env.get("SERVER_SSL_CERT")!;
 const SERVER_SSL_KEY = Deno.env.get("SERVER_SSL_KEY")!;
 const IS_HTTPS = SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none";
-const MAX_VIDEOS_PER_REQUEST = 3;
+// FIXME: Clients are not well prepared to handle multiple videos at once
+const MAX_VIDEOS_PER_REQUEST = 1;
 const AUTORENDER_PUBLIC_URI = Deno.env.get("AUTORENDER_PUBLIC_URI")!;
 const AUTORENDER_V1 = "autorender-v1";
 const DISCORD_AUTHORIZE_LINK = (() => {
