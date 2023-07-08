@@ -148,14 +148,13 @@ const render = async (
 
       const title = escapeMarkdown(video.title);
       const link = getPublicUrl(`/queue/${video.video_id}`);
-      const demoLink = getPublicUrl(`/storage/demos/${video.video_id}`);
 
       const buttons: [ButtonComponent] | [ButtonComponent, ButtonComponent] = [
         {
           type: MessageComponentTypes.Button,
           label: "Download Demo",
           style: ButtonStyles.Link,
-          url: demoLink,
+          url: getPublicUrl(`/storage/demos/${video.video_id}`),
         },
       ];
 
@@ -164,7 +163,7 @@ const render = async (
           type: MessageComponentTypes.Button,
           label: "Download Fixed Demo",
           style: ButtonStyles.Link,
-          url: demoLink,
+          url: getPublicUrl(`/storage/demos/${video.video_id}/fixed`),
         });
       }
 
