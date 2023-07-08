@@ -104,7 +104,7 @@ createCommand({
             await bot.helpers.editOriginalInteractionResponse(
               interaction.token,
               {
-                content: `📺️ Nothing to watch.`,
+                content: `📺️ You have no rendered videos.`,
               },
             );
           }
