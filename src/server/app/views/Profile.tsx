@@ -59,15 +59,16 @@ export const Profile = () => {
         <>
           {queuedVideos.length > 0 && (
             <>
-              <div>Queued {queuedVideos.length} videos</div>
+              <div>
+                Queued {queuedVideos.length} video
+                {queuedVideos.length === 1 ? "" : "s"}
+              </div>
               <ul>
                 {queuedVideos.map((video) => {
                   return (
                     <li>
-                      <a href={`/queue/${video.video_id}`}>
-                        {video.title}
-                      </a>{" "}
-                      | {new Date(video.created_at).toLocaleDateString()}
+                      <a href={`/queue/${video.video_id}`}>{video.title}</a> |{" "}
+                      {new Date(video.created_at).toLocaleDateString()}
                     </li>
                   );
                 })}
@@ -75,15 +76,16 @@ export const Profile = () => {
               <br />
             </>
           )}
-          <div>Rendered {renderedVideos.length} videos</div>
+          <div>
+            Rendered {renderedVideos.length} video
+            {renderedVideos.length === 1 ? "" : "s"}
+          </div>
           <ul>
             {renderedVideos.map((video) => {
               return (
                 <li>
-                  <a href={`/videos/${video.video_id}`}>
-                    {video.title}
-                  </a>{" "}
-                  | {new Date(video.created_at).toLocaleDateString()}
+                  <a href={`/videos/${video.video_id}`}>{video.title}</a> |{" "}
+                  {new Date(video.created_at).toLocaleDateString()}
                 </li>
               );
             })}
