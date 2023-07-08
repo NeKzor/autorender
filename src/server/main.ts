@@ -45,6 +45,7 @@ import {
   DiscordUser,
   FixedDemoStatus,
   PendingStatus,
+  RenderQuality,
   User,
   UserPermissions,
   Video,
@@ -277,6 +278,8 @@ apiV1
       return Err(ctx, Status.InternalServerError);
     }
 
+    const title = data.fields.title ?? "untitled video";
+    const comment = data.fields.comment ?? null;
     const requestedByName = authUser?.username ?? data.fields.requested_by_name;
     const requestedById = authUser?.discord_id ?? data.fields.requested_by_id;
     const requestedInGuildId = data.fields.requested_in_guild_id ?? null;
@@ -284,9 +287,34 @@ apiV1
     const requestedInChannelId = data.fields.requested_in_channel_id ?? null;
     const requestedInChannelName = data.fields.requested_in_channel_name ??
       null;
+    const renderQuality = data.fields.quality ?? RenderQuality.HD_720p;
+    const renderOptions = data.fields.render_options ?? null;
     const requiredDemoFix = demoInfo.useFixedDemo
       ? FixedDemoStatus.Required
       : FixedDemoStatus.NotRequired;
+
+    const fields = [
+      video_id,
+      title,
+      comment,
+      requestedByName,
+      requestedById,
+      requestedInGuildId,
+      requestedInGuildName,
+      requestedInChannelId,
+      requestedInChannelName,
+      renderQuality,
+      renderOptions,
+      file.originalName,
+      demoInfo.fileUrl,
+      demoInfo.fullMapName,
+      demoInfo.size,
+      demoInfo.mapCrc,
+      demoInfo.gameDir,
+      demoInfo.playbackTime,
+      requiredDemoFix,
+      PendingStatus.RequiresRender,
+    ];
 
     await db.execute(
       `insert into videos (
@@ -299,6 +327,7 @@ apiV1
           , requested_in_guild_name
           , requested_in_channel_id
           , requested_in_channel_name
+          , render_quality
           , render_options
           , file_name
           , file_url
@@ -309,28 +338,10 @@ apiV1
           , demo_playback_time
           , demo_required_fix
           , pending
-        ) values (UUID_TO_BIN(?), ${new Array(18).fill("?").join(",")})`,
-      [
-        video_id,
-        data.fields.title,
-        data.fields.comment,
-        requestedByName,
-        requestedById,
-        requestedInGuildId,
-        requestedInGuildName,
-        requestedInChannelId,
-        requestedInChannelName,
-        data.fields.render_options,
-        file.originalName,
-        demoInfo.fileUrl,
-        demoInfo.fullMapName,
-        demoInfo.size,
-        demoInfo.mapCrc,
-        demoInfo.gameDir,
-        demoInfo.playbackTime,
-        requiredDemoFix,
-        PendingStatus.RequiresRender,
-      ],
+        ) values (UUID_TO_BIN(?), ${
+        new Array(fields.length - 1).fill("?").join(",")
+      })`,
+      fields,
     );
 
     await db.execute(
@@ -764,18 +775,56 @@ router.get("/connect/client", async (ctx) => {
         throw new Error("Invalid payload data type");
       }
 
+      // FIXME: Protocol types
       const { type, data } = JSON.parse(message.data);
 
       switch (type) {
         case "videos": {
           if (accessToken.permissions & AccessPermission.CreateVideos) {
-            const videos = await db.query<Pick<Video, "video_id">>(
-              `select BIN_TO_UUID(video_id) as video_id
-                   from videos
-                  where pending = ?
-                  limit ?`,
-              [PendingStatus.RequiresRender, MAX_VIDEOS_PER_REQUEST],
+            // TODO: Filter by game mod
+
+            const renderQualities = [
+              RenderQuality.SD_480p,
+              RenderQuality.HD_720p,
+              RenderQuality.FHD_1080p,
+              RenderQuality.QHD_1440p,
+              RenderQuality.UHD_2160p,
+            ];
+
+            const maxRenderQuality = renderQualities.indexOf(
+              data.maxRenderQuality,
             );
+
+            const clientRenderQualities = renderQualities.slice(0, maxRenderQuality + 1);
+
+            let videos = await db.query<
+              Pick<Video, "video_id" | "render_quality">
+            >(
+              `select BIN_TO_UUID(video_id) as video_id
+                    , render_quality
+                 from videos
+                where pending = ?
+                  and render_quality in (${
+                clientRenderQualities.map(() => "?").join(",")
+              })
+             order by render_quality desc
+                limit ?`,
+              [
+                PendingStatus.RequiresRender,
+                ...clientRenderQualities,
+                MAX_VIDEOS_PER_REQUEST,
+              ],
+            );
+
+            // Only send videos of the same render quality.
+
+            if (videos.length > 1) {
+              const prioritisedRenderQuality = videos.at(0)?.render_quality;
+
+              videos = videos.filter((video) => {
+                return video.render_quality === prioritisedRenderQuality;
+              });
+            }
 
             ws.send(JSON.stringify({ type: "videos", data: videos }));
           } else {
@@ -829,6 +878,8 @@ router.get("/connect/client", async (ctx) => {
             type VideoSelect = Pick<
               Video,
               | "video_id"
+              | "render_quality"
+              | "render_options"
               | "file_url"
               | "full_map_name"
               | "demo_playback_time"
@@ -839,6 +890,8 @@ router.get("/connect/client", async (ctx) => {
               VideoSelect
             >(
               `select BIN_TO_UUID(video_id) as video_id
+                     , render_quality
+                     , render_options
                      , file_url
                      , full_map_name
                      , demo_playback_time

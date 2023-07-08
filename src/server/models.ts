@@ -87,9 +87,20 @@ export enum FixedDemoStatus {
  * Visibility state of a video.
  */
 export enum VisibilityState {
-  public = 0,
-  unlisted = 1,
-  private = 2,
+  Public = 0,
+  Unlisted = 1,
+  Private = 2,
+}
+
+/**
+ * Available render qualities of a video.
+ */
+export enum RenderQuality {
+  SD_480p = "480p",
+  HD_720p = "720p",
+  FHD_1080p= "1080p",
+  QHD_1440p = "1440p",
+  UHD_2160p = "2160p",
 }
 
 /**
@@ -106,6 +117,7 @@ export interface Video {
   requested_in_channel_id: string;
   requested_in_channel_name: string;
   created_at: number;
+  render_quality: string;
   render_options: string;
   file_name: string;
   file_url: string;

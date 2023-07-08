@@ -18,7 +18,7 @@ import {
   AutorenderSendMessages,
   VideoPayload,
 } from "./protocol.ts";
-import { Video as VideoModel } from "../server/models.ts";
+import { RenderQuality, Video as VideoModel } from "../server/models.ts";
 import { ClientState, ClientStatus } from "./state.ts";
 import { UploadWorkerDataType } from "./upload.ts";
 
@@ -31,6 +31,7 @@ const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
 const AUTORENDER_FOLDER_NAME = Deno.env.get("AUTORENDER_FOLDER_NAME")!;
 const AUTORENDER_CFG = Deno.env.get("AUTORENDER_CFG")!;
 const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
+const AUTORENDER_MAX_SUPPORTED_QUALITY = Deno.env.get("AUTORENDER_MAX_SUPPORTED_QUALITY")!;
 // TODO: Upstream sar_on_renderer feature
 const AUTORENDER_PATCHED_SAR = true;
 // Timeout interval in ms to check if there are new videos to render.
@@ -142,7 +143,10 @@ const fetchNextVideos = () => {
         send(
           {
             type: AutorenderSendDataType.Videos,
-            data: { game: GAME_MOD },
+            data: {
+              game: GAME_MOD,
+              maxRenderQuality: AUTORENDER_MAX_SUPPORTED_QUALITY,
+            },
           },
           {
             dropDataIfDisconnected: true,
@@ -462,6 +466,31 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
 };
 
 /**
+ * Get window width and height.
+ * NOTE: This will also be used for the custom crosshair.
+ */
+const getGameResolution = () => {
+  // Quality for each video should be the same.
+  // This is handled server-side.
+  const { render_quality } = state.videos.at(0)!;
+
+  switch (render_quality) {
+    case RenderQuality.SD_480p:
+      return ["854", "480"];
+    case RenderQuality.HD_720p:
+      return ["1280", "720"];
+    case RenderQuality.FHD_1080p:
+      return ["1920", "1080"];
+    case RenderQuality.QHD_1440p:
+      return ["2560", "1440"];
+    case RenderQuality.UHD_2160p:
+      return ["3840", "2160"];
+    default:
+      return ["1280", "720"];
+  }
+};
+
+/**
  * Prepares autoexec.cfg to queue all demos.
  */
 const prepareGameLaunch = async () => {
@@ -494,8 +523,11 @@ const prepareGameLaunch = async () => {
     ? "sar_on_renderer_finish"
     : "sar_on_demo_stop";
 
+  const [width, height] = getGameResolution();
+
   const autoexec = [
     `exec ${AUTORENDER_CFG}`,
+    `sar_quickhud_set_texture crosshair/quickhud${height}-`,
     ...state.videos.slice(1).map(playdemo),
     ...(usesQueue ? ["sar_alias autorender_queue autorender_video_0"] : []),
     `${eventCommand} "${nextCommand}"`,
@@ -532,9 +564,9 @@ const prepareGameLaunch = async () => {
       //"-vulkan", // TODO: vulkan is not always available
       "-windowed",
       "-w",
-      "1280",
+      width,
       "-h",
-      "720",
+      height,
     ],
   });
 };

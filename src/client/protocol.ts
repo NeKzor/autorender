@@ -8,7 +8,15 @@
 
 import { Video } from "../server/models.ts";
 
-export type VideoPayload = Pick<Video, "video_id" | "file_url" | "full_map_name" | "demo_playback_time">;
+export type VideoPayload = Pick<
+  Video,
+  | "video_id"
+  | "render_quality"
+  | "render_options"
+  | "file_url"
+  | "full_map_name"
+  | "demo_playback_time"
+>;
 
 export enum AutorenderDataType {
   Videos = "videos",
@@ -55,7 +63,7 @@ export type AutorenderSendMessage<T extends AutorenderSendDataType, P> = {
 
 export type AutorenderSendMessageVideos = AutorenderSendMessage<
   AutorenderSendDataType.Videos,
-  { game: string }
+  { game: string; maxRenderQuality: string }
 >;
 
 export type AutorenderSendMessageDemo = AutorenderSendMessage<

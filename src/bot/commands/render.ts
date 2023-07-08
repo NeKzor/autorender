@@ -7,6 +7,7 @@
 import { Video } from "../../server/models.ts";
 import {
   ApplicationCommandOption,
+  ApplicationCommandOptionChoice,
   Attachment,
   Bot,
   ButtonComponent,
@@ -15,6 +16,7 @@ import {
   getGuild,
   getMessage,
   getMessages,
+  InteractionTypes,
   Message,
   MessageComponentTypes,
 } from "../deps.ts";
@@ -33,7 +35,7 @@ const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const render = async (
   bot: Bot,
   interaction: Interaction,
-  interactionData: Interaction["data"],
+  interactionData: Exclude<Interaction["data"], undefined>,
   attachment?: Attachment,
 ) => {
   attachment ??= interaction.data?.resolved?.attachments?.first()!;
@@ -79,9 +81,9 @@ const render = async (
     }
 
     const body = new FormData();
-    const args = [...(interactionData?.options?.values() ?? [])];
+    const args = [...(interactionData.options?.values() ?? [])];
 
-    for (const option of ["title", "comment", "render_options"]) {
+    for (const option of ["title", "comment", "quality", "render_options"]) {
       const value = args.find((arg) => arg.name === option)?.value;
       if (value) {
         body.append(option, value.toString());
@@ -217,12 +219,21 @@ const renderOptions: ApplicationCommandOption[] = [
     maxLength: 512,
   },
   {
-    name: "render_options",
-    description: "Render options e.g. sar_ihud 1, mat_fullbright 1",
+    name: "quality",
+    description: "Quality option (default 720p).",
     type: ApplicationCommandOptionTypes.String,
     required: false,
-    maxLength: 1024,
+    autocomplete: true,
   },
+  // TODO: Come up with a better solution.
+  //       Maybe with custom pre-defined settings?
+  // {
+  //   name: "render_options",
+  //   description: "Render options e.g. sar_ihud 1, mat_fullbright 1",
+  //   type: ApplicationCommandOptionTypes.String,
+  //   required: false,
+  //   maxLength: 1024,
+  // },
 ];
 
 createCommand({
@@ -271,121 +282,214 @@ createCommand({
   execute: async (bot: Bot, interaction: Interaction) => {
     const subCommand = [...(interaction.data?.options?.values() ?? [])].at(0)!;
 
-    switch (subCommand.name) {
-      case "demo":
-        render(bot, interaction, subCommand);
+    switch (interaction.type) {
+      case InteractionTypes.ApplicationCommandAutocomplete: {
+        switch (subCommand.name) {
+          case "demo":
+          case "latest":
+          case "message": {
+            checkQualityOptions(bot, interaction, subCommand);
+            break;
+          }
+          default:
+            break;
+        }
         break;
-      case "latest": {
-        const messages = await getMessages(bot, interaction.channelId!, {
-          limit: 10,
-        });
-
-        const attachment = messages.array().find((message) => {
-          return message.attachments.find((attachment) => {
-            return attachment.filename.endsWith(".dem");
-          });
-        })?.attachments.at(0);
-
-        if (attachment) {
-          render(bot, interaction, subCommand, attachment);
-        } else {
+      }
+      case InteractionTypes.ApplicationCommand: {
+        if (!validateQualityOption(subCommand)) {
           await bot.helpers.sendInteractionResponse(
             interaction.id,
             interaction.token,
             {
               type: InteractionResponseTypes.ChannelMessageWithSource,
               data: {
-                content:
-                  `❌️ Unable to find any message with an attached demo file.`,
+                content: `❌️ Invalid quality option.`,
               },
             },
           );
-        }
-        break;
-      }
-      case "message": {
-        const args = [...(subCommand.options?.values() ?? [])];
-        const messageUrlOrId = args.find((arg) => arg.name === "url_or_id")!
-          .value as string;
-
-        let message: Message | null = null;
-
-        try {
-          const url = new URL(messageUrlOrId);
-
-          try {
-            const [route, _guildId, channelId, messageId] = url.pathname.split(
-              "/",
-            )
-              .filter((x) => x);
-
-            if (route !== "channels") {
-              throw new Error("Invalid route.");
-            }
-
-            message = await getMessage(
-              bot,
-              BigInt(channelId),
-              BigInt(messageId),
-            );
-          } catch (_err) {
-            await bot.helpers.sendInteractionResponse(
-              interaction.id,
-              interaction.token,
-              {
-                type: InteractionResponseTypes.ChannelMessageWithSource,
-                data: {
-                  content: `❌️ Invalid message URL.`,
-                },
-              },
-            );
-          }
-        } catch (_err) {
-          try {
-            message = await getMessage(
-              bot,
-              interaction.channelId!,
-              BigInt(messageUrlOrId),
-            );
-          } catch (_err) {
-            await bot.helpers.sendInteractionResponse(
-              interaction.id,
-              interaction.token,
-              {
-                type: InteractionResponseTypes.ChannelMessageWithSource,
-                data: {
-                  content: `❌️ Invalid URL or message ID.`,
-                },
-              },
-            );
-          }
-        }
-
-        if (!message) {
           return;
         }
 
-        const attachment = message.attachments.at(0);
+        switch (subCommand.name) {
+          case "demo":
+            render(bot, interaction, subCommand);
+            break;
+          case "latest": {
+            const messages = await getMessages(bot, interaction.channelId!, {
+              limit: 10,
+            });
 
-        if (attachment) {
-          render(bot, interaction, subCommand, attachment);
-        } else {
-          await bot.helpers.sendInteractionResponse(
-            interaction.id,
-            interaction.token,
-            {
-              type: InteractionResponseTypes.ChannelMessageWithSource,
-              data: {
-                content:
-                  `❌️ Unable to find an attached demo file for this message.`,
-              },
-            },
-          );
+            const attachment = messages.array().find((message) => {
+              return message.attachments.find((attachment) => {
+                return attachment.filename.endsWith(".dem");
+              });
+            })?.attachments.at(0);
+
+            if (attachment) {
+              render(bot, interaction, subCommand, attachment);
+            } else {
+              await bot.helpers.sendInteractionResponse(
+                interaction.id,
+                interaction.token,
+                {
+                  type: InteractionResponseTypes.ChannelMessageWithSource,
+                  data: {
+                    content:
+                      `❌️ Unable to find any message with an attached demo file.`,
+                  },
+                },
+              );
+            }
+            break;
+          }
+          case "message": {
+            const args = [...(subCommand.options?.values() ?? [])];
+            const messageUrlOrId = args.find((arg) => arg.name === "url_or_id")!
+              .value as string;
+
+            let message: Message | null = null;
+
+            try {
+              const url = new URL(messageUrlOrId);
+
+              try {
+                const [route, _guildId, channelId, messageId] = url.pathname
+                  .split(
+                    "/",
+                  )
+                  .filter((x) => x);
+
+                if (route !== "channels") {
+                  throw new Error("Invalid route.");
+                }
+
+                message = await getMessage(
+                  bot,
+                  BigInt(channelId),
+                  BigInt(messageId),
+                );
+              } catch (_err) {
+                await bot.helpers.sendInteractionResponse(
+                  interaction.id,
+                  interaction.token,
+                  {
+                    type: InteractionResponseTypes.ChannelMessageWithSource,
+                    data: {
+                      content: `❌️ Invalid message URL.`,
+                    },
+                  },
+                );
+              }
+            } catch (_err) {
+              try {
+                message = await getMessage(
+                  bot,
+                  interaction.channelId!,
+                  BigInt(messageUrlOrId),
+                );
+              } catch (_err) {
+                await bot.helpers.sendInteractionResponse(
+                  interaction.id,
+                  interaction.token,
+                  {
+                    type: InteractionResponseTypes.ChannelMessageWithSource,
+                    data: {
+                      content: `❌️ Invalid URL or message ID.`,
+                    },
+                  },
+                );
+              }
+            }
+
+            if (!message) {
+              return;
+            }
+
+            const attachment = message.attachments.at(0);
+
+            if (attachment) {
+              render(bot, interaction, subCommand, attachment);
+            } else {
+              await bot.helpers.sendInteractionResponse(
+                interaction.id,
+                interaction.token,
+                {
+                  type: InteractionResponseTypes.ChannelMessageWithSource,
+                  data: {
+                    content:
+                      `❌️ Unable to find an attached demo file for this message.`,
+                  },
+                },
+              );
+            }
+            break;
+          }
+          default:
+            break;
         }
         break;
       }
-      default:
-        break;
     }
   },
 });
+
+const qualityOptionChoices: ApplicationCommandOptionChoice[] = [
+  {
+    name: "480p (SD)",
+    value: "480p",
+  },
+  {
+    name: "720p (HD)",
+    value: "720p",
+  },
+  {
+    name: "1080p (FHD)",
+    value: "1080p",
+  },
+  // TODO: Client render might or might not support these resolutions.
+  //       Allowing these would also mean we need more storage...
+  // {
+  //   name: "1440p (QHD)",
+  //   value: "1440p",
+  // },
+  // {
+  //   name: "2160p (UHD)",
+  //   value: "2160p",
+  // },
+];
+
+const checkQualityOptions = async (
+  bot: Bot,
+  interaction: Interaction,
+  interactionData: Exclude<Interaction["data"], undefined>,
+) => {
+  const args = [...(interactionData.options?.values() ?? [])];
+  const quality = args.find((arg) => arg.name === "quality");
+
+  if (quality?.focused) {
+    await bot.helpers.sendInteractionResponse(
+      interaction.id,
+      interaction.token,
+      {
+        type: InteractionResponseTypes.ApplicationCommandAutocompleteResult,
+        data: {
+          choices: qualityOptionChoices,
+        },
+      },
+    );
+  }
+};
+
+const validateQualityOption = (
+  interactionData: Exclude<Interaction["data"], undefined>,
+) => {
+  const args = [...(interactionData.options?.values() ?? [])];
+  const quality = args.find((arg) => arg.name === "quality")?.value;
+
+  if (!quality) {
+    return true;
+  }
+
+  return qualityOptionChoices.some((option) => quality === option.value);
+};
