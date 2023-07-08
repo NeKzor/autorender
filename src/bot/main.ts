@@ -78,7 +78,7 @@ worker.addEventListener("message", (message) => {
       const link = getPublicUrl(`/videos/${data.video_id}`);
 
       const content = [
-        `📽️ Rendered video [${title}](${link}).`,
+        `📽️ Rendered video [${title}](${link})`,
       ].join("\n");
 
       if (data.requested_in_guild_id && data.requested_in_channel_id) {
