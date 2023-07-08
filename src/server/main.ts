@@ -795,7 +795,9 @@ router.get("/connect/client", async (ctx) => {
               data.maxRenderQuality,
             );
 
-            const clientRenderQualities = renderQualities.slice(0, maxRenderQuality + 1);
+            const clientRenderQualities = maxRenderQuality !== -1
+              ? renderQualities.slice(0, maxRenderQuality + 1)
+              : renderQualities.slice(0, 3);
 
             let videos = await db.query<
               Pick<Video, "video_id" | "render_quality">
