@@ -476,7 +476,8 @@ const getGameResolution = () => {
 
   switch (render_quality) {
     case RenderQuality.SD_480p:
-      return ["854", "480"];
+      // NOTE: This is 4:3 for now...
+      return ["640", "480"];
     case RenderQuality.HD_720p:
       return ["1280", "720"];
     case RenderQuality.FHD_1080p:
