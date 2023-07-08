@@ -129,8 +129,6 @@ const specialCharacters = [
   "\\",
   "[",
   "]",
-  "(",
-  ")",
 ];
 
 export function escapeMarkdown(text: string) {
