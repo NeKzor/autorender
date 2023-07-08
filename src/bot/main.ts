@@ -22,7 +22,7 @@ import {
 } from "./deps.ts";
 import { logger } from "./utils/logger.ts";
 import { events } from "./events/mod.ts";
-import { escapeMarkdown, getPublicUrl, updateCommands } from "./utils/helpers.ts";
+import { escapeMaskedLink, getPublicUrl, updateCommands } from "./utils/helpers.ts";
 import { BotDataType, BotMessages } from "./protocol.ts";
 
 // TODO: file logging
@@ -74,7 +74,7 @@ worker.addEventListener("message", (message) => {
 
   switch (type) {
     case BotDataType.Upload: {
-      const title = escapeMarkdown(data.title);
+      const title = escapeMaskedLink(data.title);
       const link = getPublicUrl(`/videos/${data.video_id}`);
 
       const content = [

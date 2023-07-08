@@ -125,16 +125,11 @@ export function isSubCommandGroup(data: subCommand | subCommandGroup): data is s
   return hasProperty(data, 'subCommands')
 }
 
-const specialCharacters = [
-  "\\",
-  "[",
-  "]",
-];
-
-export function escapeMarkdown(text: string) {
-  return specialCharacters.reduce((title, char) => title.replaceAll(char, `\\${char}`), text);
+// NOTE: Discord's masked links are a scuffed version of Markdown links.
+//       You cannot escape [ and ] which means you have to remove it.
+export function escapeMaskedLink(link: string) {
+  return ["[", "]"].reduce((text, characterToRemove) => text.replaceAll(characterToRemove, ''), link);
 }
-
 
 export function getPublicUrl(url: string) {
   return new URL(url, Deno.env.get("AUTORENDER_PUBLIC_URI")!).toString()

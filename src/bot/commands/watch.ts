@@ -12,7 +12,7 @@ import {
   ApplicationCommandTypes,
   InteractionResponseTypes,
 } from "../deps.ts";
-import { escapeMarkdown, getPublicUrl } from "../utils/helpers.ts";
+import { escapeMaskedLink, getPublicUrl } from "../utils/helpers.ts";
 import { createCommand } from "./mod.ts";
 
 const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
@@ -94,7 +94,7 @@ createCommand({
               interaction.token,
               {
                 content: videos.map((video) => {
-                  const title = escapeMarkdown(video.title);
+                  const title = escapeMaskedLink(video.title);
                   const link = getPublicUrl(`/videos/${video.video_id}`);
                   return `${getStatus(video)} [${title}](<${link}>)`;
                 }).join("\n"),
@@ -149,7 +149,7 @@ createCommand({
             throw new Error("No videos found.");
           }
 
-          const title = escapeMarkdown(video.title);
+          const title = escapeMaskedLink(video.title);
           const link = getPublicUrl(`/videos/${video.video_id}`);
 
           await bot.helpers.editOriginalInteractionResponse(interaction.token, {

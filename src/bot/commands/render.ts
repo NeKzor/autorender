@@ -24,7 +24,7 @@ import {
   ApplicationCommandTypes,
   InteractionResponseTypes,
 } from "../deps.ts";
-import { escapeMarkdown, getPublicUrl } from "../utils/helpers.ts";
+import { escapeMaskedLink, getPublicUrl } from "../utils/helpers.ts";
 import { createCommand } from "./mod.ts";
 
 const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
@@ -146,7 +146,7 @@ const render = async (
     if (response.ok) {
       const video = await response.json() as Video;
 
-      const title = escapeMarkdown(video.title);
+      const title = escapeMaskedLink(video.title);
       const link = getPublicUrl(`/queue/${video.video_id}`);
 
       const buttons: [ButtonComponent] | [ButtonComponent, ButtonComponent] = [
