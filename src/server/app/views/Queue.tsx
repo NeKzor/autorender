@@ -105,6 +105,7 @@ export const Queue = () => {
             </div>
           )}
           <div>Comment: {data.comment ?? "-"}</div>
+          <div>Quality: {data.render_quality}</div>
           <div>Render options: {data.render_options ?? "-"}</div>
           <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
           <div>
