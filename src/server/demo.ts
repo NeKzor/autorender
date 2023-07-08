@@ -20,6 +20,26 @@ import {
 const AUTORENDER_MIN_PLAYBACK_TIME = 1;
 const AUTORENDER_MAX_PLAYBACK_TIME = 6 * 60;
 
+// Supported app IDs from mirror.nekz.me
+enum WorkshopSteamAppId {
+  None = 0,
+  Portal2 = 620,
+  ApertureTag = 280740,
+  ThinkingWithTimeMachine = 286080,
+  Portal2CommunityEdition = 440000,
+  PortalReloaded = 1255980,
+}
+
+// TODO: Add support for more games
+const supportedGameMods: { [key: string]: WorkshopSteamAppId } = {
+  "portal2": WorkshopSteamAppId.Portal2,
+  // "TWTM": WorkshopSteamAppId.ThinkingWithTimeMachine,
+  // "aperturetag": WorkshopSteamAppId.ApertureTag,
+  // "portal_stories": WorkshopSteamAppId.None,
+  // "portalreloaded": WorkshopSteamAppId.PortalReloaded,
+  // "p2ce": WorkshopSteamAppId.Portal2CommunityEdition,
+};
+
 export const getDemoInfo = async (filePath: string) => {
   const buffer = await Deno.readFile(filePath);
 
@@ -35,11 +55,18 @@ export const getDemoInfo = async (filePath: string) => {
       .adjustTicks()
       .adjustRange();
 
+    const supportedGame = supportedGameMods[demo.gameDirectory!];
+    if (!supportedGame) {
+      return "Game is not supported.";
+    }
+
     const playbackTime = demo.playbackTime ?? 0;
-    if (
-      playbackTime < AUTORENDER_MIN_PLAYBACK_TIME ||
-      playbackTime > AUTORENDER_MAX_PLAYBACK_TIME
-    ) {
+
+    if (playbackTime < AUTORENDER_MIN_PLAYBACK_TIME) {
+      return "Demo is too short.";
+    }
+
+    if (playbackTime > AUTORENDER_MAX_PLAYBACK_TIME) {
       return "Demo is too long.";
     }
 
@@ -67,6 +94,7 @@ export const getDemoInfo = async (filePath: string) => {
       return "Corrupted demo.";
     }
 
+    // TODO: More strict validation
     const isWorkshopMap = demo.mapName !== info.mapName;
     const fullMapName = info.mapName.replaceAll("\\", "/");
 
@@ -76,7 +104,7 @@ export const getDemoInfo = async (filePath: string) => {
       fullMapName,
       mapCrc: info.mapCrc,
       isWorkshopMap,
-      fileUrl: isWorkshopMap ? await resolveFileUrl(fullMapName) : null,
+      fileUrl: isWorkshopMap ? await resolveFileUrl(supportedGame, fullMapName) : null,
       gameDir: demo.gameDirectory,
       playbackTime: demo.playbackTime,
       useFixedDemo: fixupResult === true,
@@ -88,7 +116,7 @@ export const getDemoInfo = async (filePath: string) => {
 };
 
 // Example: workshop/271715738875416672/bhop_outdoors
-export const resolveFileUrl = async (mapName: string) => {
+export const resolveFileUrl = async (appId: WorkshopSteamAppId, mapName: string) => {
   const [path, ugc, name] = mapName.split("/", 3);
 
   if (path === "workshop") {
@@ -96,8 +124,12 @@ export const resolveFileUrl = async (mapName: string) => {
       throw new Error(`Invalid map name found in demo: ${name}`);
     }
 
+    if (appId === WorkshopSteamAppId.None) {
+      throw new Error(`Found workshop map but app ID ${appId} is not supported.`)
+    }
+
     const res = await fetch(
-      `http://steampowered.com.mirror.nekz.me/api/v1/workshop/620/files/ugc/${ugc}`,
+      `http://steampowered.com.mirror.nekz.me/api/v1/workshop/${appId}/files/ugc/${ugc}`,
       {
         headers: {
           "User-Agent": "autorender-v1",
