@@ -250,6 +250,7 @@ server {
 
 ## TODO
 
+- ~~Write own demo fixup tool~~
 - ~~Offline storage service~~
 - ~~Demo download link~~
 - ~~Automatic demo fixup~~
@@ -257,6 +258,8 @@ server {
 - ~~Quality options~~
 - Use yaml format for client settings
 - Support game mods
+- Switch to shorter video IDs
+- Edit original interaction message or create a follow up message
 - Advanced render options e.g. sar_ihud
 - Integrate into [board.nekz.me]
 - Design frontend platform
@@ -273,7 +276,15 @@ server {
 - Unlisted/private videos
 - Figure out docker
 - Write a CLI tool for setup
-- ~~Write own demo fixup tool~~
+- Implement various data related functions
+  - Delete video button
+    - Delete video from cloud storage
+  - Delete data button
+    - Delete all user videos
+    - Delete all user token data
+    - Delete all videos from cloud storage
+  - Request data button
+    - Request all user data
 - SAR wishlist:
   - ~~Remove unnecessary watermark~~
   - Sandbox commands like in 1.0
