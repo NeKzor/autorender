@@ -57,6 +57,7 @@ CREATE TABLE videos (
     rendered_by BIGINT,
     rendered_by_token BIGINT,
     rendered_at TIMESTAMP,
+    render_time INT AS (TIMESTAMPDIFF(SECOND, created_at, rendered_at)),
     render_node VARCHAR(64),
     video_url VARCHAR(1024),
     video_size INT,

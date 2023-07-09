@@ -131,6 +131,8 @@ export interface Video {
   rendered_by: number;
   rendered_by_token: number;
   rendered_at: string;
+  render_time: number;
+  render_node: string;
   video_url: string;
   video_size: number;
   video_length: number;

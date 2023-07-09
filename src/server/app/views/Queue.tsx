@@ -53,6 +53,14 @@ export const loader: DataLoader = async ({ params, context }) => {
   return json<Data>(video);
 };
 
+const formatRenderTime = (video: Video) => {
+  if (!video.render_time) return `-`;
+
+  return video.render_time < 60
+    ? `${video.render_time} seconds`
+    : `${(video.render_time / 60).toFixed(2)} minutes`;
+};
+
 export const Queue = () => {
   const data = useLoaderData<Data>();
 
@@ -130,9 +138,7 @@ export const Queue = () => {
               {data.rendered_by_username ?? "@"}
             </a>
           </div>
-          <div>
-            Render options: <code>{data.render_options ?? "none"}</code>
-          </div>
+          <div>Render time: {formatRenderTime(data)}</div>
         </>
       )}
       <Footer />

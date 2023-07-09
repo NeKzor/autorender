@@ -6,7 +6,13 @@
 
 import * as React from "https://esm.sh/react@18.2.0";
 import Footer from "../components/Footer.tsx";
-import { DataLoader, PageMeta, json, notFound, useLoaderData } from "../Routes.ts";
+import {
+  DataLoader,
+  PageMeta,
+  json,
+  notFound,
+  useLoaderData,
+} from "../Routes.ts";
 import { FixedDemoStatus, PendingStatus, Video } from "../../models.ts";
 
 type JoinedVideo = Video & {
@@ -47,6 +53,14 @@ export const loader: DataLoader = async ({ params, context }) => {
   }
 
   return json<Data>(video);
+};
+
+const formatRenderTime = (video: Video) => {
+  if (!video.render_time) return `-`;
+
+  return video.render_time < 60
+    ? `${video.render_time} seconds`
+    : `${(video.render_time / 60).toFixed(2)} minutes`;
 };
 
 export const VideoView = () => {
@@ -114,7 +128,6 @@ export const VideoView = () => {
           )}
           <div>Comment: {data.comment ?? "-"}</div>
           <div>Quality: {data.render_quality}</div>
-          <div>Render options: {data.render_options ?? "-"}</div>
           <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
           <div>
             Requested by:{" "}
@@ -138,9 +151,7 @@ export const VideoView = () => {
               {data.rendered_by_username ?? "@"}
             </a>
           </div>
-          <div>
-            Render options: <code>{data.render_options ?? "none"}</code>
-          </div>
+          <div>Render time: {formatRenderTime(data)}</div>
         </>
       )}
       <Footer />
