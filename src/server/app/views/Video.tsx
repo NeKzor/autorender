@@ -145,13 +145,13 @@ export const VideoView = () => {
               {data.requested_in_channel_name}
             </div>
           )}
+          <div>Render time: {formatRenderTime(data)}</div>
           <div>
-            Rendered by:{" "}
-            <a href={`/profile/${data.rendered_by_username ?? "@"}`}>
-              {data.rendered_by_username ?? "@"}
+            Render node:{" "}
+            <a href={`/profile/${data.rendered_by_username}`}>
+              {data.render_node}@{data.rendered_by_username}
             </a>
           </div>
-          <div>Render time: {formatRenderTime(data)}</div>
         </>
       )}
       <Footer />
