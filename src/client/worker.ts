@@ -12,9 +12,12 @@
 import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
 import { logger } from "./logger.ts";
 import { AutorenderSendMessages } from "./protocol.ts";
+import { getConfig } from "./config.ts";
 
-const AUTORENDER_CONNECT_URI = Deno.env.get("AUTORENDER_CONNECT_URI")!;
-const AUTORENDER_PROTOCOL = Deno.env.get("AUTORENDER_PROTOCOL")!;
+const config = await getConfig();
+
+const AUTORENDER_CONNECT_URI = config.autorender["connect-uri"];
+const AUTORENDER_PROTOCOL = config.autorender["protocol"];
 const AUTORENDER_SEND_MAX_RETRIES = 5;
 const AUTORENDER_SEND_RETRY_INTERVAL = 1_000;
 
@@ -111,7 +114,7 @@ const onMessage = async (message: MessageEvent) => {
 const connect = () => {
   ws = new WebSocket(AUTORENDER_CONNECT_URI, [
     AUTORENDER_PROTOCOL,
-    encodeURIComponent(Deno.env.get("AUTORENDER_API_KEY")!),
+    encodeURIComponent(config.autorender["access-token"]),
   ]);
 
   ws.onopen = onOpen;

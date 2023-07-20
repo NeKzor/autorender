@@ -10,18 +10,20 @@
 /// <reference lib="deno.worker" />
 
 import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
-import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
 import { logger } from "./logger.ts";
 import { ClientState } from "./state.ts";
 import { Video } from "../server/models.ts";
+import { getConfig } from "./config.ts";
 
-const GAME_DIR = Deno.env.get("GAME_DIR")!;
-const GAME_MOD = Deno.env.get("GAME_MOD")!;
+const config = await getConfig();
+
+const GAME_DIR = config.games.at(0)!.dir;
+const GAME_MOD = config.games.at(0)!.mod;
 const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
 
-const AUTORENDER_FOLDER_NAME = Deno.env.get("AUTORENDER_FOLDER_NAME")!;
+const AUTORENDER_FOLDER_NAME = config.autorender["folder-name"];
 const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
-const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
+const AUTORENDER_BASE_API = config.autorender["base-api"];
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 
 export enum UploadWorkerDataType {
@@ -73,7 +75,7 @@ self.addEventListener(
                 headers: {
                   "User-Agent": "autorender-client v1.0",
                   Authorization: `Bearer ${
-                    encodeURIComponent(Deno.env.get("AUTORENDER_API_KEY")!)
+                    encodeURIComponent(config.autorender["access-token"])
                   }`,
                 },
                 body,

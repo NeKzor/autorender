@@ -7,7 +7,6 @@
  * file will be send back to the server once it finished rendering.
  */
 
-import "https://deno.land/std@0.177.0/dotenv/load.ts";
 import { dirname, join } from "https://deno.land/std@0.190.0/path/mod.ts";
 import { logger } from "./logger.ts";
 import {
@@ -21,17 +20,22 @@ import {
 import { RenderQuality, Video as VideoModel } from "../server/models.ts";
 import { ClientState, ClientStatus } from "./state.ts";
 import { UploadWorkerDataType } from "./upload.ts";
+import { getConfig } from "./config.ts";
 
-const GAME_DIR = Deno.env.get("GAME_DIR")!;
-const GAME_MOD = Deno.env.get("GAME_MOD")!;
-const GAME_EXE = Deno.env.get("GAME_EXE")!;
-const GAME_PROC = Deno.env.get("GAME_PROC")!;
+const config = await getConfig();
+
+// TODO: Handle multiple games
+const GAME_DIR = config.games.at(0)!.dir;
+const GAME_MOD = config.games.at(0)!.mod;
+const GAME_EXE = config.games.at(0)!.exe;
+const GAME_PROC = config.games.at(0)!.proc;
 const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
 
-const AUTORENDER_FOLDER_NAME = Deno.env.get("AUTORENDER_FOLDER_NAME")!;
-const AUTORENDER_CFG = Deno.env.get("AUTORENDER_CFG")!;
+const AUTORENDER_FOLDER_NAME = config.autorender["folder-name"];
+const AUTORENDER_CFG = config.games.at(0)!.cfg;
 const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
-const AUTORENDER_MAX_SUPPORTED_QUALITY = Deno.env.get("AUTORENDER_MAX_SUPPORTED_QUALITY")!;
+const AUTORENDER_MAX_SUPPORTED_QUALITY = config.autorender["max-supported-quality"];
+
 // TODO: Upstream sar_on_renderer feature
 const AUTORENDER_PATCHED_SAR = true;
 // Timeout interval in ms to check if there are new videos to render.
