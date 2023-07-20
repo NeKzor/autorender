@@ -6,6 +6,7 @@ docker/
 docker/compose/
 log/
 src/test/
+autorender.yaml
 
 # Logs
 logs
