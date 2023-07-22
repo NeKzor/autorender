@@ -178,7 +178,7 @@ const hasPermission = (ctx: Context, permission: UserPermissions) => {
 
 const Ok = (
   ctx: Context,
-  body: ResponseBody | ResponseBodyFunction,
+  body?: ResponseBody | ResponseBodyFunction,
   type?: string,
 ) => {
   ctx.response.status = Status.OK;
@@ -1346,6 +1346,29 @@ router.get("/favicon.ico", (ctx) => (ctx.response.status = Status.NotFound));
 router.post("/tokens/:access_token_id(\\d+)", useSession, routeToApp);
 router.post("/tokens/:access_token_id(\\d+/delete)", useSession, routeToApp);
 router.post("/tokens/new", useSession, routeToApp);
+router.post("/tokens/test", async (ctx) => {
+  if (!ctx.request.hasBody) {
+    return Err(ctx, Status.BadRequest);
+  }
+
+  const body = await ctx.request.body({ type: "json" }).value;
+  if (!body?.token_key) {
+    return Err(ctx, Status.BadRequest);
+  }
+
+  const [accessToken] = await db.query(
+    `select 1
+       from access_tokens
+      where token_key = ?`,
+    [body?.token_key],
+  );
+
+  if (!accessToken) {
+    return Err(ctx, Status.Unauthorized);
+  }
+
+  Ok(ctx);
+});
 router.get("/(.*)", useSession, routeToApp);
 
 type AppState = {
