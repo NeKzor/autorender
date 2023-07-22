@@ -232,7 +232,7 @@ server {
 	      client_max_body_size 150M;
     }
 
-    location /connect/client {
+    location /connect/client/ {
         proxy_pass http://127.0.0.1:8834$request_uri;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -256,7 +256,7 @@ server {
 - ~~Automatic demo fixup~~
 - ~~Markdown links~~
 - ~~Quality options~~
-- Use yaml format for client settings
+- ~~Use yaml format for client settings~~
 - Support game mods
 - Switch to shorter video IDs
 - Edit original interaction message or create a follow up message
@@ -269,13 +269,14 @@ server {
   - Audit logs
   - Demo upload
 - Package client code
-  - Installer CLI
-  - Download SAR/autorender.cfg automatically
+  - ~~Installer CLI~~
+  - ~~Download SAR/autorender.cfg automatically~~
+  - Figure out permissions
   - Single executable
 - Generate video preview + thumbnails
 - Unlisted/private videos
 - Figure out docker
-- Write a CLI tool for setup
+- Write a CLI tool for dev setup
 - Implement various data related functions
   - Delete video button
     - Delete video from cloud storage
@@ -301,15 +302,15 @@ server {
 
 - [@PortalRex] for idea and motivation
 - [@ThatFridgeFella] for testing
-- [p2sr/demofixup] for fixing old demos
+- [p2sr/demofixup] for an an almost working demo fixup method!
 - [p2sr/SourceAutoRecord] for a renderer crashes!
 - [p2sr/portal2-cm-autorender] for making me not want to use Python!!
 
 [@PortalRex]: https://github.com/PortalRex
 [@ThatFridgeFella]: https://github.com/ThatFridgeFella
-[p2sr/portal2-cm-autorender]: https://github.com/p2sr/portal2-cm-autorender
-[p2sr/SourceAutoRecord]: https://github.com/p2sr/SourceAutoRecord
 [p2sr/demofixup]: https://github.com/p2sr/demofixup
+[p2sr/SourceAutoRecord]: https://github.com/p2sr/SourceAutoRecord
+[p2sr/portal2-cm-autorender]: https://github.com/p2sr/portal2-cm-autorender
 
 ## License
 
