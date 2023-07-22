@@ -98,46 +98,54 @@ upload.postMessage({
 });
 
 worker.addEventListener("message", async (message: MessageEvent) => {
-  if (message.data instanceof ArrayBuffer) {
-    await onMessage(message.data);
-  } else {
-    const { type, data } = message.data;
-    switch (type) {
-      case WorkerDataType.Connected:
-        fetchNextVideos();
-        break;
-      case WorkerDataType.Disconnected:
-        if (idleTimer !== null) {
-          clearTimeout(idleTimer);
-          idleTimer = null;
-        }
-        break;
-      case WorkerDataType.Message:
-        await onMessage(data);
-        break;
-      default:
-        logger.error(
-          `Unhandled message type from worker: ${message.data.type}`,
-        );
-        break;
+  try {
+    if (message.data instanceof ArrayBuffer) {
+      await onMessage(message.data);
+    } else {
+      const { type, data } = message.data;
+      switch (type) {
+        case WorkerDataType.Connected:
+          fetchNextVideos();
+          break;
+        case WorkerDataType.Disconnected:
+          if (idleTimer !== null) {
+            clearTimeout(idleTimer);
+            idleTimer = null;
+          }
+          break;
+        case WorkerDataType.Message:
+          await onMessage(data);
+          break;
+        default:
+          logger.error(
+            `Unhandled message type from worker: ${message.data.type}`,
+          );
+          break;
+      }
     }
+  } catch (err) {
+    logger.error(err);
   }
 });
 
 upload.addEventListener("message", (message: MessageEvent) => {
-  const { type, data } = message.data;
-  switch (type) {
-    case UploadWorkerDataType.Error:
-      send({
-        type: AutorenderSendDataType.Error,
-        data,
-      });
-      break;
-    default:
-      logger.error(
-        `Unhandled message type from upload worker: ${message.data.type}`,
-      );
-      break;
+  try {
+    const { type, data } = message.data;
+    switch (type) {
+      case UploadWorkerDataType.Error:
+        send({
+          type: AutorenderSendDataType.Error,
+          data,
+        });
+        break;
+      default:
+        logger.error(
+          `Unhandled message type from upload worker: ${message.data.type}`,
+        );
+        break;
+    }
+  } catch (err) {
+    logger.error(err);
   }
 });
 
