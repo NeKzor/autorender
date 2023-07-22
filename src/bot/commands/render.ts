@@ -358,6 +358,14 @@ createCommand({
                   throw new Error('Invalid route.');
                 }
 
+                if (channelId == undefined) {
+                  throw new Error('Invalid channel ID.');
+                }
+
+                if (messageId === undefined) {
+                  throw new Error('Invalid message ID.');
+                }
+
                 message = await bot.helpers.getMessage(
                   BigInt(channelId),
                   BigInt(messageId),

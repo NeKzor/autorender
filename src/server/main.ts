@@ -195,7 +195,7 @@ apiV1
         ctx.request.headers.get('Authorization') ?? ''
       ).split(' ');
 
-      if (authType !== 'Bearer') {
+      if (authType !== 'Bearer' || authToken === undefined) {
         return Err(ctx, Status.BadRequest);
       }
 
@@ -360,7 +360,7 @@ apiV1
       ctx.request.headers.get('Authorization') ?? ''
     ).split(' ');
 
-    if (authType !== 'Bearer') {
+    if (authType !== 'Bearer' || authToken === undefined) {
       return Err(ctx, Status.BadRequest);
     }
 
@@ -598,7 +598,7 @@ apiV1
       [
         PendingStatus.FinishedRender,
         PendingStatus.FinishedRender,
-        BigInt(ctx.params.requested_by_id),
+        BigInt(ctx.params.requested_by_id!),
       ],
     );
 
@@ -638,8 +638,8 @@ router.get('/connect/bot', async (ctx) => {
 
   const [version, authToken] = ctx.request.headers.get('sec-websocket-protocol')?.split(', ') ?? [];
 
-  if (version !== AUTORENDER_V1) {
-    return Err(ctx, Status.NotAcceptable);
+  if (version !== AUTORENDER_V1 || authToken === undefined) {
+    return Err(ctx, Status.BadRequest);
   }
 
   if (
@@ -712,8 +712,8 @@ router.get('/connect/client', async (ctx) => {
 
   const [version, authToken] = ctx.request.headers.get('sec-websocket-protocol')?.split(', ') ?? [];
 
-  if (version !== AUTORENDER_V1) {
-    return Err(ctx, Status.NotAcceptable);
+  if (version !== AUTORENDER_V1 || authToken === undefined) {
+    return Err(ctx, Status.BadRequest);
   }
 
   type TokenSelect = Pick<
@@ -863,9 +863,7 @@ router.get('/connect/client', async (ctx) => {
               | 'demo_required_fix'
             >;
 
-            const [{ demo_required_fix, ...video }] = await db.query<
-              VideoSelect
-            >(
+            const [selectedVideo] = await db.query<VideoSelect>(
               `select BIN_TO_UUID(video_id) as video_id
                      , render_quality
                      , render_options
@@ -878,7 +876,7 @@ router.get('/connect/client', async (ctx) => {
               [videoId],
             );
 
-            if (!video) {
+            if (!selectedVideo) {
               ws.send(
                 JSON.stringify({
                   type: 'error',
@@ -890,6 +888,8 @@ router.get('/connect/client', async (ctx) => {
               );
               break;
             }
+
+            const { demo_required_fix, ...video } = selectedVideo;
 
             const buffer = new Buffer();
             const payload = new TextEncoder().encode(JSON.stringify(video));
@@ -1257,7 +1257,7 @@ if (!B2_ENABLED) {
 }
 
 router.get('/storage/demos/:video_id/:fixed(fixed)?', async (ctx) => {
-  if (!uuid.validate(ctx.params.video_id)) {
+  if (!uuid.validate(ctx.params.video_id!)) {
     await routeToApp(ctx);
     return;
   }
