@@ -106,7 +106,7 @@ const render = async (
     if (requestedInGuildId) {
       body.append('requested_in_guild_id', requestedInGuildId);
 
-      const guildName = (await bot.helpers.getGuild(BigInt(requestedInGuildId))).name;
+      const guildName = (await bot.helpers.getGuild(requestedInGuildId)).name;
       if (guildName) {
         body.append('requested_in_guild_name', guildName);
       }
@@ -115,7 +115,7 @@ const render = async (
     if (requestedInChannelId) {
       body.append('requested_in_channel_id', requestedInChannelId);
 
-      const channelName = (await bot.helpers.getChannel(BigInt(requestedInChannelId))).name;
+      const channelName = (await bot.helpers.getChannel(requestedInChannelId)).name;
       if (channelName) {
         body.append('requested_in_channel_name', channelName);
       }
@@ -366,10 +366,7 @@ createCommand({
                   throw new Error('Invalid message ID.');
                 }
 
-                message = await bot.helpers.getMessage(
-                  BigInt(channelId),
-                  BigInt(messageId),
-                );
+                message = await bot.helpers.getMessage(channelId, messageId);
               } catch (_err) {
                 await bot.helpers.sendInteractionResponse(
                   interaction.id,
@@ -384,10 +381,7 @@ createCommand({
               }
             } catch (_err) {
               try {
-                message = await bot.helpers.getMessage(
-                  interaction.channelId!,
-                  BigInt(messageUrlOrId),
-                );
+                message = await bot.helpers.getMessage(interaction.channelId!, messageUrlOrId);
               } catch (_err) {
                 await bot.helpers.sendInteractionResponse(
                   interaction.id,

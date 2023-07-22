@@ -598,7 +598,7 @@ apiV1
       [
         PendingStatus.FinishedRender,
         PendingStatus.FinishedRender,
-        BigInt(ctx.params.requested_by_id!),
+        ctx.params.requested_by_id,
       ],
     );
 
