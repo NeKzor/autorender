@@ -5,7 +5,6 @@ docker/
 .vscode/
 docker/compose/
 log/
-src/test/
 .autorender.yaml
 autorender.yaml
 
