@@ -158,6 +158,11 @@ recommended to use local storage during development since every request to b2 wi
 - Generate a new token in the platform (make sure the permissions have been set for the [logged in account])
 - Start the client `deno task client:dev` and go through the setup process
 
+In [production](#production) the client code will be compiled into a single executable which should also be tested:
+
+- Compile the binary for your OS with `deno task client:compile:<linux|windows>`
+- Run the binary in developer mode with `./src/client/bin/autorenderclient --dev`
+
 [logged in account]: #user-setup
 
 ### Install & Run Bot
