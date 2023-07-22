@@ -24,7 +24,7 @@ import { getConfig } from "./config.ts";
 import { getOptions } from "./options.ts";
 import { WorkerDataType } from "./worker.ts";
 
-const options = await getOptions();
+const _options = await getOptions();
 const config = await getConfig();
 
 // TODO: Handle multiple games
