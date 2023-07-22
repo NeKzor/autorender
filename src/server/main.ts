@@ -158,7 +158,7 @@ if (B2_ENABLED) {
     logger.info("Connected to b2");
   });
 } else {
-  logger.info("⚠️ Connection to b2 disabled. Using directory to store videos.");
+  logger.info("⚠️  Connection to b2 disabled. Using directory to store videos.");
 }
 
 await logger.initFileLogger("log/server", {
