@@ -37,14 +37,14 @@ Convert Portal 2 demos into videos with: `/render demo <file>`
 
 ## Commands
 
-|Command|Description|
-|---|---|
-|`/render demo`|Render a demo file by uploading it as an attachment.|
-|`/render message`|Render an already uploaded demo file by providing the message link or the ID of the message.|
-|`/render latest`|Render an already uploaded demo file by automatically finding the latest message within the current channel.|
-|`/watch latest`|List latest requested videos.|
-|`/watch random`|Watch a random requested video.|
-|`/fixup`|Fix an old Portal 2 demo file to make it work on the latest engine version.|
+| Command           | Description                                                                                  |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| `/render demo`    | Render a demo file by uploading it as an attachment.                                         |
+| `/render message` | Render an already uploaded demo file by providing the message link or the ID of the message. |
+| `/render latest`  | Render an already uploaded demo file by automatically finding the latest message.            |
+| `/watch latest`   | List latest requested videos.                                                                |
+| `/watch random`   | Watch a random requested video.                                                              |
+| `/fixup`          | Fix an old Portal 2 demo file to make it work on the latest engine version.                  |
 
 ## Local Development
 
@@ -134,25 +134,31 @@ recommended to use local storage during development since every request to b2 wi
 
 ### src/server/.env
 
-|Variable|Description|
-|---|---|
-|HOT_RELOAD|Automatic page reload when the server reloads. Should only be used for development!|
-|DISCORD_USER_ID|Discord user ID of developer account. This is only used to reset the permissions.|
-|DISCORD_CLIENT_ID|Client ID of the Discord OAuth2 application.|
-|DISCORD_CLIENT_SECRET|Client secret of the Discord OAuth2 application.|
-|AUTORENDER_PUBLIC_URI|This is used for public links which the server generates e.g. the redirect URI of the Discord OAuth2 application.|
-|AUTORENDER_BOT_TOKEN|Generated token which is shared between the server and the bot.<br>Example: `openssl rand -hex 12`|
-|COOKIE_SECRET_KEY|Non-predictable key used to encrypt/decrypt session cookies.|
-|B2_ENABLED|Value `yes` enables video storage on Backblaze.|
-|B2_BUCKET_ID|Bucket ID from Backblaze.|
-|B2_KEY_ID|Key ID from Backblaze.|
-|B2_KEY_NAME|Key name from Backblaze.|
-|B2_APP_KEY|App key from Backblaze.|
+| Variable              | Description                                                                         |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| HOT_RELOAD            | Automatic page reload when the server reloads. Should only be used for development! |
+| DISCORD_USER_ID       | Discord user ID of developer account. This is only used to reset the permissions.   |
+| DISCORD_CLIENT_ID     | Client ID of the Discord OAuth2 application.                                        |
+| DISCORD_CLIENT_SECRET | Client secret of the Discord OAuth2 application.                                    |
+| AUTORENDER_PUBLIC_URI | This is used for public links which the server generates.<sup>1</sup>               |
+| AUTORENDER_BOT_TOKEN  | Generated token which is shared between the server and the bot.<sup>2</sup>         |
+| COOKIE_SECRET_KEY     | Non-predictable key used to encrypt/decrypt session cookies.                        |
+| B2_ENABLED            | Value `yes` enables video storage on Backblaze.                                     |
+| B2_BUCKET_ID          | Bucket ID from Backblaze.                                                           |
+| B2_KEY_ID             | Key ID from Backblaze.                                                              |
+| B2_KEY_NAME           | Key name from Backblaze.                                                            |
+| B2_APP_KEY            | App key from Backblaze.                                                             |
+
+<sup>1</sup> Example: the redirect URI of the Discord OAuth2 application
+
+<sup>2</sup> Example: `openssl rand -hex 12`
 
 ### Install & Run Client
 
-- Generate a new token in the platform (make sure the permissions have been set for the [logged in account](#user-setup))
+- Generate a new token in the platform (make sure the permissions have been set for the [logged in account])
 - Start the client `deno task client:dev` and go through the setup process
+
+[logged in account]: #user-setup
 
 ### Install & Run Bot
 
@@ -162,21 +168,23 @@ recommended to use local storage during development since every request to b2 wi
 
 #### src/bot/.env
 
-|Variable|Description|
-|---|---|
-|DISCORD_BOT_TOKEN|Token of the Discord bot application.|
-|DISCORD_BOT_ID|Client ID of the Discord bot application.|
-|AUTORENDER_BOT_TOKEN|Generated token which is shared between the server and the bot.|
+| Variable             | Description                                                     |
+| -------------------- | --------------------------------------------------------------- |
+| DISCORD_BOT_TOKEN    | Token of the Discord bot application.                           |
+| DISCORD_BOT_ID       | Client ID of the Discord bot application.                       |
+| AUTORENDER_BOT_TOKEN | Generated token which is shared between the server and the bot. |
 
 ## Production
 
 Same as in development but `prod` is used as a postfix: `deno task <server|bot>:prod`
 
 Make sure that the `src/bot/.env` file has the correct values for:
+
 - `AUTORENDER_BASE_API` should point to the internal address of the host, if hosted within the same network
 - `AUTORENDER_PUBLIC_URI` should point to the public domain (used for sending the final Discord message)
 
 For clients we want to only ship the code as a single binary:
+
 - `deno task client:compile:linux` outputs the executable to `src/client/bin/autorenderclient`
 - `deno task client:compile:windows` outputs the executable to `src/client/bin/autorenderclient.exe`
 
@@ -237,9 +245,9 @@ server {
   - Implement "Render demo" as message context menu option
   - Improve `/bot info`
   - Edit original interaction message or create a follow up message
-- Add CI/CD
-  - CI should check for lint and format errors on every push
-  - CD should compile client code and release all files on every tag
+- ~~Add CI/CD~~
+  - ~~CI should check for lint and format errors on every push~~
+  - ~~CD should compile client code and release all files on every tag~~
 - Support game mods
 - Switch to shorter video IDs
 - Advanced render options e.g. sar_ihud
@@ -284,16 +292,18 @@ server {
 
 - Deno's network permissions do not support wildcards for domains: [deno#6532]
 - Deno's permission system is insanely tedious to maintain: [deno#12763]
-- Deno's WebSockets are limited to [64 MiB] per frame which is good enough for demos but not for large video files: [deno#15809]
+- Deno's WebSockets are limited to [64 MiB] per frame which is good enough for demos but not for large video files:
+  [deno#15809]
 - Permissions for containers have to be managed manually for mounted volumes: [moby#2259]
 - MariaDB image does not leak memory but MySQL 8 does: [containerd#6707]
-- The autorender client installs a [patched version] of SourceAutoRecord to make it work on the latest version of Portal 2
+- The autorender client installs a [patched version] of SourceAutoRecord to make it work on the latest version of
+  Portal 2
 
 [deno#6532]: https://github.com/denoland/deno/issues/6532
 [deno#12763]: https://github.com/denoland/deno/issues/12763
 [moby#2259]: https://github.com/moby/moby/issues/2259
 [containerd#6707]: https://github.com/containerd/containerd/issues/6707
-[64 MiB]:  https://github.com/denoland/fastwebsockets/blob/875e6b7ba001898e38bbff50e8f90cc11b90e718/src/lib.rs#L283
+[64 MiB]: https://github.com/denoland/fastwebsockets/blob/875e6b7ba001898e38bbff50e8f90cc11b90e718/src/lib.rs#L283
 [deno#15809]: https://github.com/denoland/deno/issues/15809
 [patched version]: https://github.com/NeKzor/sar/releases
 
