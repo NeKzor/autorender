@@ -1,10 +1,10 @@
 {
     "tasks": {
-        "start:dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,storage --allow-write=log/server,storage --allow-run=ffprobe --allow-net --watch main.ts",
-        "start:prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,storage --allow-write=log/server,storage --allow-run=ffprobe --allow-net main.ts",
+        "dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,storage --allow-write=log/server,storage --allow-run=ffprobe --allow-net --watch main.ts",
+        "prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,storage --allow-write=log/server,storage --allow-run=ffprobe --allow-net main.ts",
         "test": "deno test --allow-net --allow-read --allow-env",
         "pending": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/pending.ts",
-        "dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/dev.ts"
+        "perm": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/perm.ts"
     },
     "fmt": {
         "useTabs": false,
