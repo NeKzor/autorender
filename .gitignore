@@ -3,6 +3,7 @@ docker/compose/
 log/
 src/bot/fileloader.ts
 src/test/
+.autorender.yaml
 autorender.yaml
 
 # Logs
