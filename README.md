@@ -116,7 +116,7 @@ Generate files with: `chmod +x setup && ./setup dev`
 - Build the server image once with: `docker compose build`
 - Start all containers with: `docker compose up`
 - Add a host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts`
-- Run from the server folder `src/server` the command `deno task start:dev`
+- Run from the server folder `src/server` the command `deno task dev`
 
 The server should now be available at: `http://autorender.portal2.local`
 
@@ -124,7 +124,7 @@ The server should now be available at: `http://autorender.portal2.local`
 
 - Create the user account once by logging in from the home page
 - Make sure that `DISCORD_USER_ID` in the `src/server/.env` file is the correct user ID of the created user
-- Set all permissions for the account with `deno task dev`
+- Set all permissions for the account with `deno task perm`
 - Logout and login again
 
 ### Storage
@@ -156,7 +156,7 @@ recommended to use local storage during development since every request to b2 wi
 - Log into the platform
 - Generate a new token in the platform (make sure the permissions have been set for the logged in account)
 - Copy generated token into the `src/client/.env` file as `AUTORENDER_API_KEY`
-- Run from the client folder `src/client` the command `deno task start:dev`
+- Run from the client folder `src/client` the command `deno task dev`
 
 [fixed version of SourceAutoRecord]: https://github.com/NeKzor/sar/releases/tag/autorender
 
@@ -173,7 +173,7 @@ recommended to use local storage during development since every request to b2 wi
 
 - Copy the bot credentials of the Discord application into the `src/bot/.env` file
 - Configure `AUTORENDER_BOT_TOKEN` with the same password that is shared with the server
-- Run from the bot folder `src/bot` the command `deno task start:dev`
+- Run from the bot folder `src/bot` the command `deno task dev`
 
 #### src/bot/.env
 
@@ -198,7 +198,7 @@ recommended to use local storage during development since every request to b2 wi
 
 ## Production
 
-Same as in development but all task commands end with `prod` e.g. `deno task start:prod`.
+Same as in development but all task commands end with `prod` e.g. `deno task prod`.
 
 Make sure the bot's `.env` file has the correct values for:
 - `AUTORENDER_BASE_API` should point to the internal address
