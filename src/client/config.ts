@@ -192,15 +192,26 @@ const createConfig = async () => {
 
             const stat = await Deno.stat(steam_common);
             if (stat.isDirectory) {
+              let errored = false;
+
               for (const game of game_mod ?? []) {
                 try {
-                  Deno.stat(join(steam_common, game));
-                } catch {
-                  console.warn(
-                    colors.yellow(`⚠️ Game ${game} is not installed.`),
+                  await Deno.stat(join(steam_common, game));
+                } catch (err) {
+                  options.verboseMode && logger.error(err);
+
+                  console.error(
+                    colors.red(`❌️ ${game} is not installed.`),
                   );
+
+                  errored = true;
                 }
               }
+
+              if (errored) {
+                Deno.exit(1);
+              }
+
               return await next();
             }
           } catch (err) {
@@ -240,11 +251,29 @@ const createConfig = async () => {
     ],
   };
 
-  await downloadSourceAutoRecord(config, options);
+  try {
+    await downloadSourceAutoRecord(config, options);
+  } catch (err) {
+    options.verboseMode && console.error(err);
+    console.log(colors.red(`❌️ Failed to install SourceAutoRecord`));
+    Deno.exit(1);
+  }
 
-  // TODO: Download and install autorender.cfg
+  try {
+    await downloadAutorenderConfig(config, options);
+  } catch (err) {
+    options.verboseMode && console.error(err);
+    console.log(colors.red(`❌️ Failed to install autorender.cfg`));
+    Deno.exit(1);
+  }
 
-  // TODO: Download and install quickhud crosshair
+  try {
+    await downloadQuickhud(config, options);
+  } catch (err) {
+    options.verboseMode && console.error(err);
+    console.log(colors.red(`❌️ Failed to install quickhud`));
+    Deno.exit(1);
+  }
 
   // deno-lint-ignore no-explicit-any
   const autorenderYaml = yaml.stringify(config as any);
@@ -314,15 +343,17 @@ export const downloadSourceAutoRecord = async (
     },
   });
 
-  console.log(colors.white(`🗿️ Downloaded SourceAutoRecord`));
-
   if (!sar) {
     console.log(colors.red(`❌️ Failed to download SourceAutoRecord`));
     Deno.exit(1);
   }
 
+  console.log(colors.white(`🗿️ Downloaded SourceAutoRecord`));
+
+  let zip: ZipReader<BlobReader> | null = null;
+
   try {
-    const zip = new ZipReader(new BlobReader(sar));
+    zip = new ZipReader(new BlobReader(sar), { useWebWorkers: false });
 
     const binary = (await zip.getEntries()).shift();
     if (!binary) {
@@ -337,7 +368,7 @@ export const downloadSourceAutoRecord = async (
       try {
         const { state } = await Deno.permissions.request({
           name: 'write',
-          path: file,
+          path: game.dir,
         });
 
         if (state !== 'granted') {
@@ -346,9 +377,8 @@ export const downloadSourceAutoRecord = async (
 
         await Deno.writeFile(file, data);
 
-        await writeAll(Deno.stdout, new Uint8Array(['\r'.charCodeAt(0)]));
         console.log(
-          colors.white(`🗿️ Installed SourceAutoRecord version ${config.sar.version}`),
+          colors.white(`🗿️ Installed ${colors.italic.gray(file)}`),
         );
       } catch (err) {
         options.verboseMode && logger.error(err);
@@ -364,5 +394,152 @@ export const downloadSourceAutoRecord = async (
 
     console.log(colors.red(`❌️ Failed to install SourceAutoRecord`));
     Deno.exit(1);
+  } finally {
+    await zip?.close();
+  }
+};
+
+// Download and install autorender.cfg
+export const downloadAutorenderConfig = async (
+  config: Config | null,
+  options: Options,
+) => {
+  if (!config) {
+    console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
+    Deno.exit(1);
+  }
+
+  await writeAll(
+    Deno.stdout,
+    new TextEncoder().encode(colors.white(`📄️ Getting autorender.cfg`)),
+  );
+
+  const res = await fetch(`${config.autorender['base-api']}/storage/files/autorender.cfg`, {
+    headers: {
+      'User-Agent': 'autorender-client-v1.0',
+    },
+  });
+
+  if (!res.ok) {
+    await writeAll(
+      Deno.stdout,
+      new TextEncoder().encode(colors.white(`\r❌️ Failed to fetch autorender.cfg`)),
+    );
+    Deno.exit(1);
+  }
+
+  console.log(colors.white(`\r📄️ Downloaded autorender.cfg`)));
+
+  const data = new Uint8Array(await res.arrayBuffer());
+
+  for (const game of config.games) {
+    const file = join(game.dir, game.mod, 'cfg', 'autorender.cfg');
+
+    try {
+      const { state } = await Deno.permissions.request({
+        name: 'write',
+        path: file,
+      });
+
+      if (state !== 'granted') {
+        Deno.exit(1);
+      }
+
+      await Deno.writeFile(file, data);
+
+      console.log(
+        colors.white(`📄️ Installed ${colors.italic.gray(file)}`),
+      );
+    } catch (err) {
+      options.verboseMode && logger.error(err);
+
+      console.log(colors.red(`❌️ Failed to install ${colors.italic.gray(file)}`));
+      Deno.exit(1);
+    }
+  }
+};
+
+// Download and install quickhud.zip
+export const downloadQuickhud = async (
+  config: Config | null,
+  options: Options,
+) => {
+  if (!config) {
+    console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
+    Deno.exit(1);
+  }
+
+  console.log(colors.white(`🔵️ Getting quickhud.zip`));
+
+  let progress = {} as ProgressBar;
+
+  const quickhud = await getBinary(`${config.autorender['base-api']}/storage/files/quickhud.zip`, {
+    onStart: () => {
+      progress = new ProgressBar({
+        title: colors.white('🔵️ Downloading quickhud'),
+        total: 100,
+        complete: bgCyan(' '),
+        clear: true,
+      });
+    },
+    onProgress: (event) => {
+      const completed = Math.floor((event.loaded / event.total) * 100);
+      if (completed <= 100) {
+        progress.render(completed);
+      }
+    },
+    onEnd: () => {
+      progress.end();
+    },
+  });
+
+  if (!quickhud) {
+    console.log(colors.red(`\r❌️ Failed to download quickhud`));
+    Deno.exit(1);
+  }
+
+  console.log(colors.white(`\r🔵️ Downloaded quickhud`));
+
+  let zip: ZipReader<BlobReader> | null = null;
+
+  try {
+    zip = new ZipReader(new BlobReader(quickhud), { useWebWorkers: false });
+    const entries = await zip.getEntries();
+
+    for (const game of config.games) {
+      for (const entry of entries) {
+        const data = await entry.getData!(new Uint8ArrayWriter());
+        const file = join(game.dir, game.mod, 'crosshair', entry.filename);
+
+        try {
+          const { state } = await Deno.permissions.request({
+            name: 'write',
+            path: file,
+          });
+
+          if (state !== 'granted') {
+            Deno.exit(1);
+          }
+
+          await Deno.writeFile(file, data);
+
+          console.log(
+            colors.white(`🔵️ Installed ${colors.italic.gray(file)}`),
+          );
+        } catch (err) {
+          options.verboseMode && logger.error(err);
+
+          console.log(colors.red(`❌️ Failed to install ${colors.italic.gray(file)}`));
+          Deno.exit(1);
+        }
+      }
+    }
+  } catch (err) {
+    options.verboseMode && logger.error(err);
+
+    console.log(colors.red(`❌️ Failed to install quickhud`));
+    Deno.exit(1);
+  } finally {
+    await zip?.close();
   }
 };

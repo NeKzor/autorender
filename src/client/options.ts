@@ -9,8 +9,7 @@ import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 import { logger } from './logger.ts';
 import { downloadSourceAutoRecord, gameModsWhichSupportWorkshop, getConfigOnly } from './config.ts';
-
-const autorenderVersion = '0.1.0';
+import { AutorenderVersion } from "./version.ts";
 
 export interface Options {
   devMode: boolean;
@@ -23,7 +22,7 @@ export const getOptions = async () => {
   if (!options) {
     const { options: { verbose, dev } } = await new Command()
       .name('autorender')
-      .version(autorenderVersion)
+      .version(AutorenderVersion)
       .description('Command line app for connecting to autorender.nekz.me')
       .option('-c, --check', 'Health check of the app.')
       .option('-v, --verbose', 'Turn on verbose logging.')
@@ -140,10 +139,10 @@ const runCheck = async (options: Options) => {
       //Deno.exit(1);
     }
 
-    if (autorender && autorender.tag_name !== autorenderVersion) {
+    if (autorender && autorender.tag_name !== AutorenderVersion) {
       console.log(
         colors.green(
-          `A new release of autorender is available: ${colors.cyan(autorenderVersion)} ${colors.white('→')} ${
+          `A new release of autorender is available: ${colors.cyan(AutorenderVersion)} ${colors.white('→')} ${
             colors.cyan(autorender.tag_name)
           }`,
         ),
@@ -158,7 +157,7 @@ const runCheck = async (options: Options) => {
 
     console.log(
       colors.green(
-        `Autorender is on latest version ${autorenderVersion}`,
+        `Autorender is on latest version ${AutorenderVersion}`,
       ),
     );
 
