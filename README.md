@@ -143,7 +143,7 @@ recommended to use local storage during development since every request to b2 wi
 | AUTORENDER_PUBLIC_URI | This is used for public links which the server generates.<sup>1</sup>               |
 | AUTORENDER_BOT_TOKEN  | Generated token which is shared between the server and the bot.<sup>2</sup>         |
 | COOKIE_SECRET_KEY     | Non-predictable key used to encrypt/decrypt session cookies.                        |
-| B2_ENABLED            | Value `yes` enables video storage on Backblaze.                                     |
+| B2_ENABLED            | Value `true` enables video storage on Backblaze.                                    |
 | B2_BUCKET_ID          | Bucket ID from Backblaze.                                                           |
 | B2_KEY_ID             | Key ID from Backblaze.                                                              |
 | B2_KEY_NAME           | Key name from Backblaze.                                                            |

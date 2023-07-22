@@ -32,7 +32,7 @@ export const index = (
     </App>,
     {
       nonce,
-      bootstrapScriptContent: Deno.env.get('HOT_RELOAD')?.toLowerCase() === 'yes'
+      bootstrapScriptContent: Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true'
         ? `(() => {
   let ws, to, iv = null;
   const hotReload = () => {

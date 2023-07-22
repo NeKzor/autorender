@@ -83,7 +83,7 @@ const AUTORENDER_DEMOS_FOLDER = Deno.env.get('AUTORENDER_DEMOS_FOLDER')!;
 const AUTORENDER_VIDEOS_FOLDER = Deno.env.get('AUTORENDER_VIDEOS_FOLDER')!;
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
-const B2_ENABLED = Deno.env.get('B2_ENABLED')! === 'yes';
+const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 
 const getDemoFilePath = (videoId: string) => join(AUTORENDER_DEMOS_FOLDER, `${videoId}.dem`);
@@ -610,7 +610,7 @@ apiV1
 
 const router = new Router<AppState>();
 
-const isHotReloadEnabled = Deno.env.get('HOT_RELOAD')?.toLowerCase() === 'yes';
+const isHotReloadEnabled = Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true';
 if (isHotReloadEnabled) {
   let reload = true;
 
