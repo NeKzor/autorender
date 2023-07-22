@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { AutorenderSendMessages, VideoPayload } from "./protocol.ts";
+import { AutorenderSendMessages, VideoPayload } from './protocol.ts';
 
 export enum ClientStatus {
   Idle = 0,

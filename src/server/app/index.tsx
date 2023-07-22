@@ -4,20 +4,20 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from "https://esm.sh/react@18.2.0";
-import { renderToReadableStream } from "https://esm.sh/react-dom@18.2.0/server";
+import * as React from 'https://esm.sh/react@18.2.0';
+import { renderToReadableStream } from 'https://esm.sh/react-dom@18.2.0/server';
 import {
+  createStaticRouter,
   StaticHandlerContext,
   StaticRouterProvider,
-  createStaticRouter,
-} from "https://esm.sh/react-router-dom@6.11.2/server";
-import App from "./App.tsx";
-import { AppState } from "./AppState.ts";
+} from 'https://esm.sh/react-router-dom@6.11.2/server';
+import App from './App.tsx';
+import { AppState } from './AppState.ts';
 
 export const index = (
   router: ReturnType<typeof createStaticRouter>,
   context: StaticHandlerContext,
-  initialState: AppState
+  initialState: AppState,
 ) => {
   const nonce = crypto.randomUUID();
 
@@ -32,9 +32,8 @@ export const index = (
     </App>,
     {
       nonce,
-      bootstrapScriptContent:
-        Deno.env.get("HOT_RELOAD")?.toLowerCase() === "yes"
-          ? `(() => {
+      bootstrapScriptContent: Deno.env.get('HOT_RELOAD')?.toLowerCase() === 'yes'
+        ? `(() => {
   let ws, to, iv = null;
   const hotReload = () => {
       ws?.close();
@@ -45,7 +44,7 @@ export const index = (
   };
   hotReload();
 })();`
-          : undefined,
-    }
+        : undefined,
+    },
   );
 };

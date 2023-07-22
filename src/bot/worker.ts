@@ -10,24 +10,24 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
-import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
+import { delay } from 'https://deno.land/std@0.190.0/async/delay.ts';
 
-const AUTORENDER_CONNECT_URI = Deno.env.get("AUTORENDER_CONNECT_URI")!;
-const AUTORENDER_PROTOCOL = Deno.env.get("AUTORENDER_PROTOCOL")!;
+const AUTORENDER_CONNECT_URI = Deno.env.get('AUTORENDER_CONNECT_URI')!;
+const AUTORENDER_PROTOCOL = Deno.env.get('AUTORENDER_PROTOCOL')!;
 
 // TODO: file logging
-console.log("Running worker thread...");
+console.log('Running worker thread...');
 
 let ws: WebSocket | null = null;
 let wasConnected = false;
 
 const onOpen = () => {
   wasConnected = true;
-  console.log("Connected to server");
+  console.log('Connected to server');
 };
 
 const onMessage = (message: MessageEvent) => {
-  console.log("Server:", message);
+  console.log('Server:', message);
   self.postMessage(message.data);
 };
 
@@ -36,7 +36,7 @@ const onClose = async () => {
 
   if (wasConnected) {
     wasConnected = false;
-    console.log("Disconnected from server");
+    console.log('Disconnected from server');
   }
 
   await delay(100);
@@ -45,7 +45,7 @@ const onClose = async () => {
 
 const onError = (event: ErrorEvent | Event) => {
   console.error(
-    "Connection error",
+    'Connection error',
     event instanceof ErrorEvent ? event.error : event,
   );
 };
@@ -53,7 +53,7 @@ const onError = (event: ErrorEvent | Event) => {
 const connect = () => {
   ws = new WebSocket(AUTORENDER_CONNECT_URI, [
     AUTORENDER_PROTOCOL,
-    encodeURIComponent(Deno.env.get("AUTORENDER_BOT_TOKEN")!),
+    encodeURIComponent(Deno.env.get('AUTORENDER_BOT_TOKEN')!),
   ]);
 
   ws.onopen = onOpen;

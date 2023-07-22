@@ -4,16 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from "https://esm.sh/react@18.2.0";
-import Footer from "../components/Footer.tsx";
-import {
-  DataLoader,
-  PageMeta,
-  json,
-  notFound,
-  useLoaderData,
-} from "../Routes.ts";
-import { FixedDemoStatus, PendingStatus, Video } from "../../models.ts";
+import * as React from 'https://esm.sh/react@18.2.0';
+import Footer from '../components/Footer.tsx';
+import { DataLoader, json, notFound, PageMeta, useLoaderData } from '../Routes.ts';
+import { FixedDemoStatus, PendingStatus, Video } from '../../models.ts';
 
 type JoinedVideo = Video & {
   requested_by_username: string | null;
@@ -26,10 +20,10 @@ export const meta: PageMeta<Data> = (data) => {
   return {
     title: data?.title,
     description: data?.comment,
-    "og:title": data?.title,
-    "og:description": data?.comment,
-    "og:type": "video",
-    "og:video": data?.video_url,
+    'og:title': data?.title,
+    'og:description': data?.comment,
+    'og:type': 'video',
+    'og:video': data?.video_url,
   };
 };
 
@@ -45,7 +39,7 @@ export const loader: DataLoader = async ({ params, context }) => {
        left join users renderer
             on renderer.user_id = videos.rendered_by
       where video_id = UUID_TO_BIN(?)`,
-    [params.video_id]
+    [params.video_id],
   );
 
   if (video.pending !== PendingStatus.FinishedRender) {
@@ -58,9 +52,7 @@ export const loader: DataLoader = async ({ params, context }) => {
 const formatRenderTime = (video: Video) => {
   if (!video.render_time) return `-`;
 
-  return video.render_time < 60
-    ? `${video.render_time} seconds`
-    : `${(video.render_time / 60).toFixed(2)} minutes`;
+  return video.render_time < 60 ? `${video.render_time} seconds` : `${(video.render_time / 60).toFixed(2)} minutes`;
 };
 
 export const VideoView = () => {
@@ -80,19 +72,16 @@ export const VideoView = () => {
           )}
           <h2>{data.title}</h2>
           <br />
-          {!data.video_url && data.pending === PendingStatus.FinishedRender && (
-            <div>Failed to render video :(</div>
-          )}
+          {!data.video_url && data.pending === PendingStatus.FinishedRender && <div>Failed to render video :(</div>}
           {!data.video_url && data.pending !== PendingStatus.FinishedRender && (
             <div>
-              Video is currently queued for rendering. Please come back again in
-              a few minutes.
+              Video is currently queued for rendering. Please come back again in a few minutes.
             </div>
           )}
           {data.video_url && (
             <div>
               <video controls>
-                <source src={data.video_url} itemType="video/mp4"></source>
+                <source src={data.video_url} itemType='video/mp4'></source>
               </video>
             </div>
           )}
@@ -100,19 +89,19 @@ export const VideoView = () => {
           {data.demo_required_fix === FixedDemoStatus.Required && (
             <>
               <div>
-                Download fixed:{" "}
+                Download fixed:{' '}
                 <a
                   href={`/storage/demos/${data.video_id}/fixed`}
-                  target="_blank"
+                  target='_blank'
                 >
-                  {data.file_name.toLowerCase().endsWith(".dem")
+                  {data.file_name.toLowerCase().endsWith('.dem')
                     ? `${data.file_name.slice(0, -4)}_fixed.dem`
                     : `${data.file_name}_fixed.dem`}
                 </a>
               </div>
               <div>
-                Download original:{" "}
-                <a href={`/storage/demos/${data.video_id}`} target="_blank">
+                Download original:{' '}
+                <a href={`/storage/demos/${data.video_id}`} target='_blank'>
                   {data.file_name}
                 </a>
               </div>
@@ -120,24 +109,23 @@ export const VideoView = () => {
           )}
           {data.demo_required_fix === FixedDemoStatus.NotRequired && (
             <div>
-              Download:{" "}
-              <a href={`/storage/demos/${data.video_id}`} target="_blank">
+              Download:{' '}
+              <a href={`/storage/demos/${data.video_id}`} target='_blank'>
                 {data.file_name}
               </a>
             </div>
           )}
-          <div>Comment: {data.comment ?? "-"}</div>
+          <div>Comment: {data.comment ?? '-'}</div>
           <div>Quality: {data.render_quality}</div>
           <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
           <div>
-            Requested by:{" "}
-            {data.requested_by_username ? (
-              <a href={`/profile/${data.requested_by_username}`}>
-                {data.requested_by_username}
-              </a>
-            ) : (
-              <>{data.requested_by_name}</>
-            )}
+            Requested by: {data.requested_by_username
+              ? (
+                <a href={`/profile/${data.requested_by_username}`}>
+                  {data.requested_by_username}
+                </a>
+              )
+              : <>{data.requested_by_name}</>}
           </div>
           {data.requested_in_channel_name && (
             <div>
@@ -147,7 +135,7 @@ export const VideoView = () => {
           )}
           <div>Render time: {formatRenderTime(data)}</div>
           <div>
-            Render node:{" "}
+            Render node:{' '}
             <a href={`/profile/${data.rendered_by_username}`}>
               {data.render_node}@{data.rendered_by_username}
             </a>

@@ -9,21 +9,21 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
-import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
-import { logger } from "./logger.ts";
-import { AutorenderSendMessages } from "./protocol.ts";
-import { Config } from "./config.ts";
+import { delay } from 'https://deno.land/std@0.190.0/async/delay.ts';
+import { logger } from './logger.ts';
+import { AutorenderSendMessages } from './protocol.ts';
+import { Config } from './config.ts';
 
 const AUTORENDER_SEND_MAX_RETRIES = 5;
 const AUTORENDER_SEND_RETRY_INTERVAL = 1_000;
 
 export enum WorkerDataType {
-  Config = "config",
-  Connect = "connect",
-  Send = "send",
-  Connected = "connected",
-  Disconnected = "disconnected",
-  Message = "message",
+  Config = 'config',
+  Connect = 'connect',
+  Send = 'send',
+  Connected = 'connected',
+  Disconnected = 'disconnected',
+  Message = 'message',
 }
 
 export type WorkerMessage<T extends WorkerDataType, P> = {
@@ -98,14 +98,14 @@ const send = async (
     } while (retries-- > 0);
 
     logger.warn(
-      "dropped data",
+      'dropped data',
       isBuffer ? `buffer of size ${data.byteLength}` : data,
     );
   }
 };
 
 self.addEventListener(
-  "message",
+  'message',
   async (message: MessageEvent<WorkerMessages>) => {
     const { type, data } = message.data;
 
@@ -131,7 +131,7 @@ self.addEventListener(
 
 const onOpen = () => {
   wasConnected = true;
-  logger.info("Connected to server");
+  logger.info('Connected to server');
   self.postMessage({ type: WorkerDataType.Connected });
 };
 
@@ -140,7 +140,7 @@ const onClose = async () => {
 
   if (wasConnected) {
     wasConnected = false;
-    logger.info("Disconnected from server");
+    logger.info('Disconnected from server');
   }
 
   self.postMessage({ type: WorkerDataType.Disconnected });
@@ -151,7 +151,7 @@ const onClose = async () => {
 
 const onError = (event: ErrorEvent | Event) => {
   logger.error(
-    "Connection error",
+    'Connection error',
     event instanceof ErrorEvent ? event.error : event,
   );
 };
@@ -172,9 +172,9 @@ const onMessage = async (message: MessageEvent) => {
 };
 
 const connect = () => {
-  ws = new WebSocket(config.autorender["connect-uri"], [
-    config.autorender["protocol"],
-    encodeURIComponent(config.autorender["access-token"]),
+  ws = new WebSocket(config.autorender['connect-uri'], [
+    config.autorender['protocol'],
+    encodeURIComponent(config.autorender['access-token']),
   ]);
 
   ws.onopen = onOpen;

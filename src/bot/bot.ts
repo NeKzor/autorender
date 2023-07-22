@@ -4,16 +4,16 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Bot, createBot, GatewayIntents, Guild } from "./deps.ts";
-import { events } from "./events/mod.ts";
+import { Bot, createBot, GatewayIntents, Guild } from './deps.ts';
+import { events } from './events/mod.ts';
 
 export type BotWithCache = Bot & {
   guilds: Map<bigint, Guild>;
 };
 
 const bot = createBot({
-  token: Deno.env.get("DISCORD_BOT_TOKEN")!,
-  applicationId: BigInt(Deno.env.get("DISCORD_BOT_ID")!),
+  token: Deno.env.get('DISCORD_BOT_TOKEN')!,
+  applicationId: BigInt(Deno.env.get('DISCORD_BOT_ID')!),
   intents: GatewayIntents.Guilds,
   events,
 }) as BotWithCache;

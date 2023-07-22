@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from "https://esm.sh/react@18.2.0";
-import { User } from "../models.ts";
-import { RouteMeta } from "./Routes.ts";
+import * as React from 'https://esm.sh/react@18.2.0';
+import { User } from '../models.ts';
+import { RouteMeta } from './Routes.ts';
 
 export interface AppState {
   user: User | null;
@@ -20,11 +20,11 @@ export type DispatchAction = { type: string; payload: any };
 
 export const reducer: React.Reducer<AppState, DispatchAction> = (
   _state: AppState,
-  action: DispatchAction
+  action: DispatchAction,
 ) => {
   switch (action.type) {
     default: {
-      throw Error("Unknown action: " + action.type);
+      throw Error('Unknown action: ' + action.type);
     }
   }
 };

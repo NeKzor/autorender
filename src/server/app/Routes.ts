@@ -9,30 +9,26 @@ import {
   redirect as routerRedirect,
   RouteObject,
   useLoaderData as routerUseLoaderData,
-} from "https://esm.sh/react-router-dom@6.11.2";
+} from 'https://esm.sh/react-router-dom@6.11.2';
 import {
   ActionFunction as RemixActionFunction,
   LoaderFunction as RemixLoaderFunction,
   Params,
-} from "https://esm.sh/v124/@remix-run/router@1.6.2";
-import {
-  Request as OakRequest,
-  Status,
-  STATUS_TEXT,
-} from "https://deno.land/x/oak@v12.2.0/mod.ts";
-import { createStaticHandler } from "https://esm.sh/react-router-dom@6.11.2/server";
+} from 'https://esm.sh/v124/@remix-run/router@1.6.2';
+import { Request as OakRequest, Status, STATUS_TEXT } from 'https://deno.land/x/oak@v12.2.0/mod.ts';
+import { createStaticHandler } from 'https://esm.sh/react-router-dom@6.11.2/server';
 
-import * as Home from "./views/Home.tsx";
-import * as NotFound from "./views/NotFound.tsx";
-import * as About from "./views/About.tsx";
-import * as Token from "./views/tokens/Token.tsx";
-import * as Tokens from "./views/tokens/Index.tsx";
-import * as Privacy from "./views/Privacy.tsx";
-import * as ProfileView from "./views/Profile.tsx";
-import * as Queue from "./views/Queue.tsx";
-import * as VideoView from "./views/Video.tsx";
-import { Database } from "../db.ts";
-import { User } from "../models.ts";
+import * as Home from './views/Home.tsx';
+import * as NotFound from './views/NotFound.tsx';
+import * as About from './views/About.tsx';
+import * as Token from './views/tokens/Token.tsx';
+import * as Tokens from './views/tokens/Index.tsx';
+import * as Privacy from './views/Privacy.tsx';
+import * as ProfileView from './views/Profile.tsx';
+import * as Queue from './views/Queue.tsx';
+import * as VideoView from './views/Video.tsx';
+import { Database } from '../db.ts';
+import { User } from '../models.ts';
 
 const throwStatus = (status: Status) => {
   throw new Response(null, { status: status, statusText: STATUS_TEXT[status] });
@@ -44,8 +40,7 @@ export type NeverFn = () => never;
 export const notFound: NeverFn = () => throwStatus(Status.NotFound);
 export const unauthorized: NeverFn = () => throwStatus(Status.Unauthorized);
 export const badRequest: NeverFn = () => throwStatus(Status.BadRequest);
-export const internalServerError: NeverFn = () =>
-  throwStatus(Status.InternalServerError);
+export const internalServerError: NeverFn = () => throwStatus(Status.InternalServerError);
 
 export const json = routerJson;
 export const redirect = routerRedirect;
@@ -79,25 +74,25 @@ export type DataLoader = LoaderFunction<RequestContext>;
 export type ActionLoader = LoaderFunction<RequestContext>;
 
 export type OpenGraphFacebook =
-  | "type"
-  | "url"
-  | "title"
-  | "description"
-  | "image"
-  | "video";
+  | 'type'
+  | 'url'
+  | 'title'
+  | 'description'
+  | 'image'
+  | 'video';
 export type OpenGraphTwitter = OpenGraphFacebook;
 export type OpenGraphTwitterCard =
-  | "summary"
-  | "summary_large_image"
-  | "app"
-  | "player";
+  | 'summary'
+  | 'summary_large_image'
+  | 'app'
+  | 'player';
 
 // This allows every route to change the page's meta values.
 export type RouteMeta =
   & {
     title?: string;
     description?: string;
-    ["twitter:card"]?: OpenGraphTwitterCard;
+    ['twitter:card']?: OpenGraphTwitterCard;
   }
   & { [key in `og:${OpenGraphFacebook}`]?: string }
   & {
@@ -110,7 +105,7 @@ export type PageMeta<Data> = (loaderData: Data) => RouteMeta;
 export type Route<Context, Data = any> =
   & Omit<
     RouteObject,
-    "loader" | "action"
+    'loader' | 'action'
   >
   & {
     loader?: LoaderFunction<Context>;
@@ -120,77 +115,77 @@ export type Route<Context, Data = any> =
 
 export const routes: Route<RequestContext>[] = [
   {
-    path: "/",
+    path: '/',
     Component: Home.Home,
     meta: Home.meta,
     loader: Home.loader,
   },
   {
-    path: "/profile/:username",
+    path: '/profile/:username',
     Component: ProfileView.Profile,
     meta: ProfileView.meta,
     loader: ProfileView.loader,
   },
   {
-    path: "/tokens",
+    path: '/tokens',
     Component: Tokens.Tokens,
     meta: Tokens.meta,
     loader: Tokens.loader,
   },
   {
-    path: "/tokens/:access_token_id",
+    path: '/tokens/:access_token_id',
     Component: Token.Token,
     meta: Token.meta,
     loader: Token.loader,
     action: Token.action,
   },
   {
-    path: "/tokens/:access_token_id/delete",
+    path: '/tokens/:access_token_id/delete',
     meta: Token.meta,
     action: Token.actionDelete,
   },
   {
-    path: "/tokens/create",
+    path: '/tokens/create',
     meta: Token.meta,
     Component: Token.Token,
     loader: Token.loaderCreate,
   },
   {
-    path: "/tokens/new",
+    path: '/tokens/new',
     meta: Token.meta,
     action: Token.actionNew,
   },
   {
-    path: "/queue/:video_id",
+    path: '/queue/:video_id',
     Component: Queue.Queue,
     meta: Queue.meta,
     loader: Queue.loader,
   },
   {
-    path: "/videos/:video_id",
+    path: '/videos/:video_id',
     Component: VideoView.VideoView,
     meta: VideoView.meta,
     loader: VideoView.loader,
   },
   {
-    path: "/privacy",
+    path: '/privacy',
     Component: Privacy.Privacy,
     meta: () => ({
-      title: "Privacy",
+      title: 'Privacy',
     }),
   },
   {
-    path: "/about",
+    path: '/about',
     Component: About.About,
     meta: () => ({
-      title: "About",
+      title: 'About',
     }),
   },
   {
-    path: "*",
+    path: '*',
     Component: NotFound.NotFound,
     meta: () => ({
-      title: "Not Found",
+      title: 'Not Found',
     }),
   },
 ];

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Video } from "../../server/models.ts";
+import { Video } from '../../server/models.ts';
 import {
   ApplicationCommandOption,
   ApplicationCommandOptionChoice,
@@ -16,13 +16,13 @@ import {
   InteractionTypes,
   Message,
   MessageComponentTypes,
-} from "../deps.ts";
-import { Interaction } from "../deps.ts";
-import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from "../deps.ts";
-import { escapeMaskedLink, getPublicUrl } from "../utils/helpers.ts";
-import { createCommand } from "./mod.ts";
+} from '../deps.ts';
+import { Interaction } from '../deps.ts';
+import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
+import { escapeMaskedLink, getPublicUrl } from '../utils/helpers.ts';
+import { createCommand } from './mod.ts';
 
-const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
+const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 
 const render = async (
@@ -60,9 +60,9 @@ const render = async (
 
   try {
     const demo = await fetch(attachment.url, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        "User-Agent": "autorender-bot v1.0",
+        'User-Agent': 'autorender-bot v1.0',
       },
     });
 
@@ -76,23 +76,23 @@ const render = async (
     const body = new FormData();
     const args = [...(interactionData.options?.values() ?? [])];
 
-    for (const option of ["title", "comment", "quality", "render_options"]) {
+    for (const option of ['title', 'comment', 'quality', 'render_options']) {
       const value = args.find((arg) => arg.name === option)?.value;
       if (value) {
         body.append(option, value.toString());
       }
     }
 
-    if (!body.get("title")) {
-      body.append("title", attachment.filename.slice(0, 64));
+    if (!body.get('title')) {
+      body.append('title', attachment.filename.slice(0, 64));
     }
 
     // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
     //       https://github.com/oakserver/oak/issues/581
 
-    body.append("files", await demo.blob(), attachment.filename);
+    body.append('files', await demo.blob(), attachment.filename);
 
-    const requestedByName = interaction.user.discriminator !== "0"
+    const requestedByName = interaction.user.discriminator !== '0'
       ? `${interaction.user.username}#${interaction.user.discriminator}`
       : interaction.user.username;
 
@@ -100,36 +100,36 @@ const render = async (
     const requestedInGuildId = interaction.guildId?.toString();
     const requestedInChannelId = interaction.channelId?.toString();
 
-    body.append("requested_by_name", requestedByName);
-    body.append("requested_by_id", requestedById);
+    body.append('requested_by_name', requestedByName);
+    body.append('requested_by_id', requestedById);
 
     if (requestedInGuildId) {
-      body.append("requested_in_guild_id", requestedInGuildId);
+      body.append('requested_in_guild_id', requestedInGuildId);
 
       const guildName = (await bot.helpers.getGuild(BigInt(requestedInGuildId))).name;
       if (guildName) {
-        body.append("requested_in_guild_name", guildName);
+        body.append('requested_in_guild_name', guildName);
       }
     }
 
     if (requestedInChannelId) {
-      body.append("requested_in_channel_id", requestedInChannelId);
+      body.append('requested_in_channel_id', requestedInChannelId);
 
       const channelName = (await bot.helpers.getChannel(BigInt(requestedInChannelId))).name;
       if (channelName) {
-        body.append("requested_in_channel_name", channelName);
+        body.append('requested_in_channel_name', channelName);
       }
     }
 
     const response = await fetch(
       `${AUTORENDER_BASE_API}/api/v1/videos/render`,
       {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "User-Agent": "autorender-bot v1.0",
+          'User-Agent': 'autorender-bot v1.0',
           Authorization: `Bearer ${
             encodeURIComponent(
-              Deno.env.get("AUTORENDER_BOT_TOKEN")!,
+              Deno.env.get('AUTORENDER_BOT_TOKEN')!,
             )
           }`,
         },
@@ -146,7 +146,7 @@ const render = async (
       const buttons: [ButtonComponent] | [ButtonComponent, ButtonComponent] = [
         {
           type: MessageComponentTypes.Button,
-          label: "Download Demo",
+          label: 'Download Demo',
           style: ButtonStyles.Link,
           url: getPublicUrl(`/storage/demos/${video.video_id}`),
         },
@@ -155,7 +155,7 @@ const render = async (
       if (video.demo_required_fix) {
         buttons.push({
           type: MessageComponentTypes.Button,
-          label: "Download Fixed Demo",
+          label: 'Download Fixed Demo',
           style: ButtonStyles.Link,
           url: getPublicUrl(`/storage/demos/${video.video_id}/fixed`),
         });
@@ -172,7 +172,7 @@ const render = async (
       });
     } else {
       if (
-        response.headers.get("Content-Type")?.includes("application/json")
+        response.headers.get('Content-Type')?.includes('application/json')
       ) {
         type ErrorResponse = { status: number; message: string };
 
@@ -197,22 +197,22 @@ const render = async (
 
 const renderOptions: ApplicationCommandOption[] = [
   {
-    name: "title",
-    description: "Video title.",
+    name: 'title',
+    description: 'Video title.',
     type: ApplicationCommandOptionTypes.String,
     required: false,
     maxLength: 64,
   },
   {
-    name: "comment",
-    description: "Video comment.",
+    name: 'comment',
+    description: 'Video comment.',
     type: ApplicationCommandOptionTypes.String,
     required: false,
     maxLength: 512,
   },
   {
-    name: "quality",
-    description: "Quality option (default 720p).",
+    name: 'quality',
+    description: 'Quality option (default 720p).',
     type: ApplicationCommandOptionTypes.String,
     required: false,
     autocomplete: true,
@@ -229,19 +229,19 @@ const renderOptions: ApplicationCommandOption[] = [
 ];
 
 createCommand({
-  name: "render",
-  description: "Render the latest demo file in the channel!",
+  name: 'render',
+  description: 'Render the latest demo file in the channel!',
   type: ApplicationCommandTypes.ChatInput,
-  scope: "Global",
+  scope: 'Global',
   options: [
     {
-      name: "demo",
-      description: "Render a demo file!",
+      name: 'demo',
+      description: 'Render a demo file!',
       type: ApplicationCommandOptionTypes.SubCommand,
       options: [
         {
-          name: "file",
-          description: "Demo file.",
+          name: 'file',
+          description: 'Demo file.',
           type: ApplicationCommandOptionTypes.Attachment,
           required: true,
         },
@@ -249,13 +249,13 @@ createCommand({
       ],
     },
     {
-      name: "message",
-      description: "Render a demo file from a message!",
+      name: 'message',
+      description: 'Render a demo file from a message!',
       type: ApplicationCommandOptionTypes.SubCommand,
       options: [
         {
-          name: "url_or_id",
-          description: "Message URL or ID containing a demo file.",
+          name: 'url_or_id',
+          description: 'Message URL or ID containing a demo file.',
           type: ApplicationCommandOptionTypes.String,
           required: true,
         },
@@ -263,8 +263,8 @@ createCommand({
       ],
     },
     {
-      name: "latest",
-      description: "Render the latest demo file in the channel!",
+      name: 'latest',
+      description: 'Render the latest demo file in the channel!',
       type: ApplicationCommandOptionTypes.SubCommand,
       options: [
         ...renderOptions,
@@ -277,9 +277,9 @@ createCommand({
     switch (interaction.type) {
       case InteractionTypes.ApplicationCommandAutocomplete: {
         switch (subCommand.name) {
-          case "demo":
-          case "latest":
-          case "message": {
+          case 'demo':
+          case 'latest':
+          case 'message': {
             checkQualityOptions(bot, interaction, subCommand);
             break;
           }
@@ -304,10 +304,10 @@ createCommand({
         }
 
         switch (subCommand.name) {
-          case "demo":
+          case 'demo':
             render(bot, interaction, subCommand);
             break;
-          case "latest": {
+          case 'latest': {
             const messages = await bot.helpers.getMessages(
               interaction.channelId!,
               {
@@ -317,7 +317,7 @@ createCommand({
 
             const attachment = messages.find((message) => {
               return (message.attachments ?? []).find((attachment) => {
-                return attachment.filename.endsWith(".dem");
+                return attachment.filename.endsWith('.dem');
               });
             })?.attachments?.at(0);
 
@@ -337,9 +337,9 @@ createCommand({
             }
             break;
           }
-          case "message": {
+          case 'message': {
             const args = [...(subCommand.options?.values() ?? [])];
-            const messageUrlOrId = args.find((arg) => arg.name === "url_or_id")!
+            const messageUrlOrId = args.find((arg) => arg.name === 'url_or_id')!
               .value as string;
 
             let message: Message | null = null;
@@ -350,12 +350,12 @@ createCommand({
               try {
                 const [route, _guildId, channelId, messageId] = url.pathname
                   .split(
-                    "/",
+                    '/',
                   )
                   .filter((x) => x);
 
-                if (route !== "channels") {
-                  throw new Error("Invalid route.");
+                if (route !== 'channels') {
+                  throw new Error('Invalid route.');
                 }
 
                 message = await bot.helpers.getMessage(
@@ -427,16 +427,16 @@ createCommand({
 
 const qualityOptionChoices: ApplicationCommandOptionChoice[] = [
   {
-    name: "480p (SD)",
-    value: "480p",
+    name: '480p (SD)',
+    value: '480p',
   },
   {
-    name: "720p (HD)",
-    value: "720p",
+    name: '720p (HD)',
+    value: '720p',
   },
   {
-    name: "1080p (FHD)",
-    value: "1080p",
+    name: '1080p (FHD)',
+    value: '1080p',
   },
   // TODO: Client render might or might not support these resolutions.
   //       Allowing these would also mean we need more storage...
@@ -456,7 +456,7 @@ const checkQualityOptions = async (
   interactionData: InteractionDataOption,
 ) => {
   const args = [...(interactionData.options?.values() ?? [])];
-  const quality = args.find((arg) => arg.name === "quality");
+  const quality = args.find((arg) => arg.name === 'quality');
 
   if (quality?.focused) {
     await bot.helpers.sendInteractionResponse(
@@ -476,7 +476,7 @@ const validateQualityOption = (
   interactionData: InteractionDataOption,
 ) => {
   const args = [...(interactionData.options?.values() ?? [])];
-  const quality = args.find((arg) => arg.name === "quality")?.value;
+  const quality = args.find((arg) => arg.name === 'quality')?.value;
 
   if (!quality) {
     return true;

@@ -4,29 +4,29 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Video } from "../../server/models.ts";
-import { Bot } from "../deps.ts";
-import { Interaction } from "../deps.ts";
-import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from "../deps.ts";
-import { escapeMaskedLink, getPublicUrl } from "../utils/helpers.ts";
-import { createCommand } from "./mod.ts";
+import { Video } from '../../server/models.ts';
+import { Bot } from '../deps.ts';
+import { Interaction } from '../deps.ts';
+import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
+import { escapeMaskedLink, getPublicUrl } from '../utils/helpers.ts';
+import { createCommand } from './mod.ts';
 
-const AUTORENDER_BASE_API = Deno.env.get("AUTORENDER_BASE_API")!;
+const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
 
 createCommand({
-  name: "watch",
-  description: "Watch rendered videos!",
+  name: 'watch',
+  description: 'Watch rendered videos!',
   type: ApplicationCommandTypes.ChatInput,
-  scope: "Global",
+  scope: 'Global',
   options: [
     {
-      name: "latest",
-      description: "Watch your latest rendered videos!",
+      name: 'latest',
+      description: 'Watch your latest rendered videos!',
       type: ApplicationCommandOptionTypes.SubCommand,
     },
     {
-      name: "random",
-      description: "Watch a random rendered video!",
+      name: 'random',
+      description: 'Watch a random rendered video!',
       type: ApplicationCommandOptionTypes.SubCommand,
     },
   ],
@@ -34,7 +34,7 @@ createCommand({
     const subCommand = [...(interaction.data?.options?.values() ?? [])].at(0)!;
 
     switch (subCommand.name) {
-      case "latest": {
+      case 'latest': {
         try {
           await bot.helpers.sendInteractionResponse(
             interaction.id,
@@ -50,9 +50,9 @@ createCommand({
           const res = await fetch(
             `${AUTORENDER_BASE_API}/api/v1/videos/status/${interaction.user.id}`,
             {
-              method: "GET",
+              method: 'GET',
               headers: {
-                "User-Agent": "autorender-bot v1.0",
+                'User-Agent': 'autorender-bot v1.0',
               },
             },
           );
@@ -61,7 +61,7 @@ createCommand({
             throw new Error(`Videos request failed. Status: ${res.status}`);
           }
 
-          type VideoStatus = Pick<Video, "video_id" | "title"> & {
+          type VideoStatus = Pick<Video, 'video_id' | 'title'> & {
             errored: boolean;
             rendering: boolean;
             rendered: boolean;
@@ -72,18 +72,18 @@ createCommand({
           if (videos.length) {
             const getStatus = (video: VideoStatus) => {
               if (video.errored) {
-                return "❌️";
+                return '❌️';
               }
 
               if (video.rendering) {
-                return "⌛️";
+                return '⌛️';
               }
 
               if (video.rendered) {
-                return "📺️";
+                return '📺️';
               }
 
-              return "";
+              return '';
             };
 
             await bot.helpers.editOriginalInteractionResponse(
@@ -93,7 +93,7 @@ createCommand({
                   const title = escapeMaskedLink(video.title);
                   const link = getPublicUrl(`/videos/${video.video_id}`);
                   return `${getStatus(video)} [${title}](<${link}>)`;
-                }).join("\n"),
+                }).join('\n'),
               },
             );
           } else {
@@ -113,7 +113,7 @@ createCommand({
         }
         break;
       }
-      case "random": {
+      case 'random': {
         try {
           await bot.helpers.sendInteractionResponse(
             interaction.id,
@@ -129,9 +129,9 @@ createCommand({
           const res = await fetch(
             `${AUTORENDER_BASE_API}/api/v1/videos/random/1`,
             {
-              method: "GET",
+              method: 'GET',
               headers: {
-                "User-Agent": "autorender-bot v1.0",
+                'User-Agent': 'autorender-bot v1.0',
               },
             },
           );
@@ -140,9 +140,9 @@ createCommand({
             throw new Error(`Videos request failed. Status: ${res.status}`);
           }
 
-          const [video] = await res.json() as Pick<Video, "video_id" | "title">[];
+          const [video] = await res.json() as Pick<Video, 'video_id' | 'title'>[];
           if (!video) {
-            throw new Error("No videos found.");
+            throw new Error('No videos found.');
           }
 
           const title = escapeMaskedLink(video.title);

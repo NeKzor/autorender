@@ -4,33 +4,37 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from "https://esm.sh/react@18.2.0";
-import { AppStateContext } from "../AppState.ts";
-import Footer from "../components/Footer.tsx";
-import { PendingStatus, User, UserPermissions, Video } from "../../models.ts";
-import { DataLoader, PageMeta, json, useLoaderData } from "../Routes.ts";
+import * as React from 'https://esm.sh/react@18.2.0';
+import { AppStateContext } from '../AppState.ts';
+import Footer from '../components/Footer.tsx';
+import { PendingStatus, User, UserPermissions, Video } from '../../models.ts';
+import { DataLoader, json, PageMeta, useLoaderData } from '../Routes.ts';
 
-type LatestVideo = Pick<
-  Video,
-  "video_id" | "title" | "created_at" | "views"
-> & {
-  requested_by_username: string | null;
-};
+type LatestVideo =
+  & Pick<
+    Video,
+    'video_id' | 'title' | 'created_at' | 'views'
+  >
+  & {
+    requested_by_username: string | null;
+  };
 
-type MostViewedVideo = Pick<
-  Video,
-  "video_id" | "title" | "created_at" | "views"
-> & {
-  requested_by_username: string | null;
-};
+type MostViewedVideo =
+  & Pick<
+    Video,
+    'video_id' | 'title' | 'created_at' | 'views'
+  >
+  & {
+    requested_by_username: string | null;
+  };
 
-type RequestedByStat = Pick<Video, "requested_by_id"> & {
-  username: User["username"];
+type RequestedByStat = Pick<Video, 'requested_by_id'> & {
+  username: User['username'];
   number_of_requests: number;
 };
 
-type RenderedByStat = Pick<Video, "rendered_by"> & {
-  username: User["username"];
+type RenderedByStat = Pick<Video, 'rendered_by'> & {
+  username: User['username'];
   number_of_renders: number;
 };
 
@@ -43,7 +47,7 @@ type Data = {
 
 export const meta: PageMeta<undefined> = () => {
   return {
-    title: "Home",
+    title: 'Home',
   };
 };
 
@@ -61,7 +65,7 @@ export const loader: DataLoader = async ({ context }) => {
         and video_url is not null
    order by created_at desc
       limit 5`,
-    [PendingStatus.FinishedRender]
+    [PendingStatus.FinishedRender],
   );
 
   const mostViewedVideos = await context.db.query<LatestVideo>(
@@ -77,7 +81,7 @@ export const loader: DataLoader = async ({ context }) => {
         and video_url is not null
    order by views desc
       limit 5`,
-    [PendingStatus.FinishedRender]
+    [PendingStatus.FinishedRender],
   );
 
   const requesterStats = await context.db.query<RequestedByStat>(
@@ -95,7 +99,7 @@ export const loader: DataLoader = async ({ context }) => {
              on users.discord_id = stats.requested_by_id
           order by stats.number_of_requests desc
           limit 5`,
-    [PendingStatus.FinishedRender]
+    [PendingStatus.FinishedRender],
   );
 
   const rendererStats = await context.db.query<RenderedByStat>(
@@ -113,7 +117,7 @@ export const loader: DataLoader = async ({ context }) => {
              on users.user_id = stats.rendered_by
           order by stats.number_of_renders desc
           limit 5`,
-    [PendingStatus.FinishedRender]
+    [PendingStatus.FinishedRender],
   );
 
   return json<Data>({
@@ -131,18 +135,20 @@ export const Home = () => {
 
   return (
     <>
-      {state?.user ? (
-        <>
-          <div>Hey {state.user.username}!</div>
+      {state?.user
+        ? (
+          <>
+            <div>Hey {state.user.username}!</div>
+            <div>
+              <a href={`/profile/${state.user.username}`}>Profile</a>
+            </div>
+          </>
+        )
+        : (
           <div>
-            <a href={`/profile/${state.user.username}`}>Profile</a>
+            <a href={state?.discordAuthorizeLink}>Login with Discord</a>
           </div>
-        </>
-      ) : (
-        <div>
-          <a href={state?.discordAuthorizeLink}>Login with Discord</a>
-        </div>
-      )}
+        )}
       {data !== null && (
         <>
           <br />
@@ -152,9 +158,8 @@ export const Home = () => {
               {data.latestVideos.map((video) => {
                 return (
                   <li>
-                    <a href={`/videos/${video.video_id}`}>{video.title}</a> |{" "}
-                    {new Date(video.created_at).toLocaleDateString()} |{" "}
-                    {video.views} views
+                    <a href={`/videos/${video.video_id}`}>{video.title}</a> |{' '}
+                    {new Date(video.created_at).toLocaleDateString()} | {video.views} views
                   </li>
                 );
               })}
@@ -166,9 +171,8 @@ export const Home = () => {
               {data.mostViewedVideos.map((video) => {
                 return (
                   <li>
-                    <a href={`/videos/${video.video_id}`}>{video.title}</a> |{" "}
-                    {new Date(video.created_at).toLocaleDateString()} |{" "}
-                    {video.views} views
+                    <a href={`/videos/${video.video_id}`}>{video.title}</a> |{' '}
+                    {new Date(video.created_at).toLocaleDateString()} | {video.views} views
                   </li>
                 );
               })}
@@ -180,12 +184,9 @@ export const Home = () => {
               {data.requesterStats.map((stat) => {
                 return (
                   <li>
-                    {stat.username ? (
-                      <a href={`/profile/${stat.username}`}>{stat.username}</a>
-                    ) : (
-                      <span>{stat.requested_by_id}</span>
-                    )}{" "}
-                    | {stat.number_of_requests} videos
+                    {stat.username
+                      ? <a href={`/profile/${stat.username}`}>{stat.username}</a>
+                      : <span>{stat.requested_by_id}</span>} | {stat.number_of_requests} videos
                   </li>
                 );
               })}
@@ -197,8 +198,7 @@ export const Home = () => {
               {data.rendererStats.map((stat) => {
                 return (
                   <li>
-                    <a href={`/profile/${stat.username}`}>{stat.username}</a> |{" "}
-                    {stat.number_of_renders} videos
+                    <a href={`/profile/${stat.username}`}>{stat.username}</a> | {stat.number_of_renders} videos
                   </li>
                 );
               })}
@@ -209,13 +209,13 @@ export const Home = () => {
       )}
       {state?.user &&
         !!(state.user.permissions & UserPermissions.CreateTokens) && (
-          <div>
-            <a href="/tokens">Tokens</a>
-          </div>
-        )}
+        <div>
+          <a href='/tokens'>Tokens</a>
+        </div>
+      )}
       {state?.user && (
         <div>
-          <a href="/logout">Logout</a>
+          <a href='/logout'>Logout</a>
         </div>
       )}
       <Footer />

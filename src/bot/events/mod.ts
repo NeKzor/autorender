@@ -4,6 +4,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-import type { EventHandlers } from "../deps.ts";
+import type { EventHandlers } from '../deps.ts';
 
 export const events: Partial<EventHandlers> = {};

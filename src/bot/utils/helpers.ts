@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { BitwisePermissionFlags, Bot, CreateApplicationCommand, Guild } from "../deps.ts";
-import { logger } from "./logger.ts";
-import { commands } from "../commands/mod.ts";
-import { BotWithCache } from "../bot.ts";
+import { BitwisePermissionFlags, Bot, CreateApplicationCommand, Guild } from '../deps.ts';
+import { logger } from './logger.ts';
+import { commands } from '../commands/mod.ts';
+import { BotWithCache } from '../bot.ts';
 
-const log = logger({ name: "Helpers" });
+const log = logger({ name: 'Helpers' });
 
 /**
  * Update global commands.
@@ -18,7 +18,7 @@ const log = logger({ name: "Helpers" });
  */
 export async function updateCommands(bot: BotWithCache) {
   const globalCommands = commands
-    .filter(({ scope }) => scope === "Global" || scope === undefined)
+    .filter(({ scope }) => scope === 'Global' || scope === undefined)
     .map<CreateApplicationCommand>(({ name, description, type, options }) => ({
       name,
       description,
@@ -44,7 +44,7 @@ export async function updateCommands(bot: BotWithCache) {
  */
 export async function updateGuildCommands(bot: Bot, guild: Guild) {
   const guildCommands = commands
-    .filter(({ scope, guilds }) => scope === "Guild" && (!guilds?.length || guilds.includes(guild.id)))
+    .filter(({ scope, guilds }) => scope === 'Guild' && (!guilds?.length || guilds.includes(guild.id)))
     .map<CreateApplicationCommand>(({ name, description, type, options }) => ({
       name,
       description,
@@ -113,21 +113,21 @@ export const hasPermissionFlags = (permissions: bigint | undefined, flags: Bitwi
  * @returns
  */
 export function escapeMaskedLink(linkTitle: string) {
-  return ["[", "]"].reduce(
-    (text, characterToRemove) => text.replaceAll(characterToRemove, ""),
+  return ['[', ']'].reduce(
+    (text, characterToRemove) => text.replaceAll(characterToRemove, ''),
     linkTitle,
   );
 }
 
 const specialMdCharacters = [
-  "[",
-  "]",
-  "(",
-  ")",
-  "`",
-  "*",
-  "_",
-  "~",
+  '[',
+  ']',
+  '(',
+  ')',
+  '`',
+  '*',
+  '_',
+  '~',
 ];
 
 /**
@@ -149,5 +149,5 @@ export function escapeMarkdown(text: string) {
  * @returns - The full URL.
  */
 export function getPublicUrl(url: string) {
-  return new URL(url, Deno.env.get("AUTORENDER_PUBLIC_URI")!).toString();
+  return new URL(url, Deno.env.get('AUTORENDER_PUBLIC_URI')!).toString();
 }

@@ -4,30 +4,25 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from "https://esm.sh/react@18.2.0";
-import {
-  AppState,
-  AppStateContext,
-  AppDispatchContext,
-  reducer,
-} from "./AppState.ts";
-import { RouteMeta } from "./Routes.ts";
+import * as React from 'https://esm.sh/react@18.2.0';
+import { AppDispatchContext, AppState, AppStateContext, reducer } from './AppState.ts';
+import { RouteMeta } from './Routes.ts';
 
 const metaNames: (keyof RouteMeta)[] = [
-  "title",
-  "description",
-  "og:type",
-  "og:url",
-  "og:title",
-  "og:description",
-  "og:image",
-  "og:video",
-  "twitter:type",
-  "twitter:url",
-  "twitter:title",
-  "twitter:description",
-  "twitter:image",
-  "twitter:card",
+  'title',
+  'description',
+  'og:type',
+  'og:url',
+  'og:title',
+  'og:description',
+  'og:image',
+  'og:video',
+  'twitter:type',
+  'twitter:url',
+  'twitter:title',
+  'twitter:description',
+  'twitter:image',
+  'twitter:card',
 ];
 
 const getCSP = (nonce: string) => {
@@ -38,7 +33,7 @@ const getCSP = (nonce: string) => {
     `font-src 'self' https://fonts.gstatic.com;`,
     `media-src 'self' *.backblazeb2.com;`,
     `img-src 'self';`,
-  ].join(" ");
+  ].join(' ');
 };
 
 type AppProps = {
@@ -53,15 +48,15 @@ const App = ({ initialState, nonce, children }: AppProps) => {
   const title = meta.title !== undefined ? `${meta.title} | ${domain}` : domain;
 
   return (
-    <html lang="en" dir="ltr">
+    <html lang='en' dir='ltr'>
       <head>
-        <meta charSet="utf-8" />
+        <meta charSet='utf-8' />
         <meta
-          name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
+          name='viewport'
+          content='minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no'
         />
-        <meta http-equiv="Content-Security-Policy" content={getCSP(nonce)} />
-        <meta name="theme-color" content="#f44336" />
+        <meta http-equiv='Content-Security-Policy' content={getCSP(nonce)} />
+        <meta name='theme-color' content='#f44336' />
         {metaNames
           .filter((name) => meta[name] !== undefined && meta[name] !== null)
           .map((name) => {
@@ -69,8 +64,8 @@ const App = ({ initialState, nonce, children }: AppProps) => {
           })}
         <title>{title}</title>
         <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+          rel='stylesheet'
+          href='https://fonts.googleapis.com/css?family=Roboto:300,400,500'
         />
       </head>
       <body>

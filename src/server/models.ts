@@ -96,11 +96,11 @@ export enum VisibilityState {
  * Available render qualities of a video.
  */
 export enum RenderQuality {
-  SD_480p = "480p",
-  HD_720p = "720p",
-  FHD_1080p= "1080p",
-  QHD_1440p = "1440p",
-  UHD_2160p = "2160p",
+  SD_480p = '480p',
+  HD_720p = '720p',
+  FHD_1080p = '1080p',
+  QHD_1440p = '1440p',
+  UHD_2160p = '2160p',
 }
 
 /**

@@ -7,22 +7,22 @@
  * command. It will send a message once a video is uploaded.
  */
 
-import "https://deno.land/std@0.190.0/dotenv/load.ts";
+import 'https://deno.land/std@0.190.0/dotenv/load.ts';
 
-import { ActivityTypes } from "./deps.ts";
-import { logger } from "./utils/logger.ts";
-import { escapeMaskedLink, getPublicUrl, updateCommands } from "./utils/helpers.ts";
-import { BotDataType, BotMessages } from "./protocol.ts";
-import { bot } from "./bot.ts";
+import { ActivityTypes } from './deps.ts';
+import { logger } from './utils/logger.ts';
+import { escapeMaskedLink, getPublicUrl, updateCommands } from './utils/helpers.ts';
+import { BotDataType, BotMessages } from './protocol.ts';
+import { bot } from './bot.ts';
 
 // TODO: file logging
-const log = logger({ name: "Main" });
+const log = logger({ name: 'Main' });
 
-addEventListener("error", (ev) => {
+addEventListener('error', (ev) => {
   console.dir({ error: ev.error }, { depth: 16 });
 });
 
-addEventListener("unhandledrejection", (ev) => {
+addEventListener('unhandledrejection', (ev) => {
   console.dir({ unhandledrejection: ev.reason }, { depth: 16 });
 
   if (ev.reason?.body) {
@@ -30,26 +30,26 @@ addEventListener("unhandledrejection", (ev) => {
   }
 });
 
-log.info("Starting bot");
+log.info('Starting bot');
 
-await import("./commands/bot.ts");
-await import("./commands/fixup.ts");
-await import("./commands/render.ts");
-await import("./commands/watch.ts");
+await import('./commands/bot.ts');
+await import('./commands/fixup.ts');
+await import('./commands/render.ts');
+await import('./commands/watch.ts');
 
-import("./events/guildCreate.ts");
-import("./events/interactionCreate.ts");
-import("./events/ready.ts");
+import('./events/guildCreate.ts');
+import('./events/interactionCreate.ts');
+import('./events/ready.ts');
 
 await updateCommands(bot);
 
 // Worker thread for connecting to the server.
-const worker = new Worker(new URL("./worker.ts", import.meta.url).href, {
-  type: "module",
+const worker = new Worker(new URL('./worker.ts', import.meta.url).href, {
+  type: 'module',
 });
 
 // Handle all new incoming messages from the server
-worker.addEventListener("message", async (message) => {
+worker.addEventListener('message', async (message) => {
   try {
     const { type, data } = JSON.parse(message.data) as BotMessages;
 
@@ -60,7 +60,7 @@ worker.addEventListener("message", async (message) => {
 
         const content = [
           `📽️ Rendered video [${title}](${link})`,
-        ].join("\n");
+        ].join('\n');
 
         if (data.requested_in_guild_id && data.requested_in_channel_id) {
           await bot.helpers.sendMessage(data.requested_in_channel_id, {
@@ -86,7 +86,7 @@ worker.addEventListener("message", async (message) => {
         break;
       }
       default: {
-        console.warn("Unknown message type", type);
+        console.warn('Unknown message type', type);
         break;
       }
     }
@@ -95,21 +95,21 @@ worker.addEventListener("message", async (message) => {
   }
 });
 
-log.info("Started bot");
+log.info('Started bot');
 
 // FIXME: This is the wrong place to update the status
 setTimeout(async () => {
   await bot.gateway.editBotStatus({
-    status: "online",
+    status: 'online',
     activities: [
       {
-        name: "your rendered demos!",
+        name: 'your rendered demos!',
         type: ActivityTypes.Watching,
       },
     ],
   });
 
-  log.info("Updated bot status");
+  log.info('Updated bot status');
 }, 3_000);
 
 await bot.start();

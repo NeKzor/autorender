@@ -23,17 +23,17 @@
 
 /** Allowed capabilities of an authorized account.  */
 export type AllowedCapability =
-  | "shareFiles"
-  | "writeBucketReplications"
-  | "deleteFiles"
-  | "readBuckets"
-  | "writeFiles"
-  | "readBucketReplications"
-  | "listBuckets"
-  | "readFiles"
-  | "listFiles"
-  | "writeBucketEncryption"
-  | "readBucketEncryption";
+  | 'shareFiles'
+  | 'writeBucketReplications'
+  | 'deleteFiles'
+  | 'readBuckets'
+  | 'writeFiles'
+  | 'readBucketReplications'
+  | 'listBuckets'
+  | 'readFiles'
+  | 'listFiles'
+  | 'writeBucketEncryption'
+  | 'readBucketEncryption';
 
 /**
  * Response object of a file upload.
@@ -94,35 +94,35 @@ export interface GetUploadUrlResponse {
 
 /** Valid Backblaze API operations. */
 export type BackblazeApiOperation =
-  | "b2_authorize_account"
-  | "b2_cancel_large_file"
-  | "b2_copy_file"
-  | "b2_copy_part"
-  | "b2_create_bucket"
-  | "b2_create_key"
-  | "b2_delete_bucket"
-  | "b2_delete_file_version"
-  | "b2_delete_key"
-  | "b2_download_file_by_id"
-  | "b2_download_file_by_name"
-  | "b2_finish_large_file"
-  | "b2_get_download_authorization"
-  | "b2_get_file_info"
-  | "b2_get_upload_part_url"
-  | "b2_get_upload_url"
-  | "b2_hide_file"
-  | "b2_list_buckets"
-  | "b2_list_file_names"
-  | "b2_list_file_versions"
-  | "b2_list_keys"
-  | "b2_list_parts"
-  | "b2_list_unfinished_large_files"
-  | "b2_start_large_file"
-  | "b2_update_bucket"
-  | "b2_update_file_legal_hold"
-  | "b2_update_file_retention"
-  | "b2_upload_file"
-  | "b2_upload_part";
+  | 'b2_authorize_account'
+  | 'b2_cancel_large_file'
+  | 'b2_copy_file'
+  | 'b2_copy_part'
+  | 'b2_create_bucket'
+  | 'b2_create_key'
+  | 'b2_delete_bucket'
+  | 'b2_delete_file_version'
+  | 'b2_delete_key'
+  | 'b2_download_file_by_id'
+  | 'b2_download_file_by_name'
+  | 'b2_finish_large_file'
+  | 'b2_get_download_authorization'
+  | 'b2_get_file_info'
+  | 'b2_get_upload_part_url'
+  | 'b2_get_upload_url'
+  | 'b2_hide_file'
+  | 'b2_list_buckets'
+  | 'b2_list_file_names'
+  | 'b2_list_file_versions'
+  | 'b2_list_keys'
+  | 'b2_list_parts'
+  | 'b2_list_unfinished_large_files'
+  | 'b2_start_large_file'
+  | 'b2_update_bucket'
+  | 'b2_update_file_legal_hold'
+  | 'b2_update_file_retention'
+  | 'b2_upload_file'
+  | 'b2_upload_part';
 
 export interface BackblazeApiError {
   status: number;
@@ -191,7 +191,7 @@ export interface BackblazeClientOptions {
    * Automatically call authorizeAccount() on 401 response status.
    * A call to authorizeAccount() itself will not cause a retry.
    * This is on by default.
-   * */
+   */
   automaticRetryOnUnauthorizedStatus?: boolean;
 }
 
@@ -226,30 +226,29 @@ export class BackblazeClient {
    */
   constructor(options: BackblazeClientOptions) {
     this.#userAgent = options.userAgent;
-    this.#baseApi = options.baseApi ?? "https://api.backblazeb2.com";
-    this.#apiVersion = options.apiVersion ?? "v2";
+    this.#baseApi = options.baseApi ?? 'https://api.backblazeb2.com';
+    this.#apiVersion = options.apiVersion ?? 'v2';
     this.#hasher = options.hasher ??
       (async (buffer: BufferSource) => {
-        const hash = await crypto.subtle.digest("SHA-1", buffer);
+        const hash = await crypto.subtle.digest('SHA-1', buffer);
         return Array.from(new Uint8Array(hash))
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join("");
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
       });
-    this.#automaticRetryOnUnauthorizedStatus =
-      options.automaticRetryOnUnauthorizedStatus ?? true;
+    this.#automaticRetryOnUnauthorizedStatus = options.automaticRetryOnUnauthorizedStatus ?? true;
     this.authorization = null;
   }
 
   protected checkAuthorization() {
     if (!this.authorization) {
       throw new Error(
-        "Client is not authorized. Did you forget to call authorizeAccount()?",
+        'Client is not authorized. Did you forget to call authorizeAccount()?',
       );
     }
   }
 
   protected async generateHash(buffer: BufferSource) {
-    if ("then" in this.#hasher) {
+    if ('then' in this.#hasher) {
       return await this.#hasher(buffer);
     } else {
       return this.#hasher(buffer);
@@ -266,20 +265,18 @@ export class BackblazeClient {
   ): Promise<TResponse> {
     const headers = new Headers({
       ...options.headers,
-      "User-Agent": this.#userAgent,
+      'User-Agent': this.#userAgent,
     });
 
-    if (!headers.get("Content-Type")) {
-      headers.append("Content-Type", "application/json");
+    if (!headers.get('Content-Type')) {
+      headers.append('Content-Type', 'application/json');
     }
 
     const uri = options.url ??
-      `${
-        options.baseApi ?? this.#baseApi
-      }/b2api/${this.#apiVersion}/${operation}`;
+      `${options.baseApi ?? this.#baseApi}/b2api/${this.#apiVersion}/${operation}`;
 
     const res = await fetch(uri, {
-      method: options.body ? "POST" : "GET",
+      method: options.body ? 'POST' : 'GET',
       headers,
       body: options.body,
     });
@@ -288,7 +285,7 @@ export class BackblazeClient {
       if (
         res.status !== 401 &&
         this.#automaticRetryOnUnauthorizedStatus &&
-        operation !== "b2_authorize_account"
+        operation !== 'b2_authorize_account'
       ) {
         await this.internalAuthorizeAccount();
       }
@@ -319,7 +316,7 @@ export class BackblazeClient {
 
   protected async internalAuthorizeAccount() {
     this.authorization = await this.call<AuthorizeAccountResponse>(
-      "b2_authorize_account",
+      'b2_authorize_account',
       {
         headers: {
           Authorization: `Basic ${this.#accountCredentials}`,
@@ -343,7 +340,7 @@ export class BackblazeClient {
       bucketId: string;
     };
 
-    return await this.call<GetUploadUrlResponse>("b2_get_upload_url", {
+    return await this.call<GetUploadUrlResponse>('b2_get_upload_url', {
       baseApi: this.authorization!.apiUrl,
       headers: {
         Authorization: this.authorization!.authorizationToken,
@@ -366,11 +363,9 @@ export class BackblazeClient {
    * @see https://www.backblaze.com/b2/docs/b2_upload_file.html
    */
   public async uploadFile(options: UploadFileOptions) {
-    const { authorizationToken, uploadUrl } = options.uploadUrl
-      ? options.uploadUrl
-      : await this.getUploadUrl({
-        bucketId: options.bucketId,
-      });
+    const { authorizationToken, uploadUrl } = options.uploadUrl ? options.uploadUrl : await this.getUploadUrl({
+      bucketId: options.bucketId,
+    });
 
     const hash = options.fileHash ??
       (await this.generateHash(options.fileContents));
@@ -381,19 +376,19 @@ export class BackblazeClient {
       );
     }
 
-    return await this.call<UploadFileResponse>("b2_upload_file", {
+    return await this.call<UploadFileResponse>('b2_upload_file', {
       url: uploadUrl,
       headers: {
         Authorization: authorizationToken,
-        "X-Bz-File-Name": options.fileName
-          .split("/")
+        'X-Bz-File-Name': options.fileName
+          .split('/')
           .map((part) => encodeURIComponent(part))
-          .join("/"),
-        "Content-Type": options.contentType ?? "b2/x-auto",
-        "Content-Length": (
+          .join('/'),
+        'Content-Type': options.contentType ?? 'b2/x-auto',
+        'Content-Length': (
           options.fileContents.byteLength + hash.length
         ).toString(),
-        "X-Bz-Content-Sha1": hash,
+        'X-Bz-Content-Sha1': hash,
       },
       body: options.fileContents,
     });
@@ -420,81 +415,81 @@ export class BackblazeClient {
   }
 
   public cancelLargeFile() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public copyFile() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public copyPart() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public createBucket() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public createKey() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public deleteBucket() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public deleteFileVersion() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public deleteKey() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public downloadFileById() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public downloadFileByName() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public finishLargeFile() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public getDownloadAuthorization() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public getFileInfo() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public getUploadPartUrl() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public hideFile() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public listBuckets() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public listFileNames() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public listFileVersions() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public listKeys() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public listParts() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public listUnfinishedLargeFiles() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public startLargeFile() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public updateBucket() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public updateFileLegalHold() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public updateFileRetention() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
   public uploadPart() {
-    throw new Error("Operation not implemented");
+    throw new Error('Operation not implemented');
   }
 }

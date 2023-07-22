@@ -9,19 +9,19 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
-import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
-import { logger } from "./logger.ts";
-import { ClientState } from "./state.ts";
-import { Video } from "../server/models.ts";
-import { Config } from "./config.ts";
-import { VideoPayload } from "./protocol.ts";
+import { join } from 'https://deno.land/std@0.190.0/path/mod.ts';
+import { logger } from './logger.ts';
+import { ClientState } from './state.ts';
+import { Video } from '../server/models.ts';
+import { Config } from './config.ts';
+import { VideoPayload } from './protocol.ts';
 
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 
 export enum UploadWorkerDataType {
-  Config = "config",
-  Upload = "upload",
-  Error = "error",
+  Config = 'config',
+  Upload = 'upload',
+  Error = 'error',
 }
 
 export type UploadWorkerMessage<T extends UploadWorkerDataType, P> = {
@@ -36,12 +36,12 @@ export type UploadWorkerMessageConfig = UploadWorkerMessage<
 
 export type UploadWorkerMessageUpload = UploadWorkerMessage<
   UploadWorkerDataType.Upload,
-  { videos: ClientState["videos"] }
+  { videos: ClientState['videos'] }
 >;
 
 export type UploadWorkerMessageError = UploadWorkerMessage<
   UploadWorkerDataType.Error,
-  { video_id: VideoPayload["video_id"]; error: string }
+  { video_id: VideoPayload['video_id']; error: string }
 >;
 
 export type UploadWorkerMessages =
@@ -52,7 +52,7 @@ export type UploadWorkerMessages =
 const config = {} as Config;
 
 self.addEventListener(
-  "message",
+  'message',
   async (message: MessageEvent<UploadWorkerMessages>) => {
     const { type, data } = message.data;
 
@@ -67,7 +67,7 @@ self.addEventListener(
             const videoFile = join(
               config.games.at(0)!.dir,
               config.games.at(0)!.mod,
-              config.autorender["folder-name"],
+              config.autorender['folder-name'],
               `${video_id}.dem.mp4`,
             );
 
@@ -82,21 +82,19 @@ self.addEventListener(
             const body = new FormData();
 
             body.append(
-              "files",
-              new Blob([await Deno.readFile(videoFile)], { type: "video/mp4" }),
+              'files',
+              new Blob([await Deno.readFile(videoFile)], { type: 'video/mp4' }),
             );
 
-            body.append("video_id", video_id);
+            body.append('video_id', video_id);
 
             const response = await fetch(
-              `${config.autorender["base-api"]}/api/v1/videos/upload`,
+              `${config.autorender['base-api']}/api/v1/videos/upload`,
               {
-                method: "POST",
+                method: 'POST',
                 headers: {
-                  "User-Agent": "autorender-client v1.0",
-                  Authorization: `Bearer ${
-                    encodeURIComponent(config.autorender["access-token"])
-                  }`,
+                  'User-Agent': 'autorender-client v1.0',
+                  Authorization: `Bearer ${encodeURIComponent(config.autorender['access-token'])}`,
                 },
                 body,
               },
@@ -106,8 +104,8 @@ self.addEventListener(
               throw new Error(`Failed to render video: ${response.status}`);
             }
 
-            const video = await response.json() as Pick<Video, "video_id">;
-            logger.info("Uploaded video", video);
+            const video = await response.json() as Pick<Video, 'video_id'>;
+            logger.info('Uploaded video', video);
           } catch (err) {
             logger.error(err);
 

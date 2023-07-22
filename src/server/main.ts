@@ -9,9 +9,9 @@
  *    - Serving the web platform (`/app`)
  */
 
-import "https://deno.land/std@0.177.0/dotenv/load.ts";
-import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
-import * as uuid from "https://deno.land/std@0.192.0/uuid/mod.ts";
+import 'https://deno.land/std@0.177.0/dotenv/load.ts';
+import { join } from 'https://deno.land/std@0.190.0/path/mod.ts';
+import * as uuid from 'https://deno.land/std@0.192.0/uuid/mod.ts';
 import {
   Application,
   Context,
@@ -20,23 +20,14 @@ import {
   Router,
   Status,
   STATUS_TEXT,
-} from "https://deno.land/x/oak@v12.2.0/mod.ts";
-import {
-  ResponseBody,
-  ResponseBodyFunction,
-} from "https://deno.land/x/oak@v12.2.0/response.ts";
-import {
-  CookieStore,
-  Session,
-} from "https://deno.land/x/oak_sessions@v4.1.4/mod.ts";
-import {
-  MapStore,
-  RateLimiter,
-} from "https://deno.land/x/oak_rate_limit@v0.1.1/mod.ts";
-import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
-import { logger } from "./logger.ts";
-import { index } from "./app/index.tsx";
-import { BackblazeClient } from "./b2.ts";
+} from 'https://deno.land/x/oak@v12.2.0/mod.ts';
+import { ResponseBody, ResponseBodyFunction } from 'https://deno.land/x/oak@v12.2.0/response.ts';
+import { CookieStore, Session } from 'https://deno.land/x/oak_sessions@v4.1.4/mod.ts';
+import { MapStore, RateLimiter } from 'https://deno.land/x/oak_rate_limit@v0.1.1/mod.ts';
+import { oakCors } from 'https://deno.land/x/cors@v1.2.2/mod.ts';
+import { logger } from './logger.ts';
+import { index } from './app/index.tsx';
+import { BackblazeClient } from './b2.ts';
 import {
   AccessPermission,
   AccessToken,
@@ -49,71 +40,63 @@ import {
   User,
   UserPermissions,
   Video,
-} from "./models.ts";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
-import * as _bcrypt_worker from "https://deno.land/x/bcrypt@v0.4.1/src/worker.ts";
-import { Buffer } from "https://deno.land/std@0.190.0/io/buffer.ts";
-import { AppState as ReactAppState } from "./app/AppState.ts";
-import { db } from "./db.ts";
-import { createStaticRouter } from "https://esm.sh/react-router-dom@6.11.2/server";
-import {
-  createFetchRequest,
-  RequestContext,
-  routeHandler,
-  routes,
-} from "./app/Routes.ts";
-import { getDemoInfo } from "./demo.ts";
-import { basename } from "https://deno.land/std@0.190.0/path/win32.ts";
+} from './models.ts';
+import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
+import * as _bcrypt_worker from 'https://deno.land/x/bcrypt@v0.4.1/src/worker.ts';
+import { Buffer } from 'https://deno.land/std@0.190.0/io/buffer.ts';
+import { AppState as ReactAppState } from './app/AppState.ts';
+import { db } from './db.ts';
+import { createStaticRouter } from 'https://esm.sh/react-router-dom@6.11.2/server';
+import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
+import { getDemoInfo } from './demo.ts';
+import { basename } from 'https://deno.land/std@0.190.0/path/win32.ts';
 
-const SERVER_HOST = Deno.env.get("SERVER_HOST")!;
-const SERVER_PORT = parseInt(Deno.env.get("SERVER_PORT")!, 10);
-const SERVER_SSL_CERT = Deno.env.get("SERVER_SSL_CERT")!;
-const SERVER_SSL_KEY = Deno.env.get("SERVER_SSL_KEY")!;
-const IS_HTTPS = SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none";
+const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
+const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
+const SERVER_SSL_CERT = Deno.env.get('SERVER_SSL_CERT')!;
+const SERVER_SSL_KEY = Deno.env.get('SERVER_SSL_KEY')!;
+const IS_HTTPS = SERVER_SSL_CERT !== 'none' && SERVER_SSL_KEY !== 'none';
 // FIXME: Clients are not well prepared to handle multiple videos at once
 const MAX_VIDEOS_PER_REQUEST = 1;
-const AUTORENDER_PUBLIC_URI = Deno.env.get("AUTORENDER_PUBLIC_URI")!;
-const AUTORENDER_V1 = "autorender-v1";
+const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
+const AUTORENDER_V1 = 'autorender-v1';
 const DISCORD_AUTHORIZE_LINK = (() => {
   const params = new URLSearchParams();
-  params.set("client_id", Deno.env.get("DISCORD_CLIENT_ID")!);
+  params.set('client_id', Deno.env.get('DISCORD_CLIENT_ID')!);
   params.set(
-    "redirect_uri",
+    'redirect_uri',
     `${AUTORENDER_PUBLIC_URI}/login/discord/authorize`,
   );
-  params.set("response_type", "code");
-  params.set("scope", "identify");
+  params.set('response_type', 'code');
+  params.set('scope', 'identify');
   return `https://discord.com/api/oauth2/authorize?${params.toString()}`;
 })();
 const SERVER_DOMAIN = new URL(AUTORENDER_PUBLIC_URI).host;
 const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
-  Deno.env.get("AUTORENDER_BOT_TOKEN")!,
+  Deno.env.get('AUTORENDER_BOT_TOKEN')!,
 );
 const AUTORENDER_BOARD_TOKEN_HASH = (() => {
-  const boardToken = Deno.env.get("AUTORENDER_BOARD_TOKEN")!;
-  return boardToken !== "none" ? bcrypt.hashSync(boardToken) : null;
+  const boardToken = Deno.env.get('AUTORENDER_BOARD_TOKEN')!;
+  return boardToken !== 'none' ? bcrypt.hashSync(boardToken) : null;
 })();
-const AUTORENDER_DEMOS_FOLDER = Deno.env.get("AUTORENDER_DEMOS_FOLDER")!;
-const AUTORENDER_VIDEOS_FOLDER = Deno.env.get("AUTORENDER_VIDEOS_FOLDER")!;
+const AUTORENDER_DEMOS_FOLDER = Deno.env.get('AUTORENDER_DEMOS_FOLDER')!;
+const AUTORENDER_VIDEOS_FOLDER = Deno.env.get('AUTORENDER_VIDEOS_FOLDER')!;
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
-const B2_ENABLED = Deno.env.get("B2_ENABLED")! === "yes";
-const B2_BUCKET_ID = Deno.env.get("B2_BUCKET_ID")!;
+const B2_ENABLED = Deno.env.get('B2_ENABLED')! === 'yes';
+const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 
-const getDemoFilePath = (videoId: string) =>
-  join(AUTORENDER_DEMOS_FOLDER, `${videoId}.dem`);
-const getFixedDemoFilePath = (videoId: string) =>
-  join(AUTORENDER_DEMOS_FOLDER, `${videoId}_fixed.dem`);
-const getVideoFilePath = (videoId: string) =>
-  join(AUTORENDER_VIDEOS_FOLDER, `${videoId}.mp4`);
+const getDemoFilePath = (videoId: string) => join(AUTORENDER_DEMOS_FOLDER, `${videoId}.dem`);
+const getFixedDemoFilePath = (videoId: string) => join(AUTORENDER_DEMOS_FOLDER, `${videoId}_fixed.dem`);
+const getVideoFilePath = (videoId: string) => join(AUTORENDER_VIDEOS_FOLDER, `${videoId}.mp4`);
 
 const cookieOptions: CookiesSetDeleteOptions = {
   expires: new Date(Date.now() + 86_400_000 * 30),
-  sameSite: "lax",
+  sameSite: 'lax',
   secure: IS_HTTPS,
 };
 
-const store = new CookieStore(Deno.env.get("COOKIE_SECRET_KEY")!, {
+const store = new CookieStore(Deno.env.get('COOKIE_SECRET_KEY')!, {
   cookieSetDeleteOptions: cookieOptions,
 });
 const useSession = Session.initMiddleware(store, {
@@ -121,7 +104,7 @@ const useSession = Session.initMiddleware(store, {
 });
 
 const _requiresAuth: Middleware<AppState> = (ctx) => {
-  if (!ctx.state.session.get("user")) {
+  if (!ctx.state.session.get('user')) {
     return Err(ctx, Status.Unauthorized);
   }
 };
@@ -142,9 +125,9 @@ const _sendErrorToBot = (error: {
   requested_in_channel_id: string;
 }) => {
   if (discordBot && discordBot.readyState === WebSocket.OPEN) {
-    discordBot.send(JSON.stringify({ type: "error", data: error }));
+    discordBot.send(JSON.stringify({ type: 'error', data: error }));
   } else {
-    logger.warn("Bot not connected. Failed to send error status.", error);
+    logger.warn('Bot not connected. Failed to send error status.', error);
   }
 };
 
@@ -152,28 +135,28 @@ const b2 = new BackblazeClient({ userAgent: AUTORENDER_V1 });
 
 if (B2_ENABLED) {
   b2.authorizeAccount({
-    accountId: Deno.env.get("B2_KEY_ID")!,
-    applicationKey: Deno.env.get("B2_APP_KEY")!,
+    accountId: Deno.env.get('B2_KEY_ID')!,
+    applicationKey: Deno.env.get('B2_APP_KEY')!,
   }).then(() => {
-    logger.info("Connected to b2");
+    logger.info('Connected to b2');
   });
 } else {
-  logger.info("⚠️  Connection to b2 disabled. Using directory to store videos.");
+  logger.info('⚠️  Connection to b2 disabled. Using directory to store videos.');
 }
 
-await logger.initFileLogger("log/server", {
+await logger.initFileLogger('log/server', {
   rotate: true,
   maxBytes: 100_000_000,
   maxBackupCount: 7,
 });
 
-addEventListener("unhandledrejection", (ev) => {
+addEventListener('unhandledrejection', (ev) => {
   ev.preventDefault();
   console.error(ev.reason);
 });
 
 const hasPermission = (ctx: Context, permission: UserPermissions) => {
-  return ctx.state.session.get("user").permissions & permission;
+  return ctx.state.session.get('user').permissions & permission;
 };
 
 const Ok = (
@@ -182,13 +165,13 @@ const Ok = (
   type?: string,
 ) => {
   ctx.response.status = Status.OK;
-  ctx.response.type = type ?? "application/json";
+  ctx.response.type = type ?? 'application/json';
   ctx.response.body = body ?? {};
 };
 
 const Err = (ctx: Context, status?: Status, message?: string) => {
   ctx.response.status = status ?? Status.InternalServerError;
-  ctx.response.type = "application/json";
+  ctx.response.type = 'application/json';
   ctx.response.body = {
     status: ctx.response.status,
     message: message ??
@@ -200,8 +183,8 @@ const apiV1 = new Router<AppState>();
 
 apiV1
   // Incoming render request from the bot containing the demo file.
-  .put("/videos/render", useSession, async (ctx) => {
-    const authUser = ctx.state.session.get("user");
+  .put('/videos/render', useSession, async (ctx) => {
+    const authUser = ctx.state.session.get('user');
 
     if (authUser) {
       if (!hasPermission(ctx, UserPermissions.CreateVideos)) {
@@ -209,10 +192,10 @@ apiV1
       }
     } else {
       const [authType, authToken] = (
-        ctx.request.headers.get("Authorization") ?? ""
-      ).split(" ");
+        ctx.request.headers.get('Authorization') ?? ''
+      ).split(' ');
 
-      if (authType !== "Bearer") {
+      if (authType !== 'Bearer') {
         return Err(ctx, Status.BadRequest);
       }
 
@@ -243,16 +226,16 @@ apiV1
       return Err(ctx, Status.UnsupportedMediaType);
     }
 
-    const body = ctx.request.body({ type: "form-data" });
+    const body = ctx.request.body({ type: 'form-data' });
     const data = await body.value.read({
       customContentTypes: {
-        "application/octet-stream": "dem",
+        'application/octet-stream': 'dem',
       },
       outPath: AUTORENDER_DEMOS_FOLDER,
       maxFileSize: AUTORENDER_MAX_DEMO_FILE_SIZE,
     });
 
-    logger.info("Received", data.files?.length ?? 0, "demo(s)");
+    logger.info('Received', data.files?.length ?? 0, 'demo(s)');
 
     const file = data.files?.at(0);
     if (!file?.filename) {
@@ -270,7 +253,7 @@ apiV1
 
     const demoInfo = await getDemoInfo(filePath);
 
-    if (demoInfo === null || typeof demoInfo === "string") {
+    if (demoInfo === null || typeof demoInfo === 'string') {
       return Err(ctx, Status.BadRequest, demoInfo ?? undefined);
     }
 
@@ -279,7 +262,7 @@ apiV1
       return Err(ctx, Status.InternalServerError);
     }
 
-    const title = data.fields.title ?? "untitled video";
+    const title = data.fields.title ?? 'untitled video';
     const comment = data.fields.comment ?? null;
     const requestedByName = authUser?.username ?? data.fields.requested_by_name;
     const requestedById = authUser?.discord_id ?? data.fields.requested_by_id;
@@ -290,9 +273,7 @@ apiV1
       null;
     const renderQuality = data.fields.quality ?? RenderQuality.HD_720p;
     const renderOptions = data.fields.render_options ?? null;
-    const requiredDemoFix = demoInfo.useFixedDemo
-      ? FixedDemoStatus.Required
-      : FixedDemoStatus.NotRequired;
+    const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
 
     const fields = [
       video_id,
@@ -339,9 +320,7 @@ apiV1
           , demo_playback_time
           , demo_required_fix
           , pending
-        ) values (UUID_TO_BIN(?), ${
-        new Array(fields.length - 1).fill("?").join(",")
-      })`,
+        ) values (UUID_TO_BIN(?), ${new Array(fields.length - 1).fill('?').join(',')})`,
       fields,
     );
 
@@ -376,18 +355,18 @@ apiV1
     Ok(ctx, video);
   })
   // Incoming upload requests from clients containing the video file.
-  .post("/videos/upload", async (ctx) => {
+  .post('/videos/upload', async (ctx) => {
     const [authType, authToken] = (
-      ctx.request.headers.get("Authorization") ?? ""
-    ).split(" ");
+      ctx.request.headers.get('Authorization') ?? ''
+    ).split(' ');
 
-    if (authType !== "Bearer") {
+    if (authType !== 'Bearer') {
       return Err(ctx, Status.BadRequest);
     }
 
     type TokenSelect = Pick<
       AccessToken,
-      "access_token_id" | "user_id" | "token_name" | "permissions"
+      'access_token_id' | 'user_id' | 'token_name' | 'permissions'
     >;
 
     const [accessToken] = await db.query<TokenSelect>(
@@ -405,30 +384,30 @@ apiV1
     }
 
     if (!(accessToken.permissions & AccessPermission.WriteVideos)) {
-      return Err(ctx, Status.Unauthorized, "Write videos permission required.");
+      return Err(ctx, Status.Unauthorized, 'Write videos permission required.');
     }
 
     if (!ctx.request.hasBody) {
-      return Err(ctx, Status.BadRequest, "Missing request body.");
+      return Err(ctx, Status.BadRequest, 'Missing request body.');
     }
 
-    const body = ctx.request.body({ type: "form-data" });
+    const body = ctx.request.body({ type: 'form-data' });
     const data = await body.value.read({
       customContentTypes: {
-        "video/mp4": "mp4",
+        'video/mp4': 'mp4',
       },
       outPath: AUTORENDER_VIDEOS_FOLDER,
       maxFileSize: AUTORENDER_MAX_VIDEO_FILE_SIZE,
     });
 
-    logger.info("Received", data.files?.length ?? 0, "video(s)");
+    logger.info('Received', data.files?.length ?? 0, 'video(s)');
 
     const file = data.files?.at(0);
     if (!file?.filename) {
       return Err(ctx, Status.BadRequest);
     }
 
-    const cmd = new Deno.Command("ffprobe", { args: [file.filename] });
+    const cmd = new Deno.Command('ffprobe', { args: [file.filename] });
 
     const { code } = await cmd.output();
     if (code !== 0) {
@@ -455,23 +434,23 @@ apiV1
     try {
       await Deno.rename(file.filename, filePath);
 
-      logger.info("Uploading video file", filePath);
+      logger.info('Uploading video file', filePath);
 
       const fileContents = await Deno.readFile(filePath);
 
-      let videoUrl = "";
+      let videoUrl = '';
 
       if (B2_ENABLED) {
         const upload = await b2.uploadFile({
           bucketId: B2_BUCKET_ID,
           fileName,
           fileContents,
-          contentType: "video/mp4",
+          contentType: 'video/mp4',
         });
 
         videoUrl = b2.getDownloadUrl(upload.fileName);
 
-        logger.info("Uploaded", upload, videoUrl);
+        logger.info('Uploaded', upload, videoUrl);
       } else {
         videoUrl = `${AUTORENDER_PUBLIC_URI}/storage/videos/${video.video_id}`;
       }
@@ -501,11 +480,11 @@ apiV1
       try {
         type VideoUpload = Pick<
           Video,
-          | "video_id"
-          | "title"
-          | "requested_by_id"
-          | "requested_in_guild_id"
-          | "requested_in_channel_id"
+          | 'video_id'
+          | 'title'
+          | 'requested_by_id'
+          | 'requested_in_guild_id'
+          | 'requested_in_channel_id'
         >;
 
         const uploadMessage: VideoUpload = {
@@ -518,7 +497,7 @@ apiV1
 
         if (discordBot && discordBot.readyState === WebSocket.OPEN) {
           discordBot.send(
-            JSON.stringify({ type: "upload", data: uploadMessage }),
+            JSON.stringify({ type: 'upload', data: uploadMessage }),
           );
         } else {
           logger.warn(
@@ -554,15 +533,15 @@ apiV1
         try {
           Deno.remove(filePath);
         } catch (err) {
-          logger.error("Failed to remove video file:", err);
+          logger.error('Failed to remove video file:', err);
         }
       }
     }
   })
   // Get video views and increment.
   // deno-lint-ignore no-explicit-any
-  .post("/videos/:video_id/views", useRateLimiter as any, async (ctx) => {
-    const [video] = await db.query<Pick<Video, "video_id" | "views">>(
+  .post('/videos/:video_id/views', useRateLimiter as any, async (ctx) => {
+    const [video] = await db.query<Pick<Video, 'video_id' | 'views'>>(
       `select BIN_TO_UUID(video_id) as video_id
             , views
          from videos
@@ -585,8 +564,8 @@ apiV1
     Ok(ctx, video);
   })
   // Get a random rendered videos.
-  .get("/videos/random/:count(\\d+)", async (ctx) => {
-    const videos = await db.query<Pick<Video, "video_id" | "title">>(
+  .get('/videos/random/:count(\\d+)', async (ctx) => {
+    const videos = await db.query<Pick<Video, 'video_id' | 'title'>>(
       `select BIN_TO_UUID(video_id) as video_id
             , title
          from videos
@@ -599,8 +578,8 @@ apiV1
     Ok(ctx, videos);
   })
   // Get status of videos of requested user.
-  .get("/videos/status/:requested_by_id(\\d+)", async (ctx) => {
-    type VideoStatus = Pick<Video, "video_id" | "title"> & {
+  .get('/videos/status/:requested_by_id(\\d+)', async (ctx) => {
+    type VideoStatus = Pick<Video, 'video_id' | 'title'> & {
       errored: boolean;
       rendering: boolean;
       rendered: boolean;
@@ -625,21 +604,21 @@ apiV1
 
     Ok(ctx, videos);
   })
-  .get("/(.*)", (ctx) => {
-    Err(ctx, Status.NotFound, "Route not found :(");
+  .get('/(.*)', (ctx) => {
+    Err(ctx, Status.NotFound, 'Route not found :(');
   });
 
 const router = new Router<AppState>();
 
-const isHotReloadEnabled = Deno.env.get("HOT_RELOAD")?.toLowerCase() === "yes";
+const isHotReloadEnabled = Deno.env.get('HOT_RELOAD')?.toLowerCase() === 'yes';
 if (isHotReloadEnabled) {
   let reload = true;
 
-  router.get("/__hot_reload", (ctx) => {
+  router.get('/__hot_reload', (ctx) => {
     if (ctx.isUpgradable) {
       const ws = ctx.upgrade();
       ws.onmessage = () => {
-        ws.send(reload ? "yes" : "no");
+        ws.send(reload ? 'yes' : 'no');
         reload = false;
       };
     }
@@ -648,17 +627,16 @@ if (isHotReloadEnabled) {
 
 // Web API routes.
 
-router.use("/api/v1", apiV1.routes());
+router.use('/api/v1', apiV1.routes());
 
 // Discord bot connection.
 
-router.get("/connect/bot", async (ctx) => {
+router.get('/connect/bot', async (ctx) => {
   if (!ctx.isUpgradable) {
     return Err(ctx, Status.NotImplemented);
   }
 
-  const [version, authToken] =
-    ctx.request.headers.get("sec-websocket-protocol")?.split(", ") ?? [];
+  const [version, authToken] = ctx.request.headers.get('sec-websocket-protocol')?.split(', ') ?? [];
 
   if (version !== AUTORENDER_V1) {
     return Err(ctx, Status.NotAcceptable);
@@ -681,11 +659,11 @@ router.get("/connect/bot", async (ctx) => {
   discordBot = ctx.upgrade();
 
   discordBot.onopen = () => {
-    logger.info("Bot connected");
+    logger.info('Bot connected');
   };
 
   discordBot.onmessage = (message) => {
-    logger.info("Bot:", message.data);
+    logger.info('Bot:', message.data);
 
     try {
       const { type } = JSON.parse(message.data);
@@ -695,7 +673,7 @@ router.get("/connect/bot", async (ctx) => {
           discordBot && discordBot.readyState === WebSocket.OPEN &&
             discordBot.send(
               JSON.stringify({
-                type: "error",
+                type: 'error',
                 data: { status: Status.BadRequest },
               }),
             );
@@ -707,13 +685,13 @@ router.get("/connect/bot", async (ctx) => {
   };
 
   discordBot.onclose = () => {
-    logger.info("Bot disconnected");
+    logger.info('Bot disconnected');
     discordBot = null;
   };
 
   discordBot.onerror = (event: ErrorEvent | Event) => {
     logger.error(
-      "Bot connection error",
+      'Bot connection error',
       event instanceof ErrorEvent ? event.error : event,
     );
   };
@@ -727,13 +705,12 @@ interface ClientState {
 
 const clients = new Map<string, ClientState>();
 
-router.get("/connect/client", async (ctx) => {
+router.get('/connect/client', async (ctx) => {
   if (!ctx.isUpgradable) {
     return Err(ctx, Status.NotImplemented);
   }
 
-  const [version, authToken] =
-    ctx.request.headers.get("sec-websocket-protocol")?.split(", ") ?? [];
+  const [version, authToken] = ctx.request.headers.get('sec-websocket-protocol')?.split(', ') ?? [];
 
   if (version !== AUTORENDER_V1) {
     return Err(ctx, Status.NotAcceptable);
@@ -741,7 +718,7 @@ router.get("/connect/client", async (ctx) => {
 
   type TokenSelect = Pick<
     AccessToken,
-    "access_token_id" | "user_id" | "token_name" | "permissions"
+    'access_token_id' | 'user_id' | 'token_name' | 'permissions'
   >;
 
   const [accessToken] = await db.query<TokenSelect>(
@@ -758,8 +735,7 @@ router.get("/connect/client", async (ctx) => {
     return Err(ctx, Status.Unauthorized);
   }
 
-  const clientId =
-    `${accessToken.access_token_id}-${accessToken.user_id}-${accessToken.token_name}`;
+  const clientId = `${accessToken.access_token_id}-${accessToken.user_id}-${accessToken.token_name}`;
   const ws = ctx.upgrade();
 
   ws.onopen = () => {
@@ -772,15 +748,15 @@ router.get("/connect/client", async (ctx) => {
 
   ws.onmessage = async (message) => {
     try {
-      if (typeof message.data !== "string") {
-        throw new Error("Invalid payload data type");
+      if (typeof message.data !== 'string') {
+        throw new Error('Invalid payload data type');
       }
 
       // FIXME: Protocol types
       const { type, data } = JSON.parse(message.data);
 
       switch (type) {
-        case "videos": {
+        case 'videos': {
           if (accessToken.permissions & AccessPermission.CreateVideos) {
             // TODO: Filter by game mod
 
@@ -801,15 +777,13 @@ router.get("/connect/client", async (ctx) => {
               : renderQualities.slice(0, 3);
 
             let videos = await db.query<
-              Pick<Video, "video_id" | "render_quality">
+              Pick<Video, 'video_id' | 'render_quality'>
             >(
               `select BIN_TO_UUID(video_id) as video_id
                     , render_quality
                  from videos
                 where pending = ?
-                  and render_quality in (${
-                clientRenderQualities.map(() => "?").join(",")
-              })
+                  and render_quality in (${clientRenderQualities.map(() => '?').join(',')})
              order by render_quality desc
                 limit ?`,
               [
@@ -829,21 +803,21 @@ router.get("/connect/client", async (ctx) => {
               });
             }
 
-            ws.send(JSON.stringify({ type: "videos", data: videos }));
+            ws.send(JSON.stringify({ type: 'videos', data: videos }));
           } else {
             ws.send(
               JSON.stringify({
-                type: "error",
+                type: 'error',
                 data: {
                   status: Status.Unauthorized,
-                  message: "Create videos permission required.",
+                  message: 'Create videos permission required.',
                 },
               }),
             );
           }
           break;
         }
-        case "demo": {
+        case 'demo': {
           if (accessToken.permissions & AccessPermission.WriteVideos) {
             const videoId = data.video_id;
 
@@ -868,10 +842,10 @@ router.get("/connect/client", async (ctx) => {
             if (update.affectedRows === 0) {
               ws.send(
                 JSON.stringify({
-                  type: "error",
+                  type: 'error',
                   data: {
                     status: Status.NotFound,
-                    message: "Update failed.",
+                    message: 'Update failed.',
                   },
                 }),
               );
@@ -880,13 +854,13 @@ router.get("/connect/client", async (ctx) => {
 
             type VideoSelect = Pick<
               Video,
-              | "video_id"
-              | "render_quality"
-              | "render_options"
-              | "file_url"
-              | "full_map_name"
-              | "demo_playback_time"
-              | "demo_required_fix"
+              | 'video_id'
+              | 'render_quality'
+              | 'render_options'
+              | 'file_url'
+              | 'full_map_name'
+              | 'demo_playback_time'
+              | 'demo_required_fix'
             >;
 
             const [{ demo_required_fix, ...video }] = await db.query<
@@ -907,10 +881,10 @@ router.get("/connect/client", async (ctx) => {
             if (!video) {
               ws.send(
                 JSON.stringify({
-                  type: "error",
+                  type: 'error',
                   data: {
                     status: Status.NotFound,
-                    message: "Video not found.",
+                    message: 'Video not found.',
                   },
                 }),
               );
@@ -925,9 +899,7 @@ router.get("/connect/client", async (ctx) => {
             await buffer.write(length);
             await buffer.write(payload);
 
-            const getFilePath = demo_required_fix === FixedDemoStatus.Required
-              ? getFixedDemoFilePath
-              : getDemoFilePath;
+            const getFilePath = demo_required_fix === FixedDemoStatus.Required ? getFixedDemoFilePath : getDemoFilePath;
 
             const filePath = getFilePath(video.video_id);
             await buffer.write(await Deno.readFile(filePath));
@@ -936,18 +908,18 @@ router.get("/connect/client", async (ctx) => {
           } else {
             ws.send(
               JSON.stringify({
-                type: "error",
+                type: 'error',
                 data: {
                   status: Status.Unauthorized,
-                  message: "Write videos permission required.",
+                  message: 'Write videos permission required.',
                 },
               }),
             );
           }
           break;
         }
-        case "downloaded": {
-          const downloaded = data as { video_ids: Video["video_id"][] };
+        case 'downloaded': {
+          const downloaded = data as { video_ids: Video['video_id'][] };
           const videoIds = downloaded.video_ids.slice(
             0,
             MAX_VIDEOS_PER_REQUEST,
@@ -959,10 +931,10 @@ router.get("/connect/client", async (ctx) => {
           ) {
             ws.send(
               JSON.stringify({
-                type: "error",
+                type: 'error',
                 data: {
                   status: Status.BadRequest,
-                  message: "Invalid amount of video IDs.",
+                  message: 'Invalid amount of video IDs.',
                 },
               }),
             );
@@ -977,9 +949,7 @@ router.get("/connect/client", async (ctx) => {
                  from videos
                 where pending = ?
                   and rendered_by_token = ?
-                  and video_id not in (${
-              videoIds.map(() => `UUID_TO_BIN(?)`).join(",")
-            })`,
+                  and video_id not in (${videoIds.map(() => `UUID_TO_BIN(?)`).join(',')})`,
             [
               PendingStatus.StartedRender,
               accessToken.access_token_id,
@@ -1009,14 +979,14 @@ router.get("/connect/client", async (ctx) => {
 
           ws.send(
             JSON.stringify({
-              type: "start",
+              type: 'start',
             }),
           );
           break;
         }
-        case "error": {
+        case 'error': {
           const { video_id } = data as {
-            video_id: Video["video_id"] | undefined;
+            video_id: Video['video_id'] | undefined;
             message: string;
           };
 
@@ -1036,10 +1006,10 @@ router.get("/connect/client", async (ctx) => {
         default: {
           ws.send(
             JSON.stringify({
-              type: "error",
+              type: 'error',
               data: {
                 status: Status.BadRequest,
-                message: "Unknown message type.",
+                message: 'Unknown message type.',
               },
             }),
           );
@@ -1052,7 +1022,7 @@ router.get("/connect/client", async (ctx) => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(
           JSON.stringify({
-            type: "error",
+            type: 'error',
             data: { status: Status.InternalServerError },
           }),
         );
@@ -1073,44 +1043,43 @@ router.get("/connect/client", async (ctx) => {
   };
 });
 
-router.get("/login/discord/authorize", useSession, async (ctx) => {
-  const code = ctx.request.url.searchParams.get("code");
+router.get('/login/discord/authorize', useSession, async (ctx) => {
+  const code = ctx.request.url.searchParams.get('code');
   if (!code) {
     //return Err(ctx, Status.BadRequest);
-    return ctx.response.redirect("/");
+    return ctx.response.redirect('/');
   }
 
   // Discord OAuth2
   //    https://discord.com/developers/docs/topics/oauth2#authorization-code-grant
 
   const data = {
-    grant_type: "authorization_code",
-    client_id: Deno.env.get("DISCORD_CLIENT_ID")!,
-    client_secret: Deno.env.get("DISCORD_CLIENT_SECRET")!,
+    grant_type: 'authorization_code',
+    client_id: Deno.env.get('DISCORD_CLIENT_ID')!,
+    client_secret: Deno.env.get('DISCORD_CLIENT_SECRET')!,
     code,
     redirect_uri: `${AUTORENDER_PUBLIC_URI}/login/discord/authorize`,
   };
 
   const oauthResponse = await fetch(
-    "https://discord.com/api/v10/oauth2/token",
+    'https://discord.com/api/v10/oauth2/token',
     {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "User-Agent": AUTORENDER_V1,
-        "Content-Type": "application/x-www-form-urlencoded",
+        'User-Agent': AUTORENDER_V1,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: Object.entries(data)
         .map(
-          ([key, value]) =>
-            `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+          ([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
         )
-        .join("&"),
+        .join('&'),
     },
   );
 
   if (!oauthResponse.ok) {
     //return Err(ctx, Status.Unauthorized);
-    return ctx.response.redirect("/");
+    return ctx.response.redirect('/');
   }
 
   const { access_token } = await oauthResponse.json();
@@ -1118,7 +1087,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
   // Fetch user data:
   //    https://discord.com/developers/docs/resources/user#get-current-user
 
-  const usersResponse = await fetch("https://discord.com/api/users/@me", {
+  const usersResponse = await fetch('https://discord.com/api/users/@me', {
     headers: {
       authorization: `Bearer ${access_token}`,
     },
@@ -1126,7 +1095,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
 
   const discordUser = (await usersResponse.json()) as DiscordUser;
 
-  const [authUser] = await db.query<Pick<User, "user_id">>(
+  const [authUser] = await db.query<Pick<User, 'user_id'>>(
     `select user_id from users where discord_id = ?`,
     [discordUser.id],
   );
@@ -1135,7 +1104,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
     await db.execute(
       `update users set username = ?, discord_avatar = ? where user_id = ?`,
       [
-        discordUser.discriminator !== "0"
+        discordUser.discriminator !== '0'
           ? `${discordUser.username}#${discordUser.discriminator}`
           : discordUser.username,
         discordUser.avatar,
@@ -1156,7 +1125,7 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
           , ?
         )`,
       [
-        discordUser.discriminator !== "0"
+        discordUser.discriminator !== '0'
           ? `${discordUser.username}#${discordUser.discriminator}`
           : discordUser.username,
         discordUser.id,
@@ -1173,25 +1142,25 @@ router.get("/login/discord/authorize", useSession, async (ctx) => {
 
   if (!user) {
     //return Err(ctx, Status.InternalServerError);
-    return ctx.response.redirect("/");
+    return ctx.response.redirect('/');
   }
 
-  ctx.state.session.set("user", user);
-  ctx.response.redirect("/");
+  ctx.state.session.set('user', user);
+  ctx.response.redirect('/');
 });
 // router.get("/users/@me", useSession, requiresAuth, (ctx) => {
 //   Ok(ctx, ctx.state.session.get("user"));
 // });
-router.get("/logout", useSession, async (ctx) => {
+router.get('/logout', useSession, async (ctx) => {
   await ctx.state.session.deleteSession();
-  await ctx.cookies.delete("session");
-  await ctx.cookies.delete("session_data");
-  ctx.response.redirect("/");
+  await ctx.cookies.delete('session');
+  await ctx.cookies.delete('session_data');
+  ctx.response.redirect('/');
 });
 
 const routeToApp = async (ctx: Context) => {
   const request = await createFetchRequest(ctx.request);
-  const user = ctx.state.session?.get("user") ?? null;
+  const user = ctx.state.session?.get('user') ?? null;
 
   const requestContext: RequestContext = {
     user,
@@ -1202,7 +1171,7 @@ const routeToApp = async (ctx: Context) => {
 
   // NOTE: This only handles redirect responses in async loaders/actions
   if (context instanceof Response) {
-    const location = context.headers.get("Location") ?? "/";
+    const location = context.headers.get('Location') ?? '/';
     ctx.response.status = context.status;
     return ctx.response.redirect(location);
   }
@@ -1236,11 +1205,11 @@ const routeToApp = async (ctx: Context) => {
   const router = createStaticRouter(routeHandler.dataRoutes, context);
 
   ctx.response.body = await index(router, context, initialState);
-  ctx.response.headers.set("content-type", "text/html");
+  ctx.response.headers.set('content-type', 'text/html');
 };
 
 if (!B2_ENABLED) {
-  router.get("/storage/videos/:video_id", async (ctx) => {
+  router.get('/storage/videos/:video_id', async (ctx) => {
     if (!uuid.validate(ctx.params.video_id)) {
       await routeToApp(ctx);
       return;
@@ -1248,7 +1217,7 @@ if (!B2_ENABLED) {
 
     try {
       const [video] = await db.query<
-        Pick<Video, "video_id" | "file_name" | "title">
+        Pick<Video, 'video_id' | 'file_name' | 'title'>
       >(
         `select BIN_TO_UUID(video_id) as video_id
               , file_name
@@ -1265,20 +1234,18 @@ if (!B2_ENABLED) {
 
       const file = await Deno.readFile(getVideoFilePath(video.video_id));
 
-      const filename = video.title === video.file_name
-        ? `${video.file_name} Video.mp4`
-        : `${video.title}.mp4`;
+      const filename = video.title === video.file_name ? `${video.file_name} Video.mp4` : `${video.title}.mp4`;
 
       ctx.response.headers.set(
-        "Content-Disposition",
+        'Content-Disposition',
         `filename="${
           filename
-            .replaceAll("\\", "\\\\")
+            .replaceAll('\\', '\\\\')
             .replaceAll('"', '\\"')
         }"`,
       );
 
-      Ok(ctx, file, "video/mp4");
+      Ok(ctx, file, 'video/mp4');
     } catch (err) {
       if (err instanceof Deno.errors.NotFound) {
         await routeToApp(ctx);
@@ -1289,14 +1256,14 @@ if (!B2_ENABLED) {
   });
 }
 
-router.get("/storage/demos/:video_id/:fixed(fixed)?", async (ctx) => {
+router.get('/storage/demos/:video_id/:fixed(fixed)?', async (ctx) => {
   if (!uuid.validate(ctx.params.video_id)) {
     await routeToApp(ctx);
     return;
   }
 
   try {
-    const [video] = await db.query<Pick<Video, "video_id" | "file_name">>(
+    const [video] = await db.query<Pick<Video, 'video_id' | 'file_name'>>(
       `select BIN_TO_UUID(video_id) as video_id
           , file_name
        from videos
@@ -1311,28 +1278,26 @@ router.get("/storage/demos/:video_id/:fixed(fixed)?", async (ctx) => {
 
     const requestedFixedDemo = ctx.params.fixed !== undefined;
 
-    const getFilePath = requestedFixedDemo
-      ? getFixedDemoFilePath
-      : getDemoFilePath;
+    const getFilePath = requestedFixedDemo ? getFixedDemoFilePath : getDemoFilePath;
 
     const demo = await Deno.readFile(getFilePath(video.video_id));
 
     const filename = requestedFixedDemo
-      ? video.file_name.toLowerCase().endsWith(".dem")
+      ? video.file_name.toLowerCase().endsWith('.dem')
         ? `${video.file_name.slice(0, -4)}_fixed.dem`
         : `${video.file_name}_fixed.dem`
       : video.file_name;
 
     ctx.response.headers.set(
-      "Content-Disposition",
+      'Content-Disposition',
       `attachment; filename="${
         filename
-          .replaceAll("\\", "\\\\")
+          .replaceAll('\\', '\\\\')
           .replaceAll('"', '\\"')
       }"`,
     );
 
-    Ok(ctx, demo, "application/octet-stream");
+    Ok(ctx, demo, 'application/octet-stream');
   } catch (err) {
     if (err instanceof Deno.errors.NotFound) {
       await routeToApp(ctx);
@@ -1342,16 +1307,16 @@ router.get("/storage/demos/:video_id/:fixed(fixed)?", async (ctx) => {
   }
 });
 
-router.get("/favicon.ico", (ctx) => (ctx.response.status = Status.NotFound));
-router.post("/tokens/:access_token_id(\\d+)", useSession, routeToApp);
-router.post("/tokens/:access_token_id(\\d+/delete)", useSession, routeToApp);
-router.post("/tokens/new", useSession, routeToApp);
-router.post("/tokens/test", async (ctx) => {
+router.get('/favicon.ico', (ctx) => (ctx.response.status = Status.NotFound));
+router.post('/tokens/:access_token_id(\\d+)', useSession, routeToApp);
+router.post('/tokens/:access_token_id(\\d+/delete)', useSession, routeToApp);
+router.post('/tokens/new', useSession, routeToApp);
+router.post('/tokens/test', async (ctx) => {
   if (!ctx.request.hasBody) {
     return Err(ctx, Status.BadRequest);
   }
 
-  const body = await ctx.request.body({ type: "json" }).value;
+  const body = await ctx.request.body({ type: 'json' }).value;
   if (!body?.token_key) {
     return Err(ctx, Status.BadRequest);
   }
@@ -1369,28 +1334,28 @@ router.post("/tokens/test", async (ctx) => {
 
   Ok(ctx);
 });
-router.get("/(.*)", useSession, routeToApp);
+router.get('/(.*)', useSession, routeToApp);
 
 type AppState = {
-  session: Session & { get(key: "user"): User | undefined };
+  session: Session & { get(key: 'user'): User | undefined };
 };
 
 const app = new Application<AppState>();
 
-app.addEventListener("error", (ev) => {
+app.addEventListener('error', (ev) => {
   try {
     logger.error(ev.error);
   } catch (err) {
-    console.error("This should not happen!", err);
+    console.error('This should not happen!', err);
   }
 });
 
 app.use(oakCors());
 app.use(async (ctx, next) => {
   const url = ctx.request.url;
-  const ua = ctx.request.headers.get("user-agent")?.replace(/[\n\r]/g, "") ??
-    "";
-  const ip = ctx.request.headers.get("x-real-ip") ?? ctx.request.ip;
+  const ua = ctx.request.headers.get('user-agent')?.replace(/[\n\r]/g, '') ??
+    '';
+  const ip = ctx.request.headers.get('x-real-ip') ?? ctx.request.ip;
   logger.info(`${url} : ${ip} : ${ua}`);
   await next();
 });
@@ -1401,14 +1366,14 @@ app.use(router.allowedMethods());
 logger.info(`Server listening at http://${SERVER_HOST}:${SERVER_PORT}`);
 
 await app.listen(
-  SERVER_SSL_CERT !== "none" && SERVER_SSL_KEY !== "none"
+  SERVER_SSL_CERT !== 'none' && SERVER_SSL_KEY !== 'none'
     ? {
       hostname: SERVER_HOST,
       port: SERVER_PORT,
       secure: true,
       cert: SERVER_SSL_CERT,
       key: SERVER_SSL_KEY,
-      alpnProtocols: ["h2", "http/1.1"],
+      alpnProtocols: ['h2', 'http/1.1'],
     }
     : {
       hostname: SERVER_HOST,

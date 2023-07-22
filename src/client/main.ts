@@ -7,8 +7,8 @@
  * file will be send back to the server once it finished rendering.
  */
 
-import { dirname, join } from "https://deno.land/std@0.190.0/path/mod.ts";
-import { logger } from "./logger.ts";
+import { dirname, join } from 'https://deno.land/std@0.190.0/path/mod.ts';
+import { logger } from './logger.ts';
 import {
   AutorenderDataType,
   AutorenderMessages,
@@ -16,13 +16,13 @@ import {
   AutorenderSendDataType,
   AutorenderSendMessages,
   VideoPayload,
-} from "./protocol.ts";
-import { RenderQuality, Video as VideoModel } from "../server/models.ts";
-import { ClientState, ClientStatus } from "./state.ts";
-import { UploadWorkerDataType } from "./upload.ts";
-import { getConfig } from "./config.ts";
-import { getOptions } from "./options.ts";
-import { WorkerDataType } from "./worker.ts";
+} from './protocol.ts';
+import { RenderQuality, Video as VideoModel } from '../server/models.ts';
+import { ClientState, ClientStatus } from './state.ts';
+import { UploadWorkerDataType } from './upload.ts';
+import { getConfig } from './config.ts';
+import { getOptions } from './options.ts';
+import { WorkerDataType } from './worker.ts';
 
 const _options = await getOptions();
 const config = await getConfig();
@@ -34,11 +34,10 @@ const GAME_EXE = config.games.at(0)!.exe;
 const GAME_PROC = config.games.at(0)!.proc;
 const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
 
-const AUTORENDER_FOLDER_NAME = config.autorender["folder-name"];
+const AUTORENDER_FOLDER_NAME = config.autorender['folder-name'];
 const AUTORENDER_CFG = config.games.at(0)!.cfg;
 const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
-const AUTORENDER_MAX_SUPPORTED_QUALITY =
-  config.autorender["max-supported-quality"];
+const AUTORENDER_MAX_SUPPORTED_QUALITY = config.autorender['max-supported-quality'];
 
 // TODO: Upstream sar_on_renderer feature
 const AUTORENDER_PATCHED_SAR = true;
@@ -62,7 +61,7 @@ try {
 } catch {}
 
 try {
-  const workshopDirectory = join(GAME_MOD_PATH, "maps", "workshop");
+  const workshopDirectory = join(GAME_MOD_PATH, 'maps', 'workshop');
   await Deno.mkdir(workshopDirectory);
   logger.info(`Created workshop directory ${workshopDirectory}`);
   // deno-lint-ignore no-empty
@@ -78,16 +77,16 @@ const state: ClientState = {
 let idleTimer: number | null = null;
 
 // Worker thread for connecting to the server.
-const worker = new Worker(new URL("./worker.ts", import.meta.url).href, {
-  type: "module",
+const worker = new Worker(new URL('./worker.ts', import.meta.url).href, {
+  type: 'module',
 });
 
 worker.postMessage({ type: WorkerDataType.Config, data: { config } });
 worker.postMessage({ type: WorkerDataType.Connect });
 
 // Upload worker thread for uploading files to the server.
-const upload = new Worker(new URL("./upload.ts", import.meta.url).href, {
-  type: "module",
+const upload = new Worker(new URL('./upload.ts', import.meta.url).href, {
+  type: 'module',
 });
 
 upload.postMessage({
@@ -97,7 +96,7 @@ upload.postMessage({
   },
 });
 
-worker.addEventListener("message", async (message: MessageEvent) => {
+worker.addEventListener('message', async (message: MessageEvent) => {
   try {
     if (message.data instanceof ArrayBuffer) {
       await onMessage(message.data);
@@ -128,7 +127,7 @@ worker.addEventListener("message", async (message: MessageEvent) => {
   }
 });
 
-upload.addEventListener("message", (message: MessageEvent) => {
+upload.addEventListener('message', (message: MessageEvent) => {
   try {
     const { type, data } = message.data;
     switch (type) {
@@ -190,7 +189,7 @@ const fetchNextVideos = () => {
 /**
  * Check for new videos to render.
  */
-const handleMessageVideos = async (videos: AutorenderMessageVideos["data"]) => {
+const handleMessageVideos = async (videos: AutorenderMessageVideos['data']) => {
   if (!videos.length) {
     return fetchNextVideos();
   }
@@ -203,7 +202,7 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos["data"]) => {
   for await (const file of Deno.readDir(AUTORENDER_DIR)) {
     if (
       file.isFile &&
-      (file.name.endsWith(".dem") || file.name.endsWith(".mp4"))
+      (file.name.endsWith('.dem') || file.name.endsWith('.mp4'))
     ) {
       const filename = join(AUTORENDER_DIR, file.name);
 
@@ -236,30 +235,30 @@ const killGameProcess = () => {
   }
 
   // Negative PID in Unix means killing the entire process group.
-  const pid = Deno.build.os === "windows" ? gameProcess.pid : -gameProcess.pid;
+  const pid = Deno.build.os === 'windows' ? gameProcess.pid : -gameProcess.pid;
 
   logger.info(`Killing process ${pid}`);
 
   //Deno.kill(pid, "SIGKILL");
 
   // Deno.kill does not work for some reason :>
-  if (Deno.build.os !== "windows") {
-    const kill = new Deno.Command("pkill", { args: [GAME_PROC] });
+  if (Deno.build.os !== 'windows') {
+    const kill = new Deno.Command('pkill', { args: [GAME_PROC] });
     const { code } = kill.outputSync();
     logger.info(`pkill ${GAME_PROC}`, { code });
   } else {
-    Deno.kill(pid, "SIGKILL");
+    Deno.kill(pid, 'SIGKILL');
   }
 
-  logger.info("killed");
+  logger.info('killed');
 };
 
-Deno.addSignalListener("SIGINT", () => {
+Deno.addSignalListener('SIGINT', () => {
   if (gameProcess) {
     try {
-      logger.info("Handling termination...");
+      logger.info('Handling termination...');
       killGameProcess();
-      logger.info("Termination game process");
+      logger.info('Termination game process');
     } catch (err) {
       logger.error(err);
     } finally {
@@ -276,14 +275,14 @@ Deno.addSignalListener("SIGINT", () => {
 const handleMessageStart = async () => {
   try {
     if (!state.videos.length) {
-      throw new Error("No videos available");
+      throw new Error('No videos available');
     }
 
     state.status = ClientStatus.Rendering;
 
     const command = await prepareGameLaunch();
 
-    logger.info("Spawning process...");
+    logger.info('Spawning process...');
 
     gameProcess = command.spawn();
 
@@ -302,9 +301,9 @@ const handleMessageStart = async () => {
     timeout = setTimeout(() => {
       if (gameProcess) {
         try {
-          logger.warn("Timeout of process");
+          logger.warn('Timeout of process');
           killGameProcess();
-          logger.warn("Killed process");
+          logger.warn('Killed process');
         } catch (err) {
           logger.error(err);
         } finally {
@@ -319,7 +318,7 @@ const handleMessageStart = async () => {
     gameProcess = null;
     timeout = null;
 
-    logger.info("Game exited", { code });
+    logger.info('Game exited', { code });
 
     // Let the upload thread do the work.
     upload.postMessage({
@@ -354,11 +353,11 @@ const handleMessageStart = async () => {
 };
 
 const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
-  logger.info("Downloading map", video.file_url);
+  logger.info('Downloading map', video.file_url);
 
   const steamResponse = await fetch(video.file_url, {
     headers: {
-      "User-Agent": "autorender-client-v1.0",
+      'User-Agent': 'autorender-client-v1.0',
     },
   });
 
@@ -377,7 +376,7 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
   const map = await steamResponse.arrayBuffer();
   await Deno.writeFile(mapFile, new Uint8Array(map));
 
-  logger.info("Downloaded map to", mapFile);
+  logger.info('Downloaded map to', mapFile);
 };
 
 /**
@@ -387,7 +386,7 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
  *      length + 1 ... = demo file
  */
 const handleMessageBuffer = async (buffer: ArrayBuffer) => {
-  let videoId: VideoModel["video_id"] | undefined = undefined;
+  let videoId: VideoModel['video_id'] | undefined = undefined;
 
   try {
     const length = new DataView(buffer).getUint32(0);
@@ -395,8 +394,8 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
     const demo = buffer.slice(length + 4);
     const decoded = new TextDecoder().decode(payload);
 
-    logger.info("Decoded payload:", decoded);
-    logger.info("Demo byte length:", demo.byteLength);
+    logger.info('Decoded payload:', decoded);
+    logger.info('Demo byte length:', demo.byteLength);
 
     const video = JSON.parse(decoded) as VideoModel;
 
@@ -404,12 +403,12 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
 
     // Check if a workshop map needs to be downloaded.
     if (video.file_url) {
-      const mapFile = join(GAME_MOD_PATH, "maps", `${video.full_map_name}.bsp`);
+      const mapFile = join(GAME_MOD_PATH, 'maps', `${video.full_map_name}.bsp`);
       let downloadMapFile = false;
 
       try {
         await Deno.stat(mapFile);
-        logger.info("Map", mapFile, "already downloaded");
+        logger.info('Map', mapFile, 'already downloaded');
       } catch {
         downloadMapFile = true;
       }
@@ -452,7 +451,7 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
 
 const onMessage = async (messageData: ArrayBuffer | string) => {
   if (state.status === ClientStatus.Rendering) {
-    return logger.warn("Got message during rendering... should not happen");
+    return logger.warn('Got message during rendering... should not happen');
   }
 
   try {
@@ -507,17 +506,17 @@ const getGameResolution = () => {
   switch (render_quality) {
     case RenderQuality.SD_480p:
       // NOTE: This is 16:10 for now...
-      return ["768", "480"];
+      return ['768', '480'];
     case RenderQuality.HD_720p:
-      return ["1280", "720"];
+      return ['1280', '720'];
     case RenderQuality.FHD_1080p:
-      return ["1920", "1080"];
+      return ['1920', '1080'];
     case RenderQuality.QHD_1440p:
-      return ["2560", "1440"];
+      return ['2560', '1440'];
     case RenderQuality.UHD_2160p:
-      return ["3840", "2160"];
+      return ['3840', '2160'];
     default:
-      return ["1280", "720"];
+      return ['1280', '720'];
   }
 };
 
@@ -529,7 +528,7 @@ const prepareGameLaunch = async () => {
     return join(AUTORENDER_FOLDER_NAME, video_id.toString());
   };
 
-  const exitCommand = "wait 300;exit";
+  const exitCommand = 'wait 300;exit';
 
   const playdemo = (
     video: VideoPayload,
@@ -538,9 +537,7 @@ const prepareGameLaunch = async () => {
   ) => {
     const demoName = getDemoName(video);
     const isLastVideo = index == videos.length - 1;
-    const nextCommand = isLastVideo
-      ? exitCommand
-      : `autorender_video_${index + 1}`;
+    const nextCommand = isLastVideo ? exitCommand : `autorender_video_${index + 1}`;
 
     return (
       `sar_alias autorender_video_${index} "playdemo ${demoName};` +
@@ -549,10 +546,8 @@ const prepareGameLaunch = async () => {
   };
 
   const usesQueue = state.videos.length > 1;
-  const nextCommand = usesQueue ? "autorender_queue" : exitCommand;
-  const eventCommand = AUTORENDER_PATCHED_SAR
-    ? "sar_on_renderer_finish"
-    : "sar_on_demo_stop";
+  const nextCommand = usesQueue ? 'autorender_queue' : exitCommand;
+  const eventCommand = AUTORENDER_PATCHED_SAR ? 'sar_on_renderer_finish' : 'sar_on_demo_stop';
 
   const [width, height] = getGameResolution();
 
@@ -560,26 +555,26 @@ const prepareGameLaunch = async () => {
     `exec ${AUTORENDER_CFG}`,
     `sar_quickhud_set_texture crosshair/quickhud${height}-`,
     ...state.videos.slice(1).map(playdemo),
-    ...(usesQueue ? ["sar_alias autorender_queue autorender_video_0"] : []),
+    ...(usesQueue ? ['sar_alias autorender_queue autorender_video_0'] : []),
     `${eventCommand} "${nextCommand}"`,
     `playdemo ${getDemoName(state.videos.at(0)!)}`,
   ];
 
   await Deno.writeTextFile(
-    join(GAME_DIR, "portal2", "cfg", "autoexec.cfg"),
-    autoexec.join("\n"),
+    join(GAME_DIR, 'portal2', 'cfg', 'autoexec.cfg'),
+    autoexec.join('\n'),
   );
 
   const getCommand = () => {
     const command = join(GAME_DIR, GAME_EXE);
 
     switch (Deno.build.os) {
-      case "windows":
+      case 'windows':
         return [command, GAME_EXE];
-      case "linux":
-        return ["/bin/bash", command];
+      case 'linux':
+        return ['/bin/bash', command];
       default: {
-        throw new Error("unsupported operating system");
+        throw new Error('unsupported operating system');
       }
     }
   };
@@ -589,14 +584,14 @@ const prepareGameLaunch = async () => {
   return new Deno.Command(command, {
     args: [
       argv0,
-      "-game",
+      '-game',
       GAME_MOD,
-      "-novid",
+      '-novid',
       //"-vulkan", // TODO: vulkan is not always available
-      "-windowed",
-      "-w",
+      '-windowed',
+      '-w',
       width,
-      "-h",
+      '-h',
       height,
     ],
   });

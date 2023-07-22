@@ -6,22 +6,22 @@
  * This defines the protocol between the server and the client.
  */
 
-import { Video } from "../server/models.ts";
+import { Video } from '../server/models.ts';
 
 export type VideoPayload = Pick<
   Video,
-  | "video_id"
-  | "render_quality"
-  | "render_options"
-  | "file_url"
-  | "full_map_name"
-  | "demo_playback_time"
+  | 'video_id'
+  | 'render_quality'
+  | 'render_options'
+  | 'file_url'
+  | 'full_map_name'
+  | 'demo_playback_time'
 >;
 
 export enum AutorenderDataType {
-  Videos = "videos",
-  Start = "start",
-  Error = "error",
+  Videos = 'videos',
+  Start = 'start',
+  Error = 'error',
 }
 
 export type AutorenderMessage<T extends AutorenderDataType, P> = {
@@ -31,7 +31,7 @@ export type AutorenderMessage<T extends AutorenderDataType, P> = {
 
 export type AutorenderMessageVideos = AutorenderMessage<
   AutorenderDataType.Videos,
-  Pick<Video, "video_id">[]
+  Pick<Video, 'video_id'>[]
 >;
 
 export type AutorenderMessageStart = AutorenderMessage<
@@ -50,10 +50,10 @@ export type AutorenderMessages =
   | AutorenderMessageError;
 
 export enum AutorenderSendDataType {
-  Videos = "videos",
-  Demo = "demo",
-  Downloaded = "downloaded",
-  Error = "error",
+  Videos = 'videos',
+  Demo = 'demo',
+  Downloaded = 'downloaded',
+  Error = 'error',
 }
 
 export type AutorenderSendMessage<T extends AutorenderSendDataType, P> = {
@@ -68,17 +68,17 @@ export type AutorenderSendMessageVideos = AutorenderSendMessage<
 
 export type AutorenderSendMessageDemo = AutorenderSendMessage<
   AutorenderSendDataType.Demo,
-  { video_id: Video["video_id"] }
+  { video_id: Video['video_id'] }
 >;
 
 export type AutorenderSendMessageDownloaded = AutorenderSendMessage<
   AutorenderSendDataType.Downloaded,
-  { video_ids: Video["video_id"][] }
+  { video_ids: Video['video_id'][] }
 >;
 
 export type AutorenderSendMessageError = AutorenderSendMessage<
   AutorenderSendDataType.Error,
-  { video_id?: Video["video_id"]; message: string }
+  { video_id?: Video['video_id']; message: string }
 >;
 
 export type AutorenderSendMessages =
