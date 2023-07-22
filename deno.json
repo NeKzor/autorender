@@ -1,0 +1,34 @@
+{
+  "tasks": {
+    "bot:dev": "deno task --cwd src/bot dev",
+    "bot:prod": "deno task --cwd src/bot prod",
+    "client:dev": "deno task --cwd src/client dev",
+    "client:prod": "deno task --cwd src/client prod",
+    "client:test": "deno task --cwd src/client test",
+    "client:compile:linux": "deno task --cwd src/client compile:linux",
+    "client:compile:windows": "deno task --cwd src/client compile:windows",
+    "server:dev": "deno task --cwd src/server dev",
+    "server:prod": "deno task --cwd src/server prod",
+    "server:test": "deno task --cwd src/server test",
+    "server:pending": "deno task --cwd src/server pending",
+    "server:perm": "deno task --cwd src/server perm"
+  },
+  "lint": {
+    "exclude": [
+      "docker"
+    ]
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 120,
+    "indentWidth": 2,
+    "singleQuote": true,
+    "proseWrap": "preserve",
+    "exclude": [
+      "docker"
+    ]
+  },
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true
+  }
+}
