@@ -80,6 +80,7 @@ const AUTORENDER_BOARD_TOKEN_HASH = (() => {
   return boardToken !== 'none' ? bcrypt.hashSync(boardToken) : null;
 })();
 const AUTORENDER_DEMOS_FOLDER = Deno.env.get('AUTORENDER_DEMOS_FOLDER')!;
+const AUTORENDER_FILES_FOLDER = Deno.env.get('AUTORENDER_FILES_FOLDER')!
 const AUTORENDER_VIDEOS_FOLDER = Deno.env.get('AUTORENDER_VIDEOS_FOLDER')!;
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
@@ -88,6 +89,7 @@ const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 
 const getDemoFilePath = (videoId: string) => join(AUTORENDER_DEMOS_FOLDER, `${videoId}.dem`);
 const getFixedDemoFilePath = (videoId: string) => join(AUTORENDER_DEMOS_FOLDER, `${videoId}_fixed.dem`);
+const getStorageFilePath = (filename: string) => join(AUTORENDER_FILES_FOLDER, filename);
 const getVideoFilePath = (videoId: string) => join(AUTORENDER_VIDEOS_FOLDER, `${videoId}.mp4`);
 
 const cookieOptions: CookiesSetDeleteOptions = {
@@ -1305,6 +1307,12 @@ router.get('/storage/demos/:video_id/:fixed(fixed)?', async (ctx) => {
       logger.error(err);
     }
   }
+});
+router.get('/storage/files/autorender.cfg', async (ctx) => {
+  Ok(ctx, await Deno.readFile(getStorageFilePath('autorender.cfg')), 'text/plain');
+});
+router.get('/storage/files/quickhud.zip', async (ctx) => {
+  Ok(ctx, await Deno.readFile(getStorageFilePath('quickhud.zip')), 'application/zip');
 });
 
 router.get('/favicon.ico', (ctx) => (ctx.response.status = Status.NotFound));
