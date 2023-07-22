@@ -10,7 +10,7 @@ import { assert } from 'https://deno.land/std@0.177.0/testing/asserts.ts';
 const hostname = Deno.env.get('SERVER_HOST') ?? '127.0.0.1';
 const port = parseInt(Deno.env.get('SERVER_PORT') ?? '8001', 10);
 const uri = `http${Deno.env.get('SERVER_SSL_CERT') !== 'none' ? 's' : ''}://${hostname}:${port}`;
-const userAgent = 'autorender v1.0';
+//const userAgent = 'autorender v1.0';
 
 console.log(`running tests for ${uri}`);
 

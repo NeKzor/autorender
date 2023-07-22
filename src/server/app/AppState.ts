@@ -15,10 +15,11 @@ export interface AppState {
   discordAuthorizeLink: string;
 }
 
+// deno-lint-ignore no-explicit-any
 export type DispatchAction = { type: string; payload: any };
 
 export const reducer: React.Reducer<AppState, DispatchAction> = (
-  state: AppState,
+  _state: AppState,
   action: DispatchAction
 ) => {
   switch (action.type) {
