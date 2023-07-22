@@ -6,11 +6,7 @@
 
 import { Bot } from "../deps.ts";
 import { Interaction } from "../deps.ts";
-import {
-  ApplicationCommandOptionTypes,
-  ApplicationCommandTypes,
-  InteractionResponseTypes,
-} from "../deps.ts";
+import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from "../deps.ts";
 import { Messages, SourceDemoParser } from "npm:@nekz/sdp";
 import { createCommand } from "./mod.ts";
 
@@ -31,10 +27,9 @@ createCommand({
   ],
   execute: async (bot: Bot, interaction: Interaction) => {
     const attachment = interaction.data?.resolved?.attachments?.first()!;
-    const warnFileIsTooBigForRender =
-      attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE;
+    const warnFileIsTooBigForRender = attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE;
 
-      await bot.helpers.sendInteractionResponse(
+    await bot.helpers.sendInteractionResponse(
       interaction.id,
       interaction.token,
       {
@@ -118,9 +113,7 @@ createCommand({
 
       dt.tables.splice(pointSurvey, 1);
 
-      const svc = dt.serverClasses.find((table) =>
-        table.dataTableName === "DT_PointSurvey"
-      );
+      const svc = dt.serverClasses.find((table) => table.dataTableName === "DT_PointSurvey");
 
       if (!svc) {
         console.error(`CPointCamera server class not found in demo.`);
@@ -140,10 +133,8 @@ createCommand({
 
       await bot.helpers.editOriginalInteractionResponse(interaction.token, {
         content: `🔨️ Fixed old demo.` +
-          (warnFileIsTooBigForRender
-            ? `\n⚠️ Detected that the file is too big for a render.`
-            : ""),
-        file: [
+          (warnFileIsTooBigForRender ? `\n⚠️ Detected that the file is too big for a render.` : ""),
+        files: [
           {
             blob: new Blob([fixed]),
             name: attachment.filename.toLowerCase().endsWith(".dem")

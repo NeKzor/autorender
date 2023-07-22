@@ -59,7 +59,7 @@ const connect = () => {
   ws.onopen = onOpen;
   ws.onmessage = onMessage;
   ws.onclose = onClose;
-  ws.onerror = onError
+  ws.onerror = onError;
 };
 
 connect();

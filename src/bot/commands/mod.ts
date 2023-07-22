@@ -4,12 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import type {
-  ApplicationCommandOption,
-  ApplicationCommandTypes,
-  Bot,
-  Interaction,
-} from "../deps.ts";
+import type { ApplicationCommandOption, ApplicationCommandTypes, Bot, Interaction } from "../deps.ts";
 import { Collection } from "../deps.ts";
 
 export type subCommand = Omit<Command, "subcommands">;
@@ -25,8 +20,9 @@ export interface Command {
   type: ApplicationCommandTypes;
   /** Defaults to `Guild` */
   scope?: "Global" | "Guild";
+  guilds?: bigint[];
   execute: (bot: Bot, interaction: Interaction) => unknown;
-  subcommands?: Array<subCommandGroup | subCommand>;
+  subcommands?: (subCommandGroup | subCommand)[];
 }
 
 export const commands = new Collection<string, Command>();

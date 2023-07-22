@@ -12,20 +12,13 @@ import {
   Bot,
   ButtonComponent,
   ButtonStyles,
-  getChannel,
-  getGuild,
-  getMessage,
-  getMessages,
+  InteractionDataOption,
   InteractionTypes,
   Message,
   MessageComponentTypes,
 } from "../deps.ts";
 import { Interaction } from "../deps.ts";
-import {
-  ApplicationCommandOptionTypes,
-  ApplicationCommandTypes,
-  InteractionResponseTypes,
-} from "../deps.ts";
+import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from "../deps.ts";
 import { escapeMaskedLink, getPublicUrl } from "../utils/helpers.ts";
 import { createCommand } from "./mod.ts";
 
@@ -35,7 +28,7 @@ const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const render = async (
   bot: Bot,
   interaction: Interaction,
-  interactionData: Exclude<Interaction["data"], undefined>,
+  interactionData: InteractionDataOption,
   attachment?: Attachment,
 ) => {
   attachment ??= interaction.data?.resolved?.attachments?.first()!;
@@ -113,7 +106,7 @@ const render = async (
     if (requestedInGuildId) {
       body.append("requested_in_guild_id", requestedInGuildId);
 
-      const guildName = (await getGuild(bot, BigInt(requestedInGuildId))).name;
+      const guildName = (await bot.helpers.getGuild(BigInt(requestedInGuildId))).name;
       if (guildName) {
         body.append("requested_in_guild_name", guildName);
       }
@@ -122,8 +115,7 @@ const render = async (
     if (requestedInChannelId) {
       body.append("requested_in_channel_id", requestedInChannelId);
 
-      const channelName =
-        (await getChannel(bot, BigInt(requestedInChannelId))).name;
+      const channelName = (await bot.helpers.getChannel(BigInt(requestedInChannelId))).name;
       if (channelName) {
         body.append("requested_in_channel_name", channelName);
       }
@@ -316,15 +308,18 @@ createCommand({
             render(bot, interaction, subCommand);
             break;
           case "latest": {
-            const messages = await getMessages(bot, interaction.channelId!, {
-              limit: 10,
-            });
+            const messages = await bot.helpers.getMessages(
+              interaction.channelId!,
+              {
+                limit: 10,
+              },
+            );
 
-            const attachment = messages.array().find((message) => {
-              return message.attachments.find((attachment) => {
+            const attachment = messages.find((message) => {
+              return (message.attachments ?? []).find((attachment) => {
                 return attachment.filename.endsWith(".dem");
               });
-            })?.attachments.at(0);
+            })?.attachments?.at(0);
 
             if (attachment) {
               render(bot, interaction, subCommand, attachment);
@@ -335,8 +330,7 @@ createCommand({
                 {
                   type: InteractionResponseTypes.ChannelMessageWithSource,
                   data: {
-                    content:
-                      `❌️ Unable to find any message with an attached demo file.`,
+                    content: `❌️ Unable to find any message with an attached demo file.`,
                   },
                 },
               );
@@ -364,8 +358,7 @@ createCommand({
                   throw new Error("Invalid route.");
                 }
 
-                message = await getMessage(
-                  bot,
+                message = await bot.helpers.getMessage(
                   BigInt(channelId),
                   BigInt(messageId),
                 );
@@ -383,8 +376,7 @@ createCommand({
               }
             } catch (_err) {
               try {
-                message = await getMessage(
-                  bot,
+                message = await bot.helpers.getMessage(
                   interaction.channelId!,
                   BigInt(messageUrlOrId),
                 );
@@ -406,7 +398,7 @@ createCommand({
               return;
             }
 
-            const attachment = message.attachments.at(0);
+            const attachment = message.attachments?.at(0);
 
             if (attachment) {
               render(bot, interaction, subCommand, attachment);
@@ -417,8 +409,7 @@ createCommand({
                 {
                   type: InteractionResponseTypes.ChannelMessageWithSource,
                   data: {
-                    content:
-                      `❌️ Unable to find an attached demo file for this message.`,
+                    content: `❌️ Unable to find an attached demo file for this message.`,
                   },
                 },
               );
@@ -462,7 +453,7 @@ const qualityOptionChoices: ApplicationCommandOptionChoice[] = [
 const checkQualityOptions = async (
   bot: Bot,
   interaction: Interaction,
-  interactionData: Exclude<Interaction["data"], undefined>,
+  interactionData: InteractionDataOption,
 ) => {
   const args = [...(interactionData.options?.values() ?? [])];
   const quality = args.find((arg) => arg.name === "quality");
@@ -482,7 +473,7 @@ const checkQualityOptions = async (
 };
 
 const validateQualityOption = (
-  interactionData: Exclude<Interaction["data"], undefined>,
+  interactionData: InteractionDataOption,
 ) => {
   const args = [...(interactionData.options?.values() ?? [])];
   const quality = args.find((arg) => arg.name === "quality")?.value;

@@ -1,16 +1,16 @@
 {
-    "tasks": {
-        "start:dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/bot,./ --allow-write=log/bot,fileloader.ts,demos --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,autorender.portal2.local:8001 --watch main.ts",
-        "start:prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/bot,./ --allow-write=log/bot,fileloader.ts,demos --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,127.0.0.1:8834 main.ts"
-    },
-    "fmt": {
-        "useTabs": false,
-        "lineWidth": 120,
-        "indentWidth": 4,
-        "singleQuote": true,
-        "proseWrap": "preserve"
-    },
-    "compilerOptions": {
-        "noUncheckedIndexedAccess": true
-    }
+  "tasks": {
+    "dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,worker.ts --allow-write=log,demos --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,autorender.portal2.local:8001 --watch main.ts",
+    "prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,worker.ts --allow-write=log,demos --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,127.0.0.1:8834 main.ts"
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 120,
+    "indentWidth": 2,
+    "singleQuote": false,
+    "proseWrap": "preserve"
+  },
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true
+  }
 }

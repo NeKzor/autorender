@@ -7,11 +7,7 @@
 import { Video } from "../../server/models.ts";
 import { Bot } from "../deps.ts";
 import { Interaction } from "../deps.ts";
-import {
-  ApplicationCommandOptionTypes,
-  ApplicationCommandTypes,
-  InteractionResponseTypes,
-} from "../deps.ts";
+import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from "../deps.ts";
 import { escapeMaskedLink, getPublicUrl } from "../utils/helpers.ts";
 import { createCommand } from "./mod.ts";
 

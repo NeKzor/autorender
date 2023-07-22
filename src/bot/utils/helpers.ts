@@ -4,133 +4,150 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Bot, BotWithCache, CreateApplicationCommand, Guild, MakeRequired } from '../deps.ts'
-import { getGuild, hasProperty, upsertGuildApplicationCommands } from '../deps.ts'
-import { logger } from './logger.ts'
-import type { subCommand, subCommandGroup } from '../commands/mod.ts'
-import { commands } from '../commands/mod.ts'
+import { BitwisePermissionFlags, Bot, CreateApplicationCommand, Guild } from "../deps.ts";
+import { logger } from "./logger.ts";
+import { commands } from "../commands/mod.ts";
+import { BotWithCache } from "../bot.ts";
 
-const log = logger({ name: 'Helpers' })
+const log = logger({ name: "Helpers" });
 
-/** This function will update all commands, or the defined scope */
-export async function updateCommands(bot: BotWithCache, scope?: 'Guild' | 'Global') {
-  const globalCommands: Array<MakeRequired<CreateApplicationCommand, 'name'>> = []
-  const perGuildCommands: Array<MakeRequired<CreateApplicationCommand, 'name'>> = []
+/**
+ * Update global commands.
+ *
+ * @param bot - The bot object.
+ */
+export async function updateCommands(bot: BotWithCache) {
+  const globalCommands = commands
+    .filter(({ scope }) => scope === "Global" || scope === undefined)
+    .map<CreateApplicationCommand>(({ name, description, type, options }) => ({
+      name,
+      description,
+      type,
+      options,
+    }));
 
-  for (const command of commands.values()) {
-    if (command.scope) {
-      if (command.scope === 'Guild') {
-        perGuildCommands.push({
-          name: command.name,
-          description: command.description,
-          type: command.type,
-          options: command.options ? command.options : undefined,
-        })
-      } else if (command.scope === 'Global') {
-        globalCommands.push({
-          name: command.name,
-          description: command.description,
-          type: command.type,
-          options: command.options ? command.options : undefined,
-        })
-      }
-    } else {
-      perGuildCommands.push({
-        name: command.name,
-        description: command.description,
-        type: command.type,
-        options: command.options ? command.options : undefined,
-      })
-    }
+  if (!globalCommands.length) {
+    return;
   }
 
-  if (globalCommands.length && (scope === 'Global' || scope === undefined)) {
-    log.info('Updating Global Commands, changes should apply in short...')
-    await bot.helpers.upsertGlobalApplicationCommands(globalCommands).catch(log.error)
-  }
+  log.info(`Updating ${globalCommands.length} global commands`);
 
-  if (perGuildCommands.length && (scope === 'Guild' || scope === undefined)) {
-    await bot.guilds.forEach(async (guild: Guild) => {
-      await upsertGuildApplicationCommands(bot, guild.id, perGuildCommands)
-    })
-  }
+  await bot.helpers.upsertGlobalApplicationCommands(globalCommands)
+    .catch(log.error);
 }
 
-/** Update commands for a guild */
+/**
+ * Update guild specific commands.
+ *
+ * @param bot - The bot object.
+ * @param guild - The guild object.
+ */
 export async function updateGuildCommands(bot: Bot, guild: Guild) {
-  const perGuildCommands: Array<MakeRequired<CreateApplicationCommand, 'name'>> = []
+  const guildCommands = commands
+    .filter(({ scope, guilds }) => scope === "Guild" && (!guilds?.length || guilds.includes(guild.id)))
+    .map<CreateApplicationCommand>(({ name, description, type, options }) => ({
+      name,
+      description,
+      type,
+      options,
+    }));
 
-  for (const command of commands.values()) {
-    if (command.scope) {
-      if (command.scope === 'Guild') {
-        perGuildCommands.push({
-          name: command.name,
-          description: command.description,
-          type: command.type,
-          options: command.options ? command.options : undefined,
-        })
-      }
-    }
+  if (!guildCommands.length) {
+    return;
   }
 
-  if (perGuildCommands.length) {
-    await upsertGuildApplicationCommands(bot, guild.id, perGuildCommands)
-  }
+  log.info(`Updating ${guildCommands.length} commands for guild ${guild.id}`);
+
+  await bot.helpers.upsertGuildApplicationCommands(guild.id, guildCommands)
+    .catch(log.error);
 }
 
-export async function getGuildFromId(bot: BotWithCache, guildId: bigint): Promise<Guild> {
-  let returnValue: Guild = {} as Guild
+/**
+ * Get the guild by ID.
+ *
+ * @param bot - The bot object.
+ * @param guildId - The ID of the guild.
+ * @returns - Guild object.
+ */
+export async function getGuildFromId(
+  bot: BotWithCache,
+  guildId: bigint,
+): Promise<Guild> {
+  let returnValue: Guild = {} as Guild;
 
   if (guildId !== 0n) {
-    if (bot.guilds.get(guildId)) {
-      returnValue = bot.guilds.get(guildId) as Guild
+    const guild = bot.guilds.get(guildId);
+    if (guild) {
+      returnValue = guild;
     }
 
-    await getGuild(bot, guildId).then((guild) => {
-      if (guild) bot.guilds.set(guildId, guild)
-      if (guild) returnValue = guild
-    })
+    await bot.helpers.getGuild(guildId).then((guild) => {
+      if (guild) {
+        bot.guilds.set(guildId, guild);
+        returnValue = guild;
+      }
+    });
   }
 
-  return returnValue
+  return returnValue;
 }
 
-export function snowflakeToTimestamp(id: bigint) {
-  return Number(id / 4194304n + 1420070400000n)
+/**
+ * Check the permissions of a member.
+ *
+ * @param permissions - The permission of the member.
+ * @param flags - The flags to check against.
+ * @returns - Returns true if the flags are set.
+ */
+export const hasPermissionFlags = (permissions: bigint | undefined, flags: BitwisePermissionFlags) => {
+  return (permissions ?? 0n) & BigInt(flags);
+};
+
+/**
+ * Escape the title of a link for rendering Discord's masked links.
+ *
+ * NOTE: Discord's masked links are a scuffed version of Markdown links.
+ *       You cannot escape [ and ] which means you have to remove it.
+ *
+ * @param linkTitle - The link title to escape.
+ * @returns
+ */
+export function escapeMaskedLink(linkTitle: string) {
+  return ["[", "]"].reduce(
+    (text, characterToRemove) => text.replaceAll(characterToRemove, ""),
+    linkTitle,
+  );
 }
 
-export function humanizeMilliseconds(milliseconds: number) {
-  // Gets ms into seconds
-  const time = milliseconds / 1000
-  if (time < 1) return '1s'
+const specialMdCharacters = [
+  "[",
+  "]",
+  "(",
+  ")",
+  "`",
+  "*",
+  "_",
+  "~",
+];
 
-  const days = Math.floor(time / 86400)
-  const hours = Math.floor((time % 86400) / 3600)
-  const minutes = Math.floor(((time % 86400) % 3600) / 60)
-  const seconds = Math.floor(((time % 86400) % 3600) % 60)
-
-  const dayString = days ? `${days}d ` : ''
-  const hourString = hours ? `${hours}h ` : ''
-  const minuteString = minutes ? `${minutes}m ` : ''
-  const secondString = seconds ? `${seconds}s ` : ''
-
-  return `${dayString}${hourString}${minuteString}${secondString}`
+/**
+ * Escapes text for rendering Markdown content.
+ *
+ * @param text - The text to escape.
+ * @returns - Escaped text.
+ */
+export function escapeMarkdown(text: string) {
+  return specialMdCharacters.reduce(
+    (title, char) => title.replaceAll(char, `\\${char}`),
+    text,
+  );
 }
 
-export function isSubCommand(data: subCommand | subCommandGroup): data is subCommand {
-  return !hasProperty(data, 'subCommands')
-}
-
-export function isSubCommandGroup(data: subCommand | subCommandGroup): data is subCommandGroup {
-  return hasProperty(data, 'subCommands')
-}
-
-// NOTE: Discord's masked links are a scuffed version of Markdown links.
-//       You cannot escape [ and ] which means you have to remove it.
-export function escapeMaskedLink(link: string) {
-  return ["[", "]"].reduce((text, characterToRemove) => text.replaceAll(characterToRemove, ''), link);
-}
-
+/**
+ * Returns the full public URL of the server.
+ * @param url - The URL part.
+ * @returns - The full URL.
+ */
 export function getPublicUrl(url: string) {
-  return new URL(url, Deno.env.get("AUTORENDER_PUBLIC_URI")!).toString()
+  return new URL(url, Deno.env.get("AUTORENDER_PUBLIC_URI")!).toString();
 }
