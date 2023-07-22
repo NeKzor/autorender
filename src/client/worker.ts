@@ -12,17 +12,70 @@
 import { delay } from "https://deno.land/std@0.190.0/async/delay.ts";
 import { logger } from "./logger.ts";
 import { AutorenderSendMessages } from "./protocol.ts";
-import { getConfig } from "./config.ts";
+import { Config } from "./config.ts";
 
-const config = await getConfig();
-
-const AUTORENDER_CONNECT_URI = config.autorender["connect-uri"];
-const AUTORENDER_PROTOCOL = config.autorender["protocol"];
 const AUTORENDER_SEND_MAX_RETRIES = 5;
 const AUTORENDER_SEND_RETRY_INTERVAL = 1_000;
 
+export enum WorkerDataType {
+  Config = "config",
+  Connect = "connect",
+  Send = "send",
+  Connected = "connected",
+  Disconnected = "disconnected",
+  Message = "message",
+}
+
+export type WorkerMessage<T extends WorkerDataType, P> = {
+  type: T;
+  data: P;
+};
+
+export type WorkerMessageConfig = WorkerMessage<
+  WorkerDataType.Config,
+  { config: Config }
+>;
+
+export type WorkerMessageConnect = WorkerMessage<
+  WorkerDataType.Connect,
+  undefined
+>;
+
+export type WorkerMessageSend = WorkerMessage<
+  WorkerDataType.Send,
+  {
+    data: AutorenderSendMessages;
+    options: { dropDataIfDisconnected: boolean };
+  }
+>;
+
+export type WorkerMessageConnected = WorkerMessage<
+  WorkerDataType.Connected,
+  undefined
+>;
+
+export type WorkerMessageDisconnected = WorkerMessage<
+  WorkerDataType.Disconnected,
+  undefined
+>;
+
+export type WorkerMessageMessage = WorkerMessage<
+  WorkerDataType.Message,
+  unknown
+>;
+
+export type WorkerMessages =
+  | WorkerMessageConfig
+  | WorkerMessageConnect
+  | WorkerMessageSend
+  | WorkerMessageConnected
+  | WorkerMessageDisconnected
+  | WorkerMessageMessage;
+
 let ws: WebSocket | null = null;
 let wasConnected = false;
+
+const config = {} as Config;
 
 const send = async (
   data: Uint8Array | AutorenderSendMessages,
@@ -51,28 +104,35 @@ const send = async (
   }
 };
 
-self.addEventListener("message", async (message: MessageEvent) => {
-  switch (message.data.type) {
-    case "send": {
-      type SendData = {
-        data: AutorenderSendMessages;
-        options?: { dropDataIfDisconnected: boolean };
-      };
+self.addEventListener(
+  "message",
+  async (message: MessageEvent<WorkerMessages>) => {
+    const { type, data } = message.data;
 
-      const { data, options } = message.data.data as SendData;
-      await send(data, options);
-      break;
+    switch (type) {
+      case WorkerDataType.Config: {
+        Object.assign(config, data.config);
+        break;
+      }
+      case WorkerDataType.Connect: {
+        connect();
+        break;
+      }
+      case WorkerDataType.Send: {
+        await send(data.data, data.options);
+        break;
+      }
+      default:
+        logger.error(`Unhandled worker message type: ${type}`);
+        break;
     }
-    default:
-      logger.error(`Unhandled worker message type: ${message.data.type}`);
-      break;
-  }
-});
+  },
+);
 
 const onOpen = () => {
   wasConnected = true;
   logger.info("Connected to server");
-  self.postMessage({ type: "connected" });
+  self.postMessage({ type: WorkerDataType.Connected });
 };
 
 const onClose = async () => {
@@ -83,7 +143,7 @@ const onClose = async () => {
     logger.info("Disconnected from server");
   }
 
-  self.postMessage({ type: "disconnected" });
+  self.postMessage({ type: WorkerDataType.Disconnected });
 
   await delay(100);
   connect();
@@ -105,15 +165,15 @@ const onMessage = async (message: MessageEvent) => {
     self.postMessage(buffer, [buffer]);
   } else {
     self.postMessage({
-      type: "message",
+      type: WorkerDataType.Message,
       data: message.data,
     });
   }
 };
 
 const connect = () => {
-  ws = new WebSocket(AUTORENDER_CONNECT_URI, [
-    AUTORENDER_PROTOCOL,
+  ws = new WebSocket(config.autorender["connect-uri"], [
+    config.autorender["protocol"],
     encodeURIComponent(config.autorender["access-token"]),
   ]);
 
@@ -122,5 +182,3 @@ const connect = () => {
   ws.onclose = onClose;
   ws.onerror = onError;
 };
-
-connect();

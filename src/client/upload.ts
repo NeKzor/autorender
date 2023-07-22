@@ -13,21 +13,15 @@ import { join } from "https://deno.land/std@0.190.0/path/mod.ts";
 import { logger } from "./logger.ts";
 import { ClientState } from "./state.ts";
 import { Video } from "../server/models.ts";
-import { getConfig } from "./config.ts";
+import { Config } from "./config.ts";
+import { VideoPayload } from "./protocol.ts";
 
-const config = await getConfig();
-
-const GAME_DIR = config.games.at(0)!.dir;
-const GAME_MOD = config.games.at(0)!.mod;
-const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
-
-const AUTORENDER_FOLDER_NAME = config.autorender["folder-name"];
-const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
-const AUTORENDER_BASE_API = config.autorender["base-api"];
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 
 export enum UploadWorkerDataType {
+  Config = "config",
   Upload = "upload",
+  Error = "error",
 }
 
 export type UploadWorkerMessage<T extends UploadWorkerDataType, P> = {
@@ -35,11 +29,27 @@ export type UploadWorkerMessage<T extends UploadWorkerDataType, P> = {
   data: P;
 };
 
+export type UploadWorkerMessageConfig = UploadWorkerMessage<
+  UploadWorkerDataType.Config,
+  { config: Config }
+>;
+
 export type UploadWorkerMessageUpload = UploadWorkerMessage<
   UploadWorkerDataType.Upload,
   { videos: ClientState["videos"] }
 >;
-export type UploadWorkerMessages = UploadWorkerMessageUpload;
+
+export type UploadWorkerMessageError = UploadWorkerMessage<
+  UploadWorkerDataType.Error,
+  { video_id: VideoPayload["video_id"]; error: string }
+>;
+
+export type UploadWorkerMessages =
+  | UploadWorkerMessageConfig
+  | UploadWorkerMessageUpload
+  | UploadWorkerMessageError;
+
+const config = {} as Config;
 
 self.addEventListener(
   "message",
@@ -47,10 +57,20 @@ self.addEventListener(
     const { type, data } = message.data;
 
     switch (type) {
+      case UploadWorkerDataType.Config: {
+        Object.assign(config, data.config);
+        break;
+      }
       case UploadWorkerDataType.Upload: {
         for (const { video_id } of data.videos) {
           try {
-            const videoFile = join(AUTORENDER_DIR, `${video_id}.dem.mp4`);
+            const videoFile = join(
+              config.games.at(0)!.dir,
+              config.games.at(0)!.mod,
+              config.autorender["folder-name"],
+              `${video_id}.dem.mp4`,
+            );
+
             const stat = await Deno.stat(videoFile);
             if (stat.size > AUTORENDER_MAX_VIDEO_FILE_SIZE) {
               throw new Error(`Video file ${videoFile} is too big.`);
@@ -69,7 +89,7 @@ self.addEventListener(
             body.append("video_id", video_id);
 
             const response = await fetch(
-              `${AUTORENDER_BASE_API}/api/v1/videos/upload`,
+              `${config.autorender["base-api"]}/api/v1/videos/upload`,
               {
                 method: "POST",
                 headers: {
@@ -92,7 +112,7 @@ self.addEventListener(
             logger.error(err);
 
             self.postMessage({
-              type: "error",
+              type: UploadWorkerDataType.Error,
               data: {
                 video_id,
                 error: err.toString(),
@@ -103,7 +123,7 @@ self.addEventListener(
         break;
       }
       default:
-        logger.error(`Unhandled upload type: ${message.data.type}`);
+        logger.error(`Unhandled upload type: ${type}`);
         break;
     }
   },

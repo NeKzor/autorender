@@ -21,7 +21,10 @@ import { RenderQuality, Video as VideoModel } from "../server/models.ts";
 import { ClientState, ClientStatus } from "./state.ts";
 import { UploadWorkerDataType } from "./upload.ts";
 import { getConfig } from "./config.ts";
+import { getOptions } from "./options.ts";
+import { WorkerDataType } from "./worker.ts";
 
+const options = await getOptions();
 const config = await getConfig();
 
 // TODO: Handle multiple games
@@ -34,16 +37,21 @@ const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
 const AUTORENDER_FOLDER_NAME = config.autorender["folder-name"];
 const AUTORENDER_CFG = config.games.at(0)!.cfg;
 const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
-const AUTORENDER_MAX_SUPPORTED_QUALITY = config.autorender["max-supported-quality"];
+const AUTORENDER_MAX_SUPPORTED_QUALITY =
+  config.autorender["max-supported-quality"];
 
 // TODO: Upstream sar_on_renderer feature
 const AUTORENDER_PATCHED_SAR = true;
+
 // Timeout interval in ms to check if there are new videos to render.
 const AUTORENDER_CHECK_INTERVAL = 1_000;
+
 // Approximated scaling factor for multiplying the demo playback time.
 const AUTORENDER_SCALE_TIMEOUT = 9;
+
 // Approximated time in seconds of how long it takes to load a demo.
 const AUTORENDER_LOAD_TIMEOUT = 5;
+
 // Approximated time in seconds of how long it takes to start/exit the game process.
 const AUTORENDER_BASE_TIMEOUT = 20;
 
@@ -74,9 +82,19 @@ const worker = new Worker(new URL("./worker.ts", import.meta.url).href, {
   type: "module",
 });
 
+worker.postMessage({ type: WorkerDataType.Config, data: { config } });
+worker.postMessage({ type: WorkerDataType.Connect });
+
 // Upload worker thread for uploading files to the server.
 const upload = new Worker(new URL("./upload.ts", import.meta.url).href, {
   type: "module",
+});
+
+upload.postMessage({
+  type: UploadWorkerDataType.Config,
+  data: {
+    config,
+  },
 });
 
 worker.addEventListener("message", async (message: MessageEvent) => {
@@ -85,16 +103,16 @@ worker.addEventListener("message", async (message: MessageEvent) => {
   } else {
     const { type, data } = message.data;
     switch (type) {
-      case "connected":
+      case WorkerDataType.Connected:
         fetchNextVideos();
         break;
-      case "disconnected":
+      case WorkerDataType.Disconnected:
         if (idleTimer !== null) {
           clearTimeout(idleTimer);
           idleTimer = null;
         }
         break;
-      case "message":
+      case WorkerDataType.Message:
         await onMessage(data);
         break;
       default:
@@ -109,7 +127,7 @@ worker.addEventListener("message", async (message: MessageEvent) => {
 upload.addEventListener("message", (message: MessageEvent) => {
   const { type, data } = message.data;
   switch (type) {
-    case "error":
+    case UploadWorkerDataType.Error:
       send({
         type: AutorenderSendDataType.Error,
         data,
@@ -128,7 +146,7 @@ const send = (
   options?: { dropDataIfDisconnected: boolean },
 ) => {
   worker.postMessage({
-    type: "send",
+    type: WorkerDataType.Send,
     data: {
       data,
       options,
@@ -332,7 +350,7 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
 
   const steamResponse = await fetch(video.file_url, {
     headers: {
-      "User-Agent": "autorender-client-v1",
+      "User-Agent": "autorender-client-v1.0",
     },
   });
 
