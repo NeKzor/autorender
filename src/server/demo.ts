@@ -110,7 +110,7 @@ export const resolveFileUrl = async (appId: WorkshopSteamAppId, mapName: string)
   const [path, ugc, name] = mapName.split('/', 3);
 
   if (path === 'workshop') {
-    if (name.includes('/') || name.includes('\\')) {
+    if (!name || name.includes('/') || name.includes('\\')) {
       throw new Error(`Invalid map name found in demo: ${name}`);
     }
 

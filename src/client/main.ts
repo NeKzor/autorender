@@ -498,7 +498,7 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
  * Get window width and height.
  * NOTE: This will also be used for the custom crosshair.
  */
-const getGameResolution = () => {
+const getGameResolution = (): [string, string] => {
   // Quality for each video should be the same.
   // This is handled server-side.
   const { render_quality } = state.videos.at(0)!;
@@ -565,7 +565,7 @@ const prepareGameLaunch = async () => {
     autoexec.join('\n'),
   );
 
-  const getCommand = () => {
+  const getCommand = (): [string, string] => {
     const command = join(GAME_DIR, GAME_EXE);
 
     switch (Deno.build.os) {

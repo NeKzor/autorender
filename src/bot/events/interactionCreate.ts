@@ -65,7 +65,7 @@ events.interactionCreate = async (interaction) => {
         return;
       }
 
-      const [modalCommand] = interaction.data.customId.split('_');
+      const [modalCommand] = interaction.data.customId.split('_') as [string];
       command = commands.get(modalCommand);
     } else {
       command = commands.get(interaction.data.name);
