@@ -16,10 +16,10 @@ Convert Portal 2 demos into videos with: `/render demo <file>`
     - [src/client/.env](#srcclientenv)
   - [Install & Run Bot](#install--run-bot)
     - [src/bot/.env](#srcbotenv)
-  - [Caveats](#caveats)
 - [Production](#production)
   - [Proxy Example with Nginx + Certbot](#proxy-example-with-nginx--certbot)
 - [TODO](#todo)
+- [Caveats](#caveats)
 - [Credits](#credits)
 - [License](#license)
 
@@ -94,17 +94,17 @@ sequenceDiagram
 - [FFmpeg]
 - [Discord Application]
 - [Docker Engine]
+- [Portal 2]
 - [Backblaze Bucket] (optional)
 - [mkcert] (optional)
-- [demofixup] (optional)
 
 [deno runtime]: https://deno.com/runtime
 [FFmpeg]: https://ffmpeg.org/download.html
 [Discord Application]: https://discord.com/developers/applications
-[Backblaze Bucket]: https://www.backblaze.com
 [Docker Engine]: https://docs.docker.com/engine/install
+[Portal 2]: https://store.steampowered.com/app/620
+[Backblaze Bucket]: https://www.backblaze.com
 [mkcert]: https://github.com/FiloSottile/mkcert
-[demofixup]: https://github.com/p2sr/demofixup
 
 ### Setup
 
@@ -116,7 +116,7 @@ Generate files with: `chmod +x setup && ./setup dev`
 - Build the server image once with: `docker compose build`
 - Start all containers with: `docker compose up`
 - Add a host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts`
-- Run from the server folder `src/server` the command `deno task dev`
+- Start the server with `deno task server:dev`
 
 The server should now be available at: `http://autorender.portal2.local`
 
@@ -124,7 +124,7 @@ The server should now be available at: `http://autorender.portal2.local`
 
 - Create the user account once by logging in from the home page
 - Make sure that `DISCORD_USER_ID` in the `src/server/.env` file is the correct user ID of the created user
-- Set all permissions for the account with `deno task perm`
+- Set all permissions for the account with `deno task server:perm`
 - Logout and login again
 
 ### Storage
@@ -151,29 +151,14 @@ recommended to use local storage during development since every request to b2 wi
 
 ### Install & Run Client
 
-- Install [fixed version of SourceAutoRecord]
-- Copy `autorender.cfg` into the game's `cfg` directory
-- Log into the platform
-- Generate a new token in the platform (make sure the permissions have been set for the logged in account)
-- Copy generated token into the `src/client/.env` file as `AUTORENDER_API_KEY`
-- Run from the client folder `src/client` the command `deno task dev`
-
-[fixed version of SourceAutoRecord]: https://github.com/NeKzor/sar/releases/tag/autorender
-
-#### src/client/.env
-
-|Variable|Description|
-|---|---|
-|GAME_DIR|Directory path of the game.|
-|GAME_EXE|The binary or script to execute: `portal2.exe` (Windows) `portal2.sh` (Linux).|
-|GAME_PROC|The process name of the game: `portal2.exe` (Windows) `portal2_linux` (Linux).|
-|AUTORENDER_API_KEY|Access token for autorender server.|
+- Generate a new token in the platform (make sure the permissions have been set for the [logged in account](#user-setup))
+- Start the client `deno task client:dev` and go through the setup process
 
 ### Install & Run Bot
 
 - Copy the bot credentials of the Discord application into the `src/bot/.env` file
 - Configure `AUTORENDER_BOT_TOKEN` with the same password that is shared with the server
-- Run from the bot folder `src/bot` the command `deno task dev`
+- Start the bot with `deno task bot:dev`
 
 #### src/bot/.env
 
@@ -183,26 +168,17 @@ recommended to use local storage during development since every request to b2 wi
 |DISCORD_BOT_ID|Client ID of the Discord bot application.|
 |AUTORENDER_BOT_TOKEN|Generated token which is shared between the server and the bot.|
 
-### Caveats
-
-- Deno's network permissions do not support wildcards for domains: [deno#6532]
-- Deno's WebSockets are limited to [64 MiB] which is good enough for demos but not for large video files: [deno#15809]
-- Permissions for containers have to be managed manually for mounted volumes: [moby#2259]
-- MariaDB image does not leak memory but MySQL 8 does: [containerd#6707]
-
-[deno#6532]: https://github.com/denoland/deno/issues/6532
-[moby#2259]: https://github.com/moby/moby/issues/2259
-[containerd#6707]: https://github.com/containerd/containerd/issues/6707
-[64 MiB]:  https://github.com/denoland/fastwebsockets/blob/875e6b7ba001898e38bbff50e8f90cc11b90e718/src/lib.rs#L283
-[deno#15809]: https://github.com/denoland/deno/issues/15809
-
 ## Production
 
-Same as in development but all task commands end with `prod` e.g. `deno task prod`.
+Same as in development but `prod` is used as a postfix: `deno task <server|bot>:prod`
 
-Make sure the bot's `.env` file has the correct values for:
-- `AUTORENDER_BASE_API` should point to the internal address
+Make sure that the `src/bot/.env` file has the correct values for:
+- `AUTORENDER_BASE_API` should point to the internal address of the host, if hosted within the same network
 - `AUTORENDER_PUBLIC_URI` should point to the public domain (used for sending the final Discord message)
+
+For clients we want to only ship the code as a single binary:
+- `deno task client:compile:linux` outputs the executable to `src/client/bin/autorenderclient`
+- `deno task client:compile:windows` outputs the executable to `src/client/bin/autorenderclient.exe`
 
 ### Proxy Example with Nginx + Certbot
 
@@ -257,9 +233,15 @@ server {
 - ~~Markdown links~~
 - ~~Quality options~~
 - ~~Use yaml format for client settings~~
+- Bot improvements
+  - Implement "Render demo" as message context menu option
+  - Improve `/bot info`
+  - Edit original interaction message or create a follow up message
+- Add CI/CD
+  - CI should check for lint and format errors on every push
+  - CD should compile client code and release all files on every tag
 - Support game mods
 - Switch to shorter video IDs
-- Edit original interaction message or create a follow up message
 - Advanced render options e.g. sar_ihud
 - Integrate into [board.nekz.me]
 - Design frontend platform
@@ -268,11 +250,11 @@ server {
   - Users
   - Audit logs
   - Demo upload
-- Package client code
+- ~~Package client code~~
   - ~~Installer CLI~~
   - ~~Download SAR/autorender.cfg automatically~~
   - Figure out permissions
-  - Single executable
+  - ~~Single executable~~
 - Generate video preview + thumbnails
 - Unlisted/private videos
 - Figure out docker
@@ -298,13 +280,30 @@ server {
 
 [board.nekz.me]: https://github.com/NeKzor/board
 
+## Caveats
+
+- Deno's network permissions do not support wildcards for domains: [deno#6532]
+- Deno's permission system is insanely tedious to maintain: [deno#12763]
+- Deno's WebSockets are limited to [64 MiB] per frame which is good enough for demos but not for large video files: [deno#15809]
+- Permissions for containers have to be managed manually for mounted volumes: [moby#2259]
+- MariaDB image does not leak memory but MySQL 8 does: [containerd#6707]
+- The autorender client installs a [patched version] of SourceAutoRecord to make it work on the latest version of Portal 2
+
+[deno#6532]: https://github.com/denoland/deno/issues/6532
+[deno#12763]: https://github.com/denoland/deno/issues/12763
+[moby#2259]: https://github.com/moby/moby/issues/2259
+[containerd#6707]: https://github.com/containerd/containerd/issues/6707
+[64 MiB]:  https://github.com/denoland/fastwebsockets/blob/875e6b7ba001898e38bbff50e8f90cc11b90e718/src/lib.rs#L283
+[deno#15809]: https://github.com/denoland/deno/issues/15809
+[patched version]: https://github.com/NeKzor/sar/releases
+
 ## Credits
 
 - [@PortalRex] for idea and motivation
 - [@ThatFridgeFella] for testing
 - [p2sr/demofixup] for an an almost working demo fixup method!
-- [p2sr/SourceAutoRecord] for a renderer crashes!
-- [p2sr/portal2-cm-autorender] for making me not want to use Python!!
+- [p2sr/SourceAutoRecord] for a renderer crashes and many other bugs!!
+- [p2sr/portal2-cm-autorender] for making me not want to use Python!!!
 
 [@PortalRex]: https://github.com/PortalRex
 [@ThatFridgeFella]: https://github.com/ThatFridgeFella
