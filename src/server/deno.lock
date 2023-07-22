@@ -765,7 +765,7 @@
   },
   "npm": {
     "specifiers": {
-      "@nekz/sdp": "@nekz/sdp@0.3.0"
+      "@nekz/sdp": "@nekz/sdp@0.4.0"
     },
     "packages": {
       "@nekz/sdp@0.1.0": {
@@ -774,6 +774,10 @@
       },
       "@nekz/sdp@0.3.0": {
         "integrity": "sha512-4vffmc60cA1o6SHMM65c5JXgsaFV99yDMJldufetl/bBb2BjZk1kHj4VqbfKlCrsL66YLhS5oXrJUvMgPgutAg==",
+        "dependencies": {}
+      },
+      "@nekz/sdp@0.4.0": {
+        "integrity": "sha512-zbTEWQOmWPn5ZFKfwlghoJfdjQR9RJLI/OjpfIN4PWxIBBzdbVH0T7QA+NfpQztDhHjWekLIjg+s6lRyg2PPmw==",
         "dependencies": {}
       }
     }
