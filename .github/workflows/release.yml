@@ -1,0 +1,52 @@
+name: Release CD
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    if: "!contains(github.event.head_commit.message, '[cd skip]')"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Format check
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      # Disabled until useful tests have been written
+      #- name: Test
+      #  run: deno test -A
+
+      - name: Compile
+        run: |
+          deno task client:compile:linux
+          deno task client:compile:windows
+
+      - name: Create archives
+        run: |
+          7z a autorender-${{ github.ref_name }}-linux.zip ${{ github.workspace }}/src/client/bin/autorenderclient
+          7z a autorender-${{ github.ref_name }}-windows.zip ${{ github.workspace }}/src/client/bin/autorenderclient.exe
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Autorender Client ${{ github.ref_name }}
+          prerelease: ${{ contains(github.ref, 'pre') }}
+          body: |
+            For render clients of [autorender.nekz.me](https://autorender.nekz.me).
+            Windows: [Download autorender-${{ github.ref_name }}-windows.zip](https://github.com/NeKzor/autorender/releases/download/${{ github.ref_name }}/autorender-${{ github.ref_name }}-windows.zip)
+            Linux: [Download autorender-${{ github.ref_name }}-linux.zip](https://github.com/NeKzor/autorender/releases/download/${{ github.ref_name }}/autorender-${{ github.ref_name }}-linux.zip)
+          files: |
+            autorender-${{ github.ref_name }}-windows.zip
+            autorender-${{ github.ref_name }}-linux.zip

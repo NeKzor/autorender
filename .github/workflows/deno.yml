@@ -1,0 +1,36 @@
+name: Deno CI
+
+on:
+  push:
+    paths:
+      - "src/**/*.tx?"
+  pull_request:
+    paths:
+      - "src/**/*.tx?"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Format check
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      # Disabled until useful tests have been written
+      #- name: Test
+      #  run: deno test -A
