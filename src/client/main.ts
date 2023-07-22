@@ -24,6 +24,14 @@ import { getConfig } from './config.ts';
 import { getOptions } from './options.ts';
 import { WorkerDataType } from './worker.ts';
 
+addEventListener('error', (ev) => {
+  console.dir({ error: ev.error }, { depth: 16 });
+});
+
+addEventListener('unhandledrejection', (ev) => {
+  console.dir({ unhandledrejection: ev.reason }, { depth: 16 });
+});
+
 const _options = await getOptions();
 const config = await getConfig();
 
