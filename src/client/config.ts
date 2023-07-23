@@ -428,7 +428,7 @@ export const downloadAutorenderConfig = async (
     Deno.exit(1);
   }
 
-  console.log(colors.white(`\r📄️ Downloaded autorender.cfg`)));
+  console.log(colors.white(`\r📄️ Downloaded autorender.cfg`));
 
   const data = new Uint8Array(await res.arrayBuffer());
 
