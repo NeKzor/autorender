@@ -36,16 +36,7 @@ const _options = await getOptions();
 const config = await getConfig();
 
 // TODO: Handle multiple games
-const GAME_DIR = config.games.at(0)!.dir;
-const GAME_MOD = config.games.at(0)!.mod;
-const GAME_EXE = config.games.at(0)!.exe;
-const GAME_PROC = config.games.at(0)!.proc;
-const GAME_MOD_PATH = join(GAME_DIR, GAME_MOD);
-
-const AUTORENDER_FOLDER_NAME = config.autorender['folder-name'];
-const AUTORENDER_CFG = config.games.at(0)!.cfg;
-const AUTORENDER_DIR = join(GAME_MOD_PATH, AUTORENDER_FOLDER_NAME);
-const AUTORENDER_MAX_SUPPORTED_QUALITY = config.autorender['max-supported-quality'];
+const game = config.games.at(0)!;
 
 // TODO: Upstream sar_on_renderer feature
 const AUTORENDER_PATCHED_SAR = true;
@@ -62,18 +53,43 @@ const AUTORENDER_LOAD_TIMEOUT = 5;
 // Approximated time in seconds of how long it takes to start/exit the game process.
 const AUTORENDER_BASE_TIMEOUT = 20;
 
-try {
-  await Deno.mkdir(AUTORENDER_DIR);
-  logger.info(`Created autorender directory ${AUTORENDER_DIR}`);
-  // deno-lint-ignore no-empty
-} catch {}
+const createFolders = async () => {
+  const { state: readAccess } = await Deno.permissions.request({
+    name: 'read',
+    path: game.dir,
+  });
 
-try {
-  const workshopDirectory = join(GAME_MOD_PATH, 'maps', 'workshop');
-  await Deno.mkdir(workshopDirectory);
-  logger.info(`Created workshop directory ${workshopDirectory}`);
-  // deno-lint-ignore no-empty
-} catch {}
+  if (readAccess !== 'granted') {
+    logger.error(`Unable to get read access for path ${game.dir}`);
+    Deno.exit(1);
+  }
+
+  const { state: writeAccess } = await Deno.permissions.request({
+    name: 'write',
+    path: game.dir,
+  });
+
+  if (writeAccess !== 'granted') {
+    logger.error(`Unable to get write access for path ${game.dir}`);
+    Deno.exit(1);
+  }
+
+  try {
+    const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
+    await Deno.mkdir(autorenderDir);
+    logger.info(`Created autorender directory ${autorenderDir}`);
+    // deno-lint-ignore no-empty
+  } catch {}
+
+  try {
+    const workshopDir = join(game.dir, game.mod, 'maps', 'workshop');
+    await Deno.mkdir(workshopDir);
+    logger.info(`Created workshop directory ${workshopDir}`);
+    // deno-lint-ignore no-empty
+  } catch {}
+};
+
+await createFolders();
 
 const state: ClientState = {
   toDownload: 0,
@@ -181,8 +197,8 @@ const fetchNextVideos = () => {
           {
             type: AutorenderSendDataType.Videos,
             data: {
-              game: GAME_MOD,
-              maxRenderQuality: AUTORENDER_MAX_SUPPORTED_QUALITY,
+              game: game.mod,
+              maxRenderQuality: config.autorender['max-supported-quality'],
             },
           },
           {
@@ -207,12 +223,14 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos['data']) => {
   state.videos = [];
 
   // Delete demo and video files from previous render.
-  for await (const file of Deno.readDir(AUTORENDER_DIR)) {
+  const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
+
+  for await (const file of Deno.readDir(autorenderDir)) {
     if (
       file.isFile &&
       (file.name.endsWith('.dem') || file.name.endsWith('.mp4'))
     ) {
-      const filename = join(AUTORENDER_DIR, file.name);
+      const filename = join(autorenderDir, file.name);
 
       try {
         Deno.remove(filename);
@@ -251,9 +269,9 @@ const killGameProcess = () => {
 
   // Deno.kill does not work for some reason :>
   if (Deno.build.os !== 'windows') {
-    const kill = new Deno.Command('pkill', { args: [GAME_PROC] });
+    const kill = new Deno.Command('pkill', { args: [game.proc] });
     const { code } = kill.outputSync();
-    logger.info(`pkill ${GAME_PROC}`, { code });
+    logger.info(`pkill ${game.proc}`, { code });
   } else {
     Deno.kill(pid, 'SIGKILL');
   }
@@ -329,11 +347,13 @@ const handleMessageStart = async () => {
     logger.info('Game exited', { code });
 
     // Let the upload thread do the work.
+    const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
+
     upload.postMessage({
       type: UploadWorkerDataType.Upload,
       data: {
         videos: state.videos,
-        autorenderDir: AUTORENDER_DIR,
+        autorenderDir,
       },
     });
   } finally {
@@ -411,7 +431,7 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
 
     // Check if a workshop map needs to be downloaded.
     if (video.file_url) {
-      const mapFile = join(GAME_MOD_PATH, 'maps', `${video.full_map_name}.bsp`);
+      const mapFile = join(game.dir, game.mod, 'maps', `${video.full_map_name}.bsp`);
       let downloadMapFile = false;
 
       try {
@@ -427,7 +447,7 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
     }
 
     await Deno.writeFile(
-      join(AUTORENDER_DIR, `${video.video_id}.dem`),
+      join(game.dir, game.mod, config.autorender['folder-name'], `${video.video_id}.dem`),
       new Uint8Array(demo),
     );
 
@@ -533,7 +553,7 @@ const getGameResolution = (): [string, string] => {
  */
 const prepareGameLaunch = async () => {
   const getDemoName = ({ video_id }: VideoPayload) => {
-    return join(AUTORENDER_FOLDER_NAME, video_id.toString());
+    return join(config.autorender['folder-name'], video_id.toString());
   };
 
   const exitCommand = 'wait 300;exit';
@@ -560,7 +580,7 @@ const prepareGameLaunch = async () => {
   const [width, height] = getGameResolution();
 
   const autoexec = [
-    `exec ${AUTORENDER_CFG}`,
+    `exec ${game.cfg}`,
     `sar_quickhud_set_texture crosshair/quickhud${height}-`,
     ...state.videos.slice(1).map(playdemo),
     ...(usesQueue ? ['sar_alias autorender_queue autorender_video_0'] : []),
@@ -569,16 +589,16 @@ const prepareGameLaunch = async () => {
   ];
 
   await Deno.writeTextFile(
-    join(GAME_DIR, 'portal2', 'cfg', 'autoexec.cfg'),
+    join(game.dir, 'portal2', 'cfg', 'autoexec.cfg'),
     autoexec.join('\n'),
   );
 
   const getCommand = (): [string, string] => {
-    const command = join(GAME_DIR, GAME_EXE);
+    const command = join(game.dir, game.exe);
 
     switch (Deno.build.os) {
       case 'windows':
-        return [command, GAME_EXE];
+        return [command, game.exe];
       case 'linux':
         return ['/bin/bash', command];
       default: {
@@ -593,7 +613,7 @@ const prepareGameLaunch = async () => {
     args: [
       argv0,
       '-game',
-      GAME_MOD,
+      game.mod,
       '-novid',
       //"-vulkan", // TODO: vulkan is not always available
       '-windowed',
