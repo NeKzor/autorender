@@ -15,7 +15,7 @@ export enum BotDataType {
 
 export type VideoUpload = Pick<
   Video,
-  | 'video_id'
+  | 'share_id'
   | 'title'
   | 'requested_by_id'
   | 'requested_in_guild_id'

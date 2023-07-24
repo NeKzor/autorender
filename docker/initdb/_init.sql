@@ -34,6 +34,7 @@ DROP TABLE IF EXISTS videos;
 
 CREATE TABLE videos (
     video_id BINARY(16) NOT NULL,
+    share_id VARCHAR(11) NOT NULL,
     title VARCHAR(64),
     comment VARCHAR(512),
     requested_by_name VARCHAR(64) NOT NULL,
@@ -71,6 +72,7 @@ CREATE TABLE videos (
     deleted_by BIGINT,
     deleted_at TIMESTAMP,
     PRIMARY KEY (video_id),
+    UNIQUE KEY(share_id),
     FOREIGN KEY (rendered_by) REFERENCES users(user_id),
     FOREIGN KEY (rendered_by_token) REFERENCES access_tokens(access_token_id),
     FOREIGN KEY (deleted_by) REFERENCES users(user_id),

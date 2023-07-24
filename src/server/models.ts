@@ -108,6 +108,7 @@ export enum RenderQuality {
  */
 export interface Video {
   video_id: string;
+  share_id: string;
   title: string;
   comment: string;
   requested_by_name: string;

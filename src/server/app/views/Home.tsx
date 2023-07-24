@@ -13,7 +13,7 @@ import { DataLoader, json, PageMeta, useLoaderData } from '../Routes.ts';
 type LatestVideo =
   & Pick<
     Video,
-    'video_id' | 'title' | 'created_at' | 'views'
+    'share_id' | 'title' | 'created_at' | 'views'
   >
   & {
     requested_by_username: string | null;
@@ -22,7 +22,7 @@ type LatestVideo =
 type MostViewedVideo =
   & Pick<
     Video,
-    'video_id' | 'title' | 'created_at' | 'views'
+    'share_id' | 'title' | 'created_at' | 'views'
   >
   & {
     requested_by_username: string | null;
@@ -56,7 +56,7 @@ export const loader: DataLoader = async ({ context }) => {
     `select videos.title
           , videos.created_at
           , videos.views
-          , BIN_TO_UUID(videos.video_id) as video_id
+          , share_id
           , requester.username as requested_by_username
        from videos
        left join users requester
@@ -72,7 +72,7 @@ export const loader: DataLoader = async ({ context }) => {
     `select videos.title
           , videos.created_at
           , videos.views
-          , BIN_TO_UUID(videos.video_id) as video_id
+          , share_id
           , requester.username as requested_by_username
        from videos
        left join users requester
@@ -158,7 +158,7 @@ export const Home = () => {
               {data.latestVideos.map((video) => {
                 return (
                   <li>
-                    <a href={`/videos/${video.video_id}`}>{video.title}</a> |{' '}
+                    <a href={`/videos/${video.share_id}`}>{video.title}</a> |{' '}
                     {new Date(video.created_at).toLocaleDateString()} | {video.views} views
                   </li>
                 );
@@ -171,7 +171,7 @@ export const Home = () => {
               {data.mostViewedVideos.map((video) => {
                 return (
                   <li>
-                    <a href={`/videos/${video.video_id}`}>{video.title}</a> |{' '}
+                    <a href={`/videos/${video.share_id}`}>{video.title}</a> |{' '}
                     {new Date(video.created_at).toLocaleDateString()} | {video.views} views
                   </li>
                 );

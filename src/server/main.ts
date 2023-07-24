@@ -50,6 +50,7 @@ import { createStaticRouter } from 'https://esm.sh/react-router-dom@6.11.2/serve
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
 import { getDemoInfo } from './demo.ts';
 import { basename } from 'https://deno.land/std@0.190.0/path/win32.ts';
+import { generateShareId, validateShareId } from './utils.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -80,7 +81,7 @@ const AUTORENDER_BOARD_TOKEN_HASH = (() => {
   return boardToken !== 'none' ? bcrypt.hashSync(boardToken) : null;
 })();
 const AUTORENDER_DEMOS_FOLDER = Deno.env.get('AUTORENDER_DEMOS_FOLDER')!;
-const AUTORENDER_FILES_FOLDER = Deno.env.get('AUTORENDER_FILES_FOLDER')!
+const AUTORENDER_FILES_FOLDER = Deno.env.get('AUTORENDER_FILES_FOLDER')!;
 const AUTORENDER_VIDEOS_FOLDER = Deno.env.get('AUTORENDER_VIDEOS_FOLDER')!;
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
@@ -244,9 +245,10 @@ apiV1
       return Err(ctx, Status.BadRequest);
     }
 
-    const video_id = uuid.v1.generate() as string;
+    const videoId = uuid.v1.generate() as string;
+    const shareId = generateShareId();
 
-    const filePath = getDemoFilePath(video_id);
+    const filePath = getDemoFilePath(videoId);
     await Deno.rename(file.filename, filePath);
 
     // TODO:
@@ -278,7 +280,8 @@ apiV1
     const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
 
     const fields = [
-      video_id,
+      videoId,
+      shareId,
       title,
       comment,
       requestedByName,
@@ -303,6 +306,7 @@ apiV1
     await db.execute(
       `insert into videos (
             video_id
+          , share_id
           , title
           , comment
           , requested_by_name
@@ -339,7 +343,7 @@ apiV1
           , ?
         )`,
       [
-        `Created video ${video_id} for Discord user ${requestedByName}`,
+        `Created video ${videoId} for Discord user ${requestedByName}`,
         AuditType.Info,
         AuditSource.User,
         authUser?.user_id ?? null,
@@ -351,7 +355,7 @@ apiV1
             , BIN_TO_UUID(video_id) as video_id
          from videos
         where video_id = UUID_TO_BIN(?)`,
-      [video_id],
+      [videoId],
     );
 
     Ok(ctx, video);
@@ -454,7 +458,7 @@ apiV1
 
         logger.info('Uploaded', upload, videoUrl);
       } else {
-        videoUrl = `${AUTORENDER_PUBLIC_URI}/storage/videos/${video.video_id}`;
+        videoUrl = `${AUTORENDER_PUBLIC_URI}/storage/videos/${video.share_id}`;
       }
 
       // TODO: Determine video length, create video preview and
@@ -482,7 +486,7 @@ apiV1
       try {
         type VideoUpload = Pick<
           Video,
-          | 'video_id'
+          | 'share_id'
           | 'title'
           | 'requested_by_id'
           | 'requested_in_guild_id'
@@ -490,7 +494,7 @@ apiV1
         >;
 
         const uploadMessage: VideoUpload = {
-          video_id: video.video_id,
+          share_id: video.share_id,
           title: video.title,
           requested_by_id: video.requested_by_id,
           requested_in_guild_id: video.requested_in_guild_id,
@@ -542,14 +546,18 @@ apiV1
   })
   // Get video views and increment.
   // deno-lint-ignore no-explicit-any
-  .post('/videos/:video_id/views', useRateLimiter as any, async (ctx) => {
-    const [video] = await db.query<Pick<Video, 'video_id' | 'views'>>(
-      `select BIN_TO_UUID(video_id) as video_id
+  .post('/videos/:share_id/views', useRateLimiter as any, async (ctx) => {
+    if (!validateShareId(ctx.params.share_id!)) {
+      return Err(ctx, Status.BadRequest);
+    }
+
+    const [video] = await db.query<Pick<Video, 'share_id' | 'views'>>(
+      `select share_id
             , views
          from videos
-        where video_id = UUID_TO_BIN(?)
+        where share_id = ?
           and video_url IS NOT NULL`,
-      [ctx.params.video_id],
+      [ctx.params.share_id],
     );
 
     if (!video) {
@@ -559,16 +567,16 @@ apiV1
     await db.execute(
       `update videos
          set views = views + 1
-       where video_id = UUID_TO_BIN(?)`,
-      [video.video_id],
+       where share_id = ?`,
+      [video.share_id],
     );
 
     Ok(ctx, video);
   })
   // Get a random rendered videos.
   .get('/videos/random/:count(\\d+)', async (ctx) => {
-    const videos = await db.query<Pick<Video, 'video_id' | 'title'>>(
-      `select BIN_TO_UUID(video_id) as video_id
+    const videos = await db.query<Pick<Video, 'share_id' | 'title'>>(
+      `select share_id
             , title
          from videos
         where video_url IS NOT NULL
@@ -581,14 +589,14 @@ apiV1
   })
   // Get status of videos of requested user.
   .get('/videos/status/:requested_by_id(\\d+)', async (ctx) => {
-    type VideoStatus = Pick<Video, 'video_id' | 'title'> & {
+    type VideoStatus = Pick<Video, 'share_id' | 'title'> & {
       errored: boolean;
       rendering: boolean;
       rendered: boolean;
     };
 
     const videos = await db.query<VideoStatus>(
-      `select BIN_TO_UUID(video_id) as video_id
+      `select share_id
             , title
             , IF(video_url IS NULL AND pending = ?, TRUE, FALSE) as errored
             , IF(video_url IS NULL AND pending <> ?, TRUE, FALSE) as rendering
@@ -1211,6 +1219,52 @@ const routeToApp = async (ctx: Context) => {
 };
 
 if (!B2_ENABLED) {
+  // TODO: Remove
+  router.get('/storage/videos/:share_id([0-9A-Za-z_-]{11})', async (ctx) => {
+    if (!validateShareId(ctx.params.share_id!)) {
+      await routeToApp(ctx);
+      return;
+    }
+
+    try {
+      const [video] = await db.query<
+        Pick<Video, 'video_id' | 'file_name' | 'title'>
+      >(
+        `select BIN_TO_UUID(video_id) as video_id
+              , file_name
+              , title
+           from videos
+          where share_id = ?`,
+        [ctx.params.share_id],
+      );
+
+      if (!video) {
+        await routeToApp(ctx);
+        return;
+      }
+
+      const file = await Deno.readFile(getVideoFilePath(video.video_id));
+
+      const filename = video.title === video.file_name ? `${video.file_name} Video.mp4` : `${video.title}.mp4`;
+
+      ctx.response.headers.set(
+        'Content-Disposition',
+        `filename="${
+          filename
+            .replaceAll('\\', '\\\\')
+            .replaceAll('"', '\\"')
+        }"`,
+      );
+
+      Ok(ctx, file, 'video/mp4');
+    } catch (err) {
+      if (err instanceof Deno.errors.NotFound) {
+        await routeToApp(ctx);
+      } else {
+        logger.error(err);
+      }
+    }
+  });
   router.get('/storage/videos/:video_id', async (ctx) => {
     if (!uuid.validate(ctx.params.video_id)) {
       await routeToApp(ctx);
@@ -1258,6 +1312,58 @@ if (!B2_ENABLED) {
   });
 }
 
+// TODO: Remove regex
+router.get('/storage/demos/:share_id([0-9A-Za-z_-]{11})/:fixed(fixed)?', async (ctx) => {
+  if (!validateShareId(ctx.params.share_id!)) {
+    await routeToApp(ctx);
+    return;
+  }
+
+  try {
+    const [video] = await db.query<Pick<Video, 'video_id' | 'file_name'>>(
+      `select BIN_TO_UUID(video_id) as video_id
+          , file_name
+       from videos
+      where share_id = ?`,
+      [ctx.params.share_id],
+    );
+
+    if (!video) {
+      await routeToApp(ctx);
+      return;
+    }
+
+    const requestedFixedDemo = ctx.params.fixed !== undefined;
+
+    const getFilePath = requestedFixedDemo ? getFixedDemoFilePath : getDemoFilePath;
+
+    const demo = await Deno.readFile(getFilePath(video.video_id));
+
+    const filename = requestedFixedDemo
+      ? video.file_name.toLowerCase().endsWith('.dem')
+        ? `${video.file_name.slice(0, -4)}_fixed.dem`
+        : `${video.file_name}_fixed.dem`
+      : video.file_name;
+
+    ctx.response.headers.set(
+      'Content-Disposition',
+      `attachment; filename="${
+        filename
+          .replaceAll('\\', '\\\\')
+          .replaceAll('"', '\\"')
+      }"`,
+    );
+
+    Ok(ctx, demo, 'application/octet-stream');
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      await routeToApp(ctx);
+    } else {
+      logger.error(err);
+    }
+  }
+});
+// TODO: Remove
 router.get('/storage/demos/:video_id/:fixed(fixed)?', async (ctx) => {
   if (!uuid.validate(ctx.params.video_id!)) {
     await routeToApp(ctx);

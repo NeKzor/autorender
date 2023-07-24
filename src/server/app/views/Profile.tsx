@@ -67,7 +67,7 @@ export const Profile = () => {
                 {queuedVideos.map((video) => {
                   return (
                     <li>
-                      <a href={`/queue/${video.video_id}`}>{video.title}</a> |{' '}
+                      <a href={`/queue/${video.share_id}`}>{video.title}</a> |{' '}
                       {new Date(video.created_at).toLocaleDateString()}
                     </li>
                   );
@@ -84,7 +84,7 @@ export const Profile = () => {
             {renderedVideos.map((video) => {
               return (
                 <li>
-                  <a href={`/videos/${video.video_id}`}>{video.title}</a> |{' '}
+                  <a href={`/videos/${video.share_id}`}>{video.title}</a> |{' '}
                   {new Date(video.created_at).toLocaleDateString()}
                 </li>
               );

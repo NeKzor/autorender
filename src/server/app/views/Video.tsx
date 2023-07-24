@@ -28,6 +28,13 @@ export const meta: PageMeta<Data> = (data) => {
 };
 
 export const loader: DataLoader = async ({ params, context }) => {
+  // TODO: Remove this in the future
+  const where = (params.share_id?.length ?? 0) > 11
+    ? 'video_id = UUID_TO_BIN(?)'
+    : 'share_id = ?';
+  
+  // TODO: Check if the ID is valid
+
   const [video] = await context.db.query<JoinedVideo>(
     `select videos.*
           , BIN_TO_UUID(videos.video_id) as video_id
@@ -38,11 +45,11 @@ export const loader: DataLoader = async ({ params, context }) => {
             on requester.discord_id = videos.requested_by_id
        left join users renderer
             on renderer.user_id = videos.rendered_by
-      where video_id = UUID_TO_BIN(?)`,
-    [params.video_id],
+      where ${where}`,
+    [params.share_id],
   );
 
-  if (video.pending !== PendingStatus.FinishedRender) {
+  if (video?.pending !== PendingStatus.FinishedRender) {
     notFound();
   }
 
@@ -91,7 +98,7 @@ export const VideoView = () => {
               <div>
                 Download fixed:{' '}
                 <a
-                  href={`/storage/demos/${data.video_id}/fixed`}
+                  href={`/storage/demos/${data.share_id}/fixed`}
                   target='_blank'
                 >
                   {data.file_name.toLowerCase().endsWith('.dem')
@@ -101,7 +108,7 @@ export const VideoView = () => {
               </div>
               <div>
                 Download original:{' '}
-                <a href={`/storage/demos/${data.video_id}`} target='_blank'>
+                <a href={`/storage/demos/${data.share_id}`} target='_blank'>
                   {data.file_name}
                 </a>
               </div>
@@ -110,7 +117,7 @@ export const VideoView = () => {
           {data.demo_required_fix === FixedDemoStatus.NotRequired && (
             <div>
               Download:{' '}
-              <a href={`/storage/demos/${data.video_id}`} target='_blank'>
+              <a href={`/storage/demos/${data.share_id}`} target='_blank'>
                 {data.file_name}
               </a>
             </div>

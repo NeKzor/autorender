@@ -56,7 +56,7 @@ worker.addEventListener('message', async (message) => {
     switch (type) {
       case BotDataType.Upload: {
         const title = escapeMaskedLink(data.title);
-        const link = getPublicUrl(`/videos/${data.video_id}`);
+        const link = getPublicUrl(`/videos/${data.share_id}`);
 
         const content = [
           `📽️ Rendered video [${title}](${link})`,

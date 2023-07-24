@@ -61,7 +61,7 @@ createCommand({
             throw new Error(`Videos request failed. Status: ${res.status}`);
           }
 
-          type VideoStatus = Pick<Video, 'video_id' | 'title'> & {
+          type VideoStatus = Pick<Video, 'share_id' | 'title'> & {
             errored: boolean;
             rendering: boolean;
             rendered: boolean;
@@ -91,7 +91,7 @@ createCommand({
               {
                 content: videos.map((video) => {
                   const title = escapeMaskedLink(video.title);
-                  const link = getPublicUrl(`/videos/${video.video_id}`);
+                  const link = getPublicUrl(`/videos/${video.share_id}`);
                   return `${getStatus(video)} [${title}](<${link}>)`;
                 }).join('\n'),
               },
@@ -140,13 +140,13 @@ createCommand({
             throw new Error(`Videos request failed. Status: ${res.status}`);
           }
 
-          const [video] = await res.json() as Pick<Video, 'video_id' | 'title'>[];
+          const [video] = await res.json() as Pick<Video, 'share_id' | 'title'>[];
           if (!video) {
             throw new Error('No videos found.');
           }
 
           const title = escapeMaskedLink(video.title);
-          const link = getPublicUrl(`/videos/${video.video_id}`);
+          const link = getPublicUrl(`/videos/${video.share_id}`);
 
           await bot.helpers.editOriginalInteractionResponse(interaction.token, {
             content: `🎲️ [${title}](${link})`,

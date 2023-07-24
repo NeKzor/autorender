@@ -156,13 +156,13 @@ export const routes: Route<RequestContext>[] = [
     action: Token.actionNew,
   },
   {
-    path: '/queue/:video_id',
+    path: '/queue/:share_id',
     Component: Queue.Queue,
     meta: Queue.meta,
     loader: Queue.loader,
   },
   {
-    path: '/videos/:video_id',
+    path: '/videos/:share_id',
     Component: VideoView.VideoView,
     meta: VideoView.meta,
     loader: VideoView.loader,
