@@ -131,7 +131,7 @@ self.addEventListener(
 
 const onOpen = () => {
   wasConnected = true;
-  logger.info('Connected to server');
+  logger.info(`Connected to server ${config.autorender['connect-uri']}`);
   self.postMessage({ type: WorkerDataType.Connected });
 };
 
