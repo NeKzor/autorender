@@ -239,6 +239,8 @@ server {
 
 ## TODO
 
+> NOTE: Wished features are on a separate list.
+
 - ~~Write own demo fixup tool~~
 - ~~Offline storage service~~
 - ~~Demo download link~~
@@ -254,9 +256,9 @@ server {
   - ~~CI should check for lint and format errors on every push~~
   - ~~CD should compile client code and release all files on every tag~~
 - Support game mods
-- Switch to shorter video IDs
+- ~~Switch to shorter video IDs~~
 - Advanced render options e.g. sar_ihud
-- Integrate into [board.nekz.me]
+- Integrate into leaderboards
 - Design frontend platform
   - Profiles
   - Search
@@ -266,12 +268,13 @@ server {
 - ~~Package client code~~
   - ~~Installer CLI~~
   - ~~Download SAR/autorender.cfg automatically~~
-  - Figure out permissions
+  - ~~Figure out permissions~~
   - ~~Single executable~~
 - Generate video preview + thumbnails
 - Unlisted/private videos
-- Figure out docker
-- Write a CLI tool for dev setup
+- Figure out dev setup
+  - Docker + Dev Container
+  - Setup script or tool
 - Implement various data related functions
   - Delete video button
     - Delete video from cloud storage
@@ -291,13 +294,11 @@ server {
 - Figure out a way to deploy this to GPU instances (DepotDownloader?)
 - Clean up some anti-patterns, code duplications etc.
 
-[board.nekz.me]: https://github.com/NeKzor/board
-
 ## Caveats
 
 - Deno's network permissions do not support wildcards for domains: [deno#6532]
 - Deno's permission system is insanely tedious to maintain: [deno#12763]
-- Deno's WebSockets are limited to [64 MiB] per frame which is good enough for demos but not for large video files:
+- Deno's WebSockets are limited to [64 MiB] per frame which is good enough for demos but not large enough for videos:
   [deno#15809]
 - Permissions for containers have to be managed manually for mounted volumes: [moby#2259]
 - MariaDB image does not leak memory but MySQL 8 does: [containerd#6707]
@@ -316,7 +317,7 @@ server {
 
 - [@PortalRex] for idea and motivation
 - [@ThatFridgeFella] for testing
-- [p2sr/demofixup] for an an almost working demo fixup method!
+- [p2sr/demofixup] for an almost working demo fixup method!
 - [p2sr/SourceAutoRecord] for a renderer crashes and many other bugs!!
 - [p2sr/portal2-cm-autorender] for making me not want to use Python!!!
 
