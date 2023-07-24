@@ -6,7 +6,6 @@ site=autorender.portal2.local
 # Configuration files:
 #   .env            -> used by docker
 #   src/bot/.env    -> used by the bot    (mounted by docker)
-#   src/client/.env -> used by the client (mounted by docker)
 #   src/server/.env -> used by the server (mounted by docker)
 
 create_config_and_env()
@@ -15,7 +14,6 @@ create_config_and_env()
 
     cp -n .env.example .env
     cp -n src/bot/.env.example src/bot/.env
-    cp -n src/client/.env.example src/client/.env
     cp -n src/server/.env.example src/server/.env
 }
 
