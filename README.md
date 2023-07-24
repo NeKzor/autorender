@@ -6,16 +6,16 @@ Convert Portal 2 demos into videos with: `/render demo <file>`
 - [Commands](#commands)
 - [Local Development](#local-development)
   - [Network Topology](#network-topology)
-  - [Storage](#storage)
   - [Requirements](#requirements)
   - [Setup](#setup)
   - [Install & Run Server](#install--run-server)
   - [User Setup](#user-setup)
+  - [Storage](#storage)
     - [src/server/.env](#srcserverenv)
   - [Install & Run Client](#install--run-client)
-    - [src/client/.env](#srcclientenv)
   - [Install & Run Bot](#install--run-bot)
     - [src/bot/.env](#srcbotenv)
+  - [Debugging Database](#debugging-database)
 - [Production](#production)
   - [Proxy Example with Nginx + Certbot](#proxy-example-with-nginx--certbot)
 - [TODO](#todo)
@@ -179,6 +179,16 @@ In [production](#production) the client code will be compiled into a single exec
 | DISCORD_BOT_ID       | Client ID of the Discord bot application.                       |
 | AUTORENDER_BOT_TOKEN | Generated token which is shared between the server and the bot. |
 
+### Debugging Database
+
+A [my.cnf file] can be created to connect to the database without having to re-enter the credentials all the time:
+
+`docker exec -ti p2render-db bash -c 'printf [client]\\nuser=${MARIADB_USER}\\npassword=${MARIADB_PASSWORD}\\ndatabase=${MARIADB_DATABASE} > /etc/my.cnf'`
+
+Then connect to the database with: `docker exec -ti p2render-db mariadb`
+
+[my.cnf file]: https://mariadb.com/kb/en/configuring-mariadb-with-option-files
+
 ## Production
 
 Same as in development but `prod` is used as a postfix: `deno task <server|bot>:prod`
@@ -316,13 +326,15 @@ server {
 ## Credits
 
 - [@PortalRex] for idea and motivation
-- [@ThatFridgeFella] for testing
-- [p2sr/demofixup] for an almost working demo fixup method!
-- [p2sr/SourceAutoRecord] for a renderer crashes and many other bugs!!
-- [p2sr/portal2-cm-autorender] for making me not want to use Python!!!
+- [@ThatFridgeFella] for testing and feedback
+- [@ThisAMJ] for quickhud files and for removing my only easter egg in SAR :(
+- [p2sr/demofixup] for an almost working demo fixup method
+- [p2sr/SourceAutoRecord] for renderer crashes and many other bugs
+- [p2sr/portal2-cm-autorender] for making me not want to use Python
 
 [@PortalRex]: https://github.com/PortalRex
 [@ThatFridgeFella]: https://github.com/ThatFridgeFella
+[@ThisAMJ]: https://github.com/ThisAMJ
 [p2sr/demofixup]: https://github.com/p2sr/demofixup
 [p2sr/SourceAutoRecord]: https://github.com/p2sr/SourceAutoRecord
 [p2sr/portal2-cm-autorender]: https://github.com/p2sr/portal2-cm-autorender
