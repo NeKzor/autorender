@@ -8,47 +8,47 @@
   },
   "npm": {
     "specifiers": {
-      "@discordeno/bot": "@discordeno/bot@19.0.0-next.8d1ba2a",
-      "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.8d1ba2a",
-      "@discordeno/rest": "@discordeno/rest@19.0.0-next.8d1ba2a",
-      "@discordeno/types": "@discordeno/types@19.0.0-next.8d1ba2a",
-      "@discordeno/utils": "@discordeno/utils@19.0.0-next.8d1ba2a",
+      "@discordeno/bot": "@discordeno/bot@19.0.0-next.3445211",
+      "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.3445211",
+      "@discordeno/rest": "@discordeno/rest@19.0.0-next.3445211",
+      "@discordeno/types": "@discordeno/types@19.0.0-next.3445211",
+      "@discordeno/utils": "@discordeno/utils@19.0.0-next.3445211",
       "@nekz/sdp": "@nekz/sdp@0.4.0"
     },
     "packages": {
-      "@discordeno/bot@19.0.0-next.8d1ba2a": {
-        "integrity": "sha512-SVoqw7KqZToTQfhjHMXVIDUICWRCqtjy+U05dI4xSr5zMFYyCy1eIxpB/oYbnY4dJEG2EqtxlI/CioK2Ir6HFg==",
+      "@discordeno/bot@19.0.0-next.3445211": {
+        "integrity": "sha512-b8RpLfp+/pUthaA5EjXiu8sAPCw+psJ6QNkWG+zsM7efRpOgnSR+U21Dy33YbTa5S4f8V6hLqT0HhrPlvTE1XQ==",
         "dependencies": {
-          "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.8d1ba2a",
-          "@discordeno/rest": "@discordeno/rest@19.0.0-next.8d1ba2a",
-          "@discordeno/types": "@discordeno/types@19.0.0-next.8d1ba2a",
-          "@discordeno/utils": "@discordeno/utils@19.0.0-next.8d1ba2a"
+          "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.3445211",
+          "@discordeno/rest": "@discordeno/rest@19.0.0-next.3445211",
+          "@discordeno/types": "@discordeno/types@19.0.0-next.3445211",
+          "@discordeno/utils": "@discordeno/utils@19.0.0-next.3445211"
         }
       },
-      "@discordeno/gateway@19.0.0-next.8d1ba2a": {
-        "integrity": "sha512-82W8HxvcCAQ6fdM83zPm4pC579wym+OrsOytw+OInWu8PyqRfFWzzFkmwRMu3eyz9bBrH0loQZeSd7dS+b/avA==",
+      "@discordeno/gateway@19.0.0-next.3445211": {
+        "integrity": "sha512-XEIThjK4VAI7TwmCPKCQE9sOPtEtAb+Ah1bzdSDDXEje7Nag1mDsA4HcnAJ8TASBue0dtWT0VAB5LnY1ghSuzQ==",
         "dependencies": {
-          "@discordeno/types": "@discordeno/types@19.0.0-next.8d1ba2a",
-          "@discordeno/utils": "@discordeno/utils@19.0.0-next.8d1ba2a",
+          "@discordeno/types": "@discordeno/types@19.0.0-next.3445211",
+          "@discordeno/utils": "@discordeno/utils@19.0.0-next.3445211",
           "ws": "ws@8.13.0"
         }
       },
-      "@discordeno/rest@19.0.0-next.8d1ba2a": {
-        "integrity": "sha512-Oz/ZrC36ofv3Z+Z7uKlJ9fTbXw0fIzE86fI1GjpWbz2pOpCdg/omJHWGybzNYWsCdRjUUQhWM+HuvykUgTT5qg==",
+      "@discordeno/rest@19.0.0-next.3445211": {
+        "integrity": "sha512-mY7VKAryic4nrAUBEc7FvuktUkbgDw76bVzz7VcvcD5yydiqvAxGLKa7yHvmlW9Bf7sBlRpUe7SbMK8rCbNP2A==",
         "dependencies": {
-          "@discordeno/types": "@discordeno/types@19.0.0-next.8d1ba2a",
-          "@discordeno/utils": "@discordeno/utils@19.0.0-next.8d1ba2a",
+          "@discordeno/types": "@discordeno/types@19.0.0-next.3445211",
+          "@discordeno/utils": "@discordeno/utils@19.0.0-next.3445211",
           "dotenv": "dotenv@16.3.1"
         }
       },
-      "@discordeno/types@19.0.0-next.8d1ba2a": {
-        "integrity": "sha512-dT+Br9g2u8iGZ9c25YB4G6X1dpF9Df1srkXy5NAPMBNluijgqcwxgPOB3dv6TANY6WhhQLuIkXvUrmkJEP8Q+g==",
+      "@discordeno/types@19.0.0-next.3445211": {
+        "integrity": "sha512-zEt7XZUb/hG/sRijhYAt7pzmuX/LcuYv+xUFdMUhQlWiAUXSLgE9u3gjCWzfzdFhjwyuOzZtUD7LISzaWkli0Q==",
         "dependencies": {}
       },
-      "@discordeno/utils@19.0.0-next.8d1ba2a": {
-        "integrity": "sha512-Q7EFN0d2N1D6SpdC0OJJJvV1T5Hgbcf8HaWMuXhytvLwka4ylX1dEtOWe57dH6uqUmuon9zNfxAnnSuob78FVQ==",
+      "@discordeno/utils@19.0.0-next.3445211": {
+        "integrity": "sha512-Dfkhm5KntKLVpLEVVgJLL1UTlqOR0nihcspH5ycq80/FH4XnmtQEczcuCiE7hM/HVL9IIbGd+GhAT0yXe5PxiA==",
         "dependencies": {
-          "@discordeno/types": "@discordeno/types@19.0.0-next.8d1ba2a",
+          "@discordeno/types": "@discordeno/types@19.0.0-next.3445211",
           "tweetnacl": "tweetnacl@1.0.3"
         }
       },
