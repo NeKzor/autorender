@@ -277,9 +277,9 @@ const createConfig = async () => {
 
   // deno-lint-ignore no-explicit-any
   const autorenderYaml = yaml.stringify(config as any);
-
   await Deno.writeTextFile(configFile, autorenderYaml);
-  console.log(colors.green(`🛠️  Generated config file: ${configFile}`));
+
+  console.log(colors.green(`🛠️  Generated config file ${configFile}`));
 
   return config;
 };
@@ -409,10 +409,7 @@ export const downloadAutorenderConfig = async (
     Deno.exit(1);
   }
 
-  await writeAll(
-    Deno.stdout,
-    new TextEncoder().encode(colors.white(`📄️ Getting autorender.cfg`)),
-  );
+  console.log(colors.white(`📄️ Getting autorender.cfg`));
 
   const res = await fetch(`${config.autorender['base-api']}/storage/files/autorender.cfg`, {
     headers: {
@@ -421,14 +418,11 @@ export const downloadAutorenderConfig = async (
   });
 
   if (!res.ok) {
-    await writeAll(
-      Deno.stdout,
-      new TextEncoder().encode(colors.white(`\r❌️ Failed to fetch autorender.cfg`)),
-    );
+    console.log(colors.red(`❌️ Failed to fetch autorender.cfg`));
     Deno.exit(1);
   }
 
-  console.log(colors.white(`\r📄️ Downloaded autorender.cfg`));
+  console.log(colors.white(`📄️ Downloaded autorender.cfg`));
 
   const data = new Uint8Array(await res.arrayBuffer());
 
