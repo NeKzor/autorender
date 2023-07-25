@@ -503,16 +503,23 @@ export const downloadQuickhud = async (
     for (const game of config.games) {
       for (const entry of entries) {
         const data = await entry.getData!(new Uint8ArrayWriter());
-        const file = join(game.dir, game.mod, 'crosshair', entry.filename);
+        const folder = join(game.dir, game.mod, 'crosshair');
+        const file = join(folder, entry.filename);
 
         try {
           const { state } = await Deno.permissions.request({
             name: 'write',
-            path: file,
+            path: folder,
           });
 
           if (state !== 'granted') {
             Deno.exit(1);
+          }
+
+          try {
+            await Deno.mkdir(folder);
+          // deno-lint-ignore no-empty
+          } catch {
           }
 
           await Deno.writeFile(file, data);
