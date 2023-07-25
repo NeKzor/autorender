@@ -7,8 +7,9 @@
 import { join } from 'https://deno.land/std@0.192.0/path/mod.ts';
 import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
+import { Cell, Table } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/table/mod.ts';
 import { logger } from './logger.ts';
-import { downloadSourceAutoRecord, gameModsWhichSupportWorkshop, getConfigOnly } from './config.ts';
+import { configExplanation, downloadSourceAutoRecord, gameModsWhichSupportWorkshop, getConfigOnly } from './config.ts';
 import { AutorenderVersion, UserAgent } from './version.ts';
 
 export interface Options {
@@ -28,13 +29,15 @@ export const getOptions = async () => {
       .option('-v, --verbose', 'Turn on verbose logging.')
       .option('-d, --dev', 'Switch into developer mode.')
       .option('-s, --sar', 'Download latest SourceAutoRecord version.')
-      .action(async ({ verbose, check, dev, sar }) => {
+      .option('-e, --explain', 'Explain all config options.')
+      .action(async ({ verbose, check, dev, sar, explain }) => {
         const options = {
           devMode: !!dev,
           verboseMode: !!verbose,
         };
 
         check && await runCheck(options);
+        explain && runExplain();
 
         if (sar) {
           await downloadSourceAutoRecord(await getConfigOnly(), options);
@@ -248,6 +251,35 @@ const runCheck = async (options: Options) => {
     verboseMode && logger.error(err);
     Deno.exit(1);
   }
+};
+
+const runExplain = () => {
+  const entries = Object.entries(configExplanation);
+
+  const explanation = new Table(
+    ...entries.map(([key, value]) => {
+      const descriptions = Object.entries(Array.isArray(value) ? value.at(0)! : value);
+      return [
+        [
+          new Cell(key).rowSpan(descriptions.length),
+          new Cell(descriptions.at(0)!.at(0)!.toString().replace('*', colors.bold('*'))),
+          new Cell(descriptions.at(0)!.at(1)!.toString()),
+        ],
+        ...descriptions.slice(1).map(([key, value]) => {
+          return [
+            new Cell(key.replace('*', colors.bold('*'))),
+            new Cell(value as string),
+          ];
+        }),
+      ];
+    }).flat(),
+  );
+
+  explanation.border().render();
+
+  console.log(`Options marked with ${colors.bold('*')} can be tweaked.`);
+
+  Deno.exit(0);
 };
 
 export const getRelease = async (

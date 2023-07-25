@@ -158,6 +158,7 @@
     "https://deno.land/x/cliffy@v1.0.0-rc.2/table/column.ts": "cf14009f2cb14bad156f879946186c1893acdc6a2fee6845db152edddb6a2714",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/table/consume_words.ts": "456e75755fdf6966abdefb8b783df2855e2a8bad6ddbdf21bd748547c5fc1d4b",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/table/deps.ts": "6493ba75cbe219ef74de1d1a1cf1ed72cdcb09d3eee240a16ff5fd9bb069b816",
+    "https://deno.land/x/cliffy@v1.0.0-rc.2/table/mod.ts": "40f148428acbfffa270f7077c403b3893797d9e454a74ccb41a8434367351326",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/table/row.ts": "79eb1468aafdd951e5963898cdafe0752d4ab4c519d5f847f3d8ecb8fe857d4f",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/table/table.ts": "298671e72e61f1ab18b42ae36643181993f79e29b39dc411fdc6ffd53aa04684",
     "https://deno.land/x/logger@v1.1.2/date.ts": "09041dc83c9cddb489b875f45b07336dd894c23b9dd5b47235b94180571a2efa",

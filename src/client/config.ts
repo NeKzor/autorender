@@ -41,6 +41,39 @@ export interface Config {
   games: GameConfig[];
 }
 
+type ConfigDescription<T> = Record<Extract<keyof T, string> & `${Extract<keyof T, string>}*`, string>;
+
+export const configExplanation: {
+  autorender: ConfigDescription<Config['autorender']>;
+  sar: ConfigDescription<Config['sar']>;
+  games: ConfigDescription<Config['games']['0']>[];
+} = {
+  autorender: {
+    'access-token': 'Copied access token from the website.',
+    'connect-uri': 'Connection URI to the server.',
+    'base-api': 'Base API URI to the website.',
+    'folder-name': 'Name of the folder in which each game saves the rendered videos.',
+    protocol: 'Current protocol version between client and server.',
+    'max-supported-quality*': 'The render quality that the client is able to provide. Options are: 1080p, 720p, 480p',
+    'check-interval*': 'Timeout interval in ms to check if there are new videos to render.',
+    'scale-timeout*': 'Approximated scaling factor for multiplying the demo playback time.',
+    'load-timeout*': 'Approximated time in seconds of how long it takes to load a demo.',
+    'base-timeout*': 'Approximated time in seconds of how long it takes to start and exit the game process.',
+  },
+  sar: {
+    version: 'Currently installed SAR version.',
+  },
+  games: [
+    {
+      exe: 'Name of the games\'s executable file.',
+      proc: 'Name of the game\'s process.',
+      cfg: 'Name of the installed autorender cfg file for the game.',
+      mod: 'Name of the game\'s mod directory.',
+      dir: 'Path where the game is installed.',
+    },
+  ],
+};
+
 export type GameMods =
   | 'portal2'
   | 'aperturetag'
@@ -58,10 +91,10 @@ export const gameModsWhichSupportWorkshop: GameMods[] = [
 ];
 
 export interface GameConfig {
-  mod: GameMods;
   exe: string;
   proc: string;
   cfg: string;
+  mod: GameMods;
   dir: string;
 }
 
