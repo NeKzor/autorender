@@ -9,7 +9,7 @@ import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 import { logger } from './logger.ts';
 import { downloadSourceAutoRecord, gameModsWhichSupportWorkshop, getConfigOnly } from './config.ts';
-import { AutorenderVersion } from "./version.ts";
+import { AutorenderVersion } from './version.ts';
 
 export interface Options {
   devMode: boolean;

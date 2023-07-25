@@ -29,10 +29,8 @@ export const meta: PageMeta<Data> = (data) => {
 
 export const loader: DataLoader = async ({ params, context }) => {
   // TODO: Remove this in the future
-  const where = (params.share_id?.length ?? 0) > 11
-    ? 'video_id = UUID_TO_BIN(?)'
-    : 'share_id = ?';
-  
+  const where = (params.share_id?.length ?? 0) > 11 ? 'video_id = UUID_TO_BIN(?)' : 'share_id = ?';
+
   // TODO: Check if the ID is valid
 
   const [video] = await context.db.query<JoinedVideo>(

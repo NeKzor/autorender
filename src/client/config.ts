@@ -518,7 +518,7 @@ export const downloadQuickhud = async (
 
           try {
             await Deno.mkdir(folder);
-          // deno-lint-ignore no-empty
+            // deno-lint-ignore no-empty
           } catch {
           }
 
