@@ -15,8 +15,15 @@ import ProgressBar from 'https://deno.land/x/progress@v1.3.8/mod.ts';
 import { logger } from './logger.ts';
 import { writeAll } from 'https://deno.land/std@0.189.0/streams/write_all.ts';
 import { UserAgent } from './version.ts';
+import { RenderQuality } from '../server/models.ts';
 
 const isWindows = Deno.build.os === 'windows';
+
+export const supportedQualities: RenderQuality[] = [
+  RenderQuality.FHD_1080p,
+  RenderQuality.HD_720p,
+  RenderQuality.SD_480p,
+];
 
 export interface Config {
   autorender: {
@@ -25,14 +32,10 @@ export interface Config {
     'base-api': string;
     'folder-name': string;
     protocol: string;
-    'max-supported-quality': string;
-    // Timeout interval in ms to check if there are new videos to render.
+    'max-supported-quality': RenderQuality;
     'check-interval': number;
-    // Approximated scaling factor for multiplying the demo playback time.
     'scale-timeout': number;
-    // Approximated time in seconds of how long it takes to load a demo.
     'load-timeout': number;
-    // Approximated time in seconds of how long it takes to start/exit the game process.
     'base-timeout': number;
   };
   sar: {
@@ -54,7 +57,9 @@ export const configExplanation: {
     'base-api': 'Base API URI to the website.',
     'folder-name': 'Name of the folder in which each game saves the rendered videos.',
     protocol: 'Current protocol version between client and server.',
-    'max-supported-quality*': 'The render quality that the client is able to provide. Options are: 1080p, 720p, 480p',
+    'max-supported-quality*': `The render quality that the client is able to provide. Options are: ${
+      supportedQualities.join(', ')
+    }`,
     'check-interval*': 'Timeout interval in ms to check if there are new videos to render.',
     'scale-timeout*': 'Approximated scaling factor for multiplying the demo playback time.',
     'load-timeout*': 'Approximated time in seconds of how long it takes to load a demo.',
@@ -86,6 +91,15 @@ export const gameModsWhichSupportWorkshop: GameMods[] = [
   'portal2',
   'aperturetag',
   'twtm',
+  'p2ce',
+  'portalreloaded',
+];
+
+export const supportedGameMods: GameMods[] = [
+  'portal2',
+  'aperturetag',
+  'twtm',
+  'portalstories',
   'p2ce',
   'portalreloaded',
 ];
@@ -123,10 +137,189 @@ const configFile = join(Deno.env.get('PWD') ?? '', 'autorender.yaml');
 
 let config: Config | null = null;
 
+export const parseAndValidateConfig = async () => {
+  const config = yaml.parse(await Deno.readTextFile(configFile)) as Partial<Config>;
+
+  const autorenderValidations: [
+    keyof Config['autorender'],
+    ['string' | 'number', (number | ((value: unknown) => void))?],
+  ][] = [
+    ['access-token', ['string']],
+    ['connect-uri', ['string']],
+    ['base-api', ['string']],
+    ['folder-name', ['string']],
+    ['protocol', ['string']],
+    ['max-supported-quality', ['string', (value: unknown) => {
+      if (!value || !supportedQualities.includes(value.toString() as RenderQuality)) {
+        console.log(
+          colors.red(
+            `❌️ Invalid value for "autorender" key "max-supported-quality". Valid values are: ${
+              supportedQualities.join(', ')
+            }`,
+          ),
+        );
+
+        Deno.exit(1);
+      }
+    }]],
+    ['check-interval', ['number']],
+    ['scale-timeout', ['number']],
+    ['load-timeout', ['number']],
+    ['base-timeout', ['number']],
+  ];
+
+  const sarValidations: [
+    keyof Config['sar'],
+    ['string' | 'number', (number | ((value: string | number) => void))?],
+  ][] = [
+    ['version', ['string']],
+  ];
+
+  const gamesValidations: [
+    keyof Config['games']['0'],
+    ['string' | 'number', (number | ((value: string | number, key: string) => void))?],
+  ][] = [
+    ['exe', ['string']],
+    ['proc', ['string']],
+    ['cfg', ['string']],
+    ['mod', ['string', (value: string | number, key: string) => {
+      if (!value || !supportedGameMods.includes(value.toString() as GameMods)) {
+        console.log(
+          colors.red(
+            `❌️ Invalid value for ${key}. Valid values are: ${supportedGameMods.join(', ')}`,
+          ),
+        );
+
+        Deno.exit(1);
+      }
+    }]],
+    ['dir', ['string']],
+  ];
+
+  const configValidations = [
+    ['autorender', autorenderValidations],
+    ['sar', sarValidations],
+    ['games', [gamesValidations]],
+  ] satisfies [keyof Config, typeof autorenderValidations | typeof sarValidations | [typeof gamesValidations]][];
+
+  const bail = (message: string): never => {
+    console.log(colors.red(`❌️ ${message}`));
+    Deno.exit(1);
+  };
+
+  const checkInvalidKeys = (rootKey: string, obj: Record<string, unknown>, keys: string[]) => {
+    if (obj === undefined || obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+      bail(`Expected object value for key "${rootKey}"`);
+    }
+
+    for (const key of Object.keys(obj)) {
+      if (!keys.includes(key)) {
+        bail(`Found unknown key "${rootKey}" "${key}"`);
+      }
+    }
+  };
+
+  checkInvalidKeys('root', config, configValidations.map(([key]) => key));
+
+  for (const [key, validations] of configValidations) {
+    const obj = config[key] as Record<string, string | number>;
+
+    if (obj === undefined || obj === null) {
+      bail(`Expected value for key "${key}"`);
+    }
+
+    if (Array.isArray(validations.at(0)) && Array.isArray(validations.at(0)!.at(0))) {
+      const innerValidations = validations.at(0)!;
+
+      if (!Array.isArray(obj)) {
+        bail(`Expected array value for key "${key}"`);
+        Deno.exit(1); // Aaaaa TypScript...
+      }
+
+      obj.forEach((item: Record<string, string | number>, index: number) => {
+        const itemKey = `${key}[${index}]`;
+
+        checkInvalidKeys(itemKey, item, innerValidations.map(([key]) => key as string));
+
+        for (const [objKey, innerValidator] of innerValidations) {
+          const [expectedType, validator] = innerValidator as [
+            'string' | 'number',
+            (number | ((value: unknown, key: string) => void) | undefined)?,
+          ];
+
+          const itemObjKey = `"${itemKey}" "${objKey}"`;
+
+          const innerValue = item[objKey as string];
+          if (innerValue === undefined || innerValue === null) {
+            bail(`Expected value for key ${itemObjKey}`);
+          }
+
+          if (
+            (expectedType === 'string' && typeof innerValue !== 'string') ||
+            (expectedType === 'number' && typeof innerValue !== 'number')
+          ) {
+            bail(`Expected value type for key ${itemObjKey} to be of type ${expectedType}`);
+          }
+
+          if (validator !== undefined) {
+            if (typeof validator === 'number') {
+              if (innerValue as number < validator) {
+                bail(`Invalid value for key ${itemObjKey}. Expected value to be greater or equal to ${validator}`);
+              }
+            } else {
+              validator(innerValue, itemObjKey);
+            }
+          }
+        }
+      });
+    } else {
+      if (typeof obj !== 'object') {
+        bail(`Expected object value for key "${key}"`);
+      }
+
+      checkInvalidKeys(key, obj, validations.map(([key]) => key as string));
+
+      for (const [objKey, innerValidator] of validations) {
+        const [expectedType, validator] = innerValidator as [
+          'string' | 'number',
+          (number | ((value: unknown, key: string) => void) | undefined)?,
+        ];
+
+        const itemObjKey = `"${key}" "${objKey}"`;
+
+        const innerValue = obj[objKey as string];
+
+        if (innerValue === undefined || innerValue === null) {
+          bail(`Expected value for key ${itemObjKey}`);
+        }
+
+        if (
+          (expectedType === 'string' && typeof innerValue !== 'string') ||
+          (expectedType === 'number' && typeof innerValue !== 'number')
+        ) {
+          bail(`Expected value type for key ${itemObjKey} to be of type ${expectedType}`);
+        }
+
+        if (validator !== undefined) {
+          if (typeof validator === 'number') {
+            if (innerValue as number < validator) {
+              bail(`Invalid value for key ${itemObjKey}. Expected value to be greater or equal to ${validator}`);
+            }
+          } else {
+            validator(innerValue, itemObjKey);
+          }
+        }
+      }
+    }
+  }
+
+  return config as Config;
+};
+
 export const getConfig = async () => {
   if (!config) {
     try {
-      config = yaml.parse(await Deno.readTextFile(configFile)) as Config;
+      config = await parseAndValidateConfig();
     } catch {
       config = await createConfig();
     }
@@ -137,7 +330,7 @@ export const getConfig = async () => {
 export const getConfigOnly = async () => {
   if (!config) {
     try {
-      config = yaml.parse(await Deno.readTextFile(configFile)) as Config;
+      config = await parseAndValidateConfig();
     } catch {
       return null;
     }
@@ -273,7 +466,7 @@ const createConfig = async () => {
       'base-api': baseApi,
       'folder-name': 'autorender',
       'protocol': 'autorender-v1',
-      'max-supported-quality': '1080p',
+      'max-supported-quality': RenderQuality.FHD_1080p,
       'check-interval': 1_000,
       'scale-timeout': 9,
       'load-timeout': 5,

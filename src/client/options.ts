@@ -9,8 +9,15 @@ import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 import { Cell, Table } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/table/mod.ts';
 import { logger } from './logger.ts';
-import { configExplanation, downloadSourceAutoRecord, gameModsWhichSupportWorkshop, getConfigOnly } from './config.ts';
+import {
+  configExplanation,
+  downloadSourceAutoRecord,
+  gameModsWhichSupportWorkshop,
+  getConfigOnly,
+  parseAndValidateConfig,
+} from './config.ts';
 import { AutorenderVersion, UserAgent } from './version.ts';
+import { YAMLError } from 'https://deno.land/std@0.193.0/yaml/_error.ts';
 
 export interface Options {
   devMode: boolean;
@@ -30,7 +37,8 @@ export const getOptions = async () => {
       .option('-d, --dev', 'Switch into developer mode.')
       .option('-s, --sar', 'Download latest SourceAutoRecord version.')
       .option('-e, --explain', 'Explain all config options.')
-      .action(async ({ verbose, check, dev, sar, explain }) => {
+      .option('-a, --validate', 'Validate if the config file is correct.')
+      .action(async ({ verbose, check, dev, sar, explain, validate }) => {
         const options = {
           devMode: !!dev,
           verboseMode: !!verbose,
@@ -38,6 +46,7 @@ export const getOptions = async () => {
 
         check && await runCheck(options);
         explain && runExplain();
+        validate && await runValidate(options);
 
         if (sar) {
           await downloadSourceAutoRecord(await getConfigOnly(), options);
@@ -280,6 +289,25 @@ const runExplain = () => {
   console.log(`Options marked with ${colors.bold('*')} can be tweaked.`);
 
   Deno.exit(0);
+};
+
+const runValidate = async ({ verboseMode }: Options) => {
+  try {
+    await parseAndValidateConfig();
+
+    console.log(colors.green(`Validated config file with 0 errors.`));
+    Deno.exit(0);
+  } catch (err) {
+    verboseMode && logger.error(err);
+
+    if (err instanceof Deno.errors.NotFound) {
+      console.log(colors.red(`❌️ Config file not found.`));
+    } else if (err instanceof YAMLError) {
+      console.log(colors.red(`❌️ ${err.message}`));
+    }
+
+    Deno.exit(1);
+  }
 };
 
 export const getRelease = async (
