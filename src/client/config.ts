@@ -60,7 +60,7 @@ export const configExplanation: {
     'max-supported-quality*': `The render quality that the client is able to provide. Options are: ${
       supportedQualities.join(', ')
     }`,
-    'check-interval*': 'Timeout interval in ms to check if there are new videos to render.',
+    'check-interval*': 'Timeout interval in seconds to check if there are new videos to render.',
     'scale-timeout*': 'Approximated scaling factor for multiplying the demo playback time.',
     'load-timeout*': 'Approximated time in seconds of how long it takes to load a demo.',
     'base-timeout*': 'Approximated time in seconds of how long it takes to start and exit the game process.',
@@ -162,7 +162,7 @@ export const parseAndValidateConfig = async () => {
         Deno.exit(1);
       }
     }]],
-    ['check-interval', ['number']],
+    ['check-interval', ['number', 1]],
     ['scale-timeout', ['number']],
     ['load-timeout', ['number']],
     ['base-timeout', ['number']],
@@ -467,7 +467,7 @@ const createConfig = async () => {
       'folder-name': 'autorender',
       'protocol': 'autorender-v1',
       'max-supported-quality': RenderQuality.FHD_1080p,
-      'check-interval': 1_000,
+      'check-interval': 1,
       'scale-timeout': 9,
       'load-timeout': 5,
       'base-timeout': 30,

@@ -194,7 +194,7 @@ const fetchNextVideos = () => {
             dropDataIfDisconnected: true,
           },
         ),
-      config.autorender['check-interval'],
+      config.autorender['check-interval'] * 1_000,
     );
   }
 };
