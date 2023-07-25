@@ -41,18 +41,6 @@ const game = config.games.at(0)!;
 // TODO: Upstream sar_on_renderer feature
 const AUTORENDER_PATCHED_SAR = true;
 
-// Timeout interval in ms to check if there are new videos to render.
-const AUTORENDER_CHECK_INTERVAL = 1_000;
-
-// Approximated scaling factor for multiplying the demo playback time.
-const AUTORENDER_SCALE_TIMEOUT = 9;
-
-// Approximated time in seconds of how long it takes to load a demo.
-const AUTORENDER_LOAD_TIMEOUT = 5;
-
-// Approximated time in seconds of how long it takes to start/exit the game process.
-const AUTORENDER_BASE_TIMEOUT = 20;
-
 const createFolders = async () => {
   const { state: readAccess } = await Deno.permissions.request({
     name: 'read',
@@ -205,7 +193,7 @@ const fetchNextVideos = () => {
             dropDataIfDisconnected: true,
           },
         ),
-      AUTORENDER_CHECK_INTERVAL,
+      config.autorender['check-interval'],
     );
   }
 };
@@ -316,10 +304,10 @@ const handleMessageStart = async () => {
 
     const calculatedTimeout = state.videos.reduce(
       (total, video) => {
-        return total + (video.demo_playback_time * AUTORENDER_SCALE_TIMEOUT) +
-          AUTORENDER_LOAD_TIMEOUT;
+        return total + (video.demo_playback_time * config.autorender['scale-timeout']) +
+          config.autorender['load-timeout'];
       },
-      AUTORENDER_BASE_TIMEOUT,
+      config.autorender['base-timeout'],
     );
 
     logger.info(`Process timeout in ${calculatedTimeout.toFixed(2)} seconds`);

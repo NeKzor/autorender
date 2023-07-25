@@ -24,8 +24,15 @@ export interface Config {
     'base-api': string;
     'folder-name': string;
     protocol: string;
-    'timeout-base': number;
     'max-supported-quality': string;
+    // Timeout interval in ms to check if there are new videos to render.
+    'check-interval': number;
+    // Approximated scaling factor for multiplying the demo playback time.
+    'scale-timeout': number;
+    // Approximated time in seconds of how long it takes to load a demo.
+    'load-timeout': number;
+    // Approximated time in seconds of how long it takes to start/exit the game process.
+    'base-timeout': number;
   };
   sar: {
     version: string;
@@ -232,8 +239,11 @@ const createConfig = async () => {
       'base-api': baseApi,
       'folder-name': 'autorender',
       'protocol': 'autorender-v1',
-      'timeout-base': 30,
       'max-supported-quality': '1080p',
+      'check-interval': 1_000,
+      'scale-timeout': 9,
+      'load-timeout': 5,
+      'base-timeout': 30,
     },
     sar: {
       version: '',
