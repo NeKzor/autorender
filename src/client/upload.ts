@@ -15,6 +15,7 @@ import { ClientState } from './state.ts';
 import { Video } from '../server/models.ts';
 import { Config } from './config.ts';
 import { VideoPayload } from './protocol.ts';
+import { UserAgent } from './version.ts';
 
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 
@@ -93,7 +94,7 @@ self.addEventListener(
               {
                 method: 'POST',
                 headers: {
-                  'User-Agent': 'autorender-client v1.0',
+                  'User-Agent': UserAgent,
                   Authorization: `Bearer ${encodeURIComponent(config.autorender['access-token'])}`,
                 },
                 body,

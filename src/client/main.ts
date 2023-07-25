@@ -23,6 +23,7 @@ import { UploadWorkerDataType } from './upload.ts';
 import { getConfig } from './config.ts';
 import { getOptions } from './options.ts';
 import { WorkerDataType } from './worker.ts';
+import { UserAgent } from './version.ts';
 
 addEventListener('error', (ev) => {
   console.dir({ error: ev.error }, { depth: 16 });
@@ -373,7 +374,7 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
 
   const steamResponse = await fetch(video.file_url, {
     headers: {
-      'User-Agent': 'autorender-client-v1.0',
+      'User-Agent': UserAgent,
     },
   });
 

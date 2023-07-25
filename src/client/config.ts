@@ -14,6 +14,7 @@ import { BlobReader, Uint8ArrayWriter, ZipReader } from 'https://deno.land/x/zip
 import ProgressBar from 'https://deno.land/x/progress@v1.3.8/mod.ts';
 import { logger } from './logger.ts';
 import { writeAll } from 'https://deno.land/std@0.189.0/streams/write_all.ts';
+import { UserAgent } from './version.ts';
 
 const isWindows = Deno.build.os === 'windows';
 
@@ -139,7 +140,7 @@ const createConfig = async () => {
           const res = await fetch(`${baseApi}/tokens/test`, {
             method: 'POST',
             headers: {
-              'User-Agent': 'autorender-client-v1.0',
+              'User-Agent': UserAgent,
             },
             body: JSON.stringify({ token_key: access_token }),
           });
@@ -423,7 +424,7 @@ export const downloadAutorenderConfig = async (
 
   const res = await fetch(`${config.autorender['base-api']}/storage/files/autorender.cfg`, {
     headers: {
-      'User-Agent': 'autorender-client-v1.0',
+      'User-Agent': UserAgent,
     },
   });
 
