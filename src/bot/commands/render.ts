@@ -232,7 +232,7 @@ createCommand({
   name: 'render',
   description: 'Render the latest demo file in the channel!',
   type: ApplicationCommandTypes.ChatInput,
-  scope: 'Global',
+  scope: 'Guild',
   options: [
     {
       name: 'demo',
