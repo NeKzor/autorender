@@ -128,6 +128,12 @@ export interface Video {
   demo_game_dir: string;
   demo_playback_time: number;
   demo_required_fix: FixedDemoStatus;
+  demo_tickrate: number;
+  demo_portal_score: number;
+  demo_time_score: number;
+  demo_player_name: string;
+  demo_steam_id: string;
+  demo_metadata: string;
   pending: PendingStatus;
   rendered_by: number;
   rendered_by_token: number;

@@ -8,6 +8,7 @@ import * as React from 'https://esm.sh/react@18.2.0';
 import Footer from '../components/Footer.tsx';
 import { DataLoader, json, notFound, PageMeta, redirect, useLoaderData } from '../Routes.ts';
 import { FixedDemoStatus, PendingStatus, Video } from '../../models.ts';
+import { DemoMetadata, SarDataTimestamp } from '../../demo.ts';
 
 type JoinedVideo = Video & {
   requested_by_username: string;
@@ -56,14 +57,54 @@ export const loader: DataLoader = async ({ params, context }) => {
   return json<Data>(video);
 };
 
-const formatRenderTime = (video: Video) => {
-  if (!video.render_time) return `-`;
+const formatRenderTime = (data: Data) => {
+  if (!data?.render_time) return `-`;
 
-  return video.render_time < 60 ? `${video.render_time} seconds` : `${(video.render_time / 60).toFixed(2)} minutes`;
+  return data.render_time < 60 ? `${data.render_time} seconds` : `${(data.render_time / 60).toFixed(2)} minutes`;
+};
+
+const getDemoMetadata = (data: Data): DemoMetadata => {
+  if (data?.demo_metadata) {
+    try {
+      return JSON.parse(data.demo_metadata);
+      // deno-lint-ignore no-empty
+    } catch {}
+  }
+
+  return {
+    segments: null,
+    timestamp: null,
+  };
+};
+
+const formatCmTime = (time: number) => {
+  const cs = time % 100;
+  const secs = Math.floor(time / 100);
+  const sec = secs % 60;
+  const min = Math.floor(secs / 60);
+  return min > 0
+    ? `${min}:${sec < 10 ? `0${sec}` : `${sec}`}.${cs < 10 ? `0${cs}` : `${cs}`}`
+    : `${sec}.${cs < 10 ? `0${cs}` : `${cs}`}`;
+};
+
+const formatTimestamp = (timestamp: SarDataTimestamp) => {
+  const year = timestamp.year.toString().padStart(2, '4');
+  const mon = timestamp.mon.toString().padStart(2, '0');
+  const day = timestamp.day.toString().padStart(2, '0');
+  const hour = timestamp.hour.toString().padStart(2, '0');
+  const min = timestamp.min.toString().padStart(2, '0');
+  const sec = timestamp.sec.toString().padStart(2, '0');
+  return `${year}/${mon}/${day} ${hour}:${min}:${sec} UTC`;
+};
+
+const formatToSeconds = (ticks: number, data: Data) => {
+  const tickrate = data?.demo_tickrate ?? 0;
+  return tickrate !== 0 ? (ticks / tickrate).toPrecision(2) : '';
 };
 
 export const Queue = () => {
   const data = useLoaderData<Data>();
+  const metadata = getDemoMetadata(data);
 
   return (
     <>
@@ -133,11 +174,47 @@ export const Queue = () => {
           )}
           <div>Render time: {formatRenderTime(data)}</div>
           <div>
-            Render node:{' '}
-            <a href={`/profile/${data.rendered_by_username}`}>
-              {data.render_node}@{data.rendered_by_username}
-            </a>
+            Render node: {data.rendered_by_username !== null
+              ? (
+                <a href={`/profile/${data.rendered_by_username}`}>
+                  {data.render_node}@{data.rendered_by_username}
+                </a>
+              )
+              : <>-</>}
           </div>
+          {data.demo_time_score !== null && <div>Time Score: {formatCmTime(data.demo_time_score)}</div>}
+          {data.demo_portal_score !== null && <div>Portal Score: {data.demo_portal_score}</div>}
+          {data.demo_steam_id !== null && (
+            <>
+              Player:{' '}
+              <a
+                href={`https://steamcommunity.com/profiles/${data.demo_steam_id}`}
+                target='_blank'
+              >
+                {data.demo_player_name}
+              </a>
+            </>
+          )}
+          {metadata.timestamp !== null && <div>Timestamp: {formatTimestamp(metadata.timestamp)}</div>}
+          {(metadata.segments?.length ?? 0) > 0 && (
+            <>
+              <div>Segments:</div>
+              <ul>
+                {metadata.segments!.map((segment, index, segments) => {
+                  const totalTicks = segments
+                    .slice(0, index + 1)
+                    .reduce((total, segment) => (total += segment.ticks), 0);
+                  return (
+                    <li>
+                      {formatToSeconds(segment.ticks, data)} ({segment.ticks}) - {formatToSeconds(totalTicks, data)}
+                      {' '}
+                      ({totalTicks}) - {segment.name}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
         </>
       )}
       <Footer />

@@ -278,6 +278,7 @@ apiV1
     const renderQuality = data.fields.quality ?? RenderQuality.HD_720p;
     const renderOptions = data.fields.render_options ?? null;
     const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
+    const demoMetadata = JSON.stringify(demoInfo.metadata);
 
     const fields = [
       videoId,
@@ -300,6 +301,12 @@ apiV1
       demoInfo.gameDir,
       demoInfo.playbackTime,
       requiredDemoFix,
+      demoInfo.tickrate,
+      demoInfo.portalScore,
+      demoInfo.timeScore,
+      demoInfo.playerName,
+      demoInfo.steamId,
+      demoMetadata,
       PendingStatus.RequiresRender,
     ];
 
@@ -325,6 +332,12 @@ apiV1
           , demo_game_dir
           , demo_playback_time
           , demo_required_fix
+          , demo_tickrate
+          , demo_portal_score
+          , demo_time_score
+          , demo_player_name
+          , demo_steam_id
+          , demo_metadata
           , pending
         ) values (UUID_TO_BIN(?), ${new Array(fields.length - 1).fill('?').join(',')})`,
       fields,

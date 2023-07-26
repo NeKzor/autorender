@@ -4,9 +4,11 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Messages, NetMessages, SourceDemo, SourceDemoParser } from 'npm:@nekz/sdp';
+import { Messages, NetMessages, ScoreboardTempUpdate, SourceDemo, SourceDemoParser, StringTables } from 'npm:@nekz/sdp';
 import { logger } from './logger.ts';
 import { basename, dirname, join } from 'https://deno.land/std@0.190.0/path/mod.ts';
+import { readSarData, SarDataType } from './sar.ts';
+import { SteamId } from './steam.ts';
 
 const AUTORENDER_MIN_PLAYBACK_TIME = 1;
 const AUTORENDER_MAX_PLAYBACK_TIME = 6 * 60;
@@ -39,6 +41,7 @@ export const getDemoInfo = async (filePath: string) => {
       .setOptions({
         packets: true,
         dataTables: true,
+        stringTables: true,
       });
 
     const demo = parser
@@ -98,6 +101,10 @@ export const getDemoInfo = async (filePath: string) => {
       gameDir: demo.gameDirectory,
       playbackTime: demo.playbackTime,
       useFixedDemo: fixupResult === true,
+      tickrate: demo.getTickrate(),
+      metadata: getSarData(demo),
+      ...getChallengeModeData(demo),
+      ...getPlayerInfo(demo),
     };
   } catch (err) {
     logger.error(err);
@@ -197,4 +204,153 @@ const tryToFixOldPortal2Demos = async (
     logger.error(err);
     return null;
   }
+};
+
+export interface SarDataSplit {
+  name: string;
+  ticks: number;
+}
+
+export interface SarDataSegment {
+  name: string;
+  ticks: number;
+  splits: SarDataSplit[];
+}
+
+export interface SarDataTimestamp {
+  year: number;
+  mon: number;
+  day: number;
+  hour: number;
+  min: number;
+  sec: number;
+}
+
+export interface DemoMetadata {
+  segments: SarDataSegment[] | null;
+  timestamp: SarDataTimestamp | null;
+}
+
+// Get speedrun + timestamp data from SAR.
+const getSarData = (demo: SourceDemo): DemoMetadata => {
+  try {
+    const sar = readSarData(demo);
+    const speedrun = sar.messages.find((message) => message.type === SarDataType.SpeedrunTime);
+
+    const segments: SarDataSegment[] = [];
+
+    for (const split of speedrun?.speedrunTime?.splits ?? []) {
+      const splits: SarDataSplit[] = [];
+      let ticks = 0;
+
+      for (const seg of split.segs ?? []) {
+        splits.push({ name: seg.name, ticks: seg.ticks });
+        ticks += seg.ticks;
+      }
+
+      segments.push({
+        name: split.name,
+        ticks,
+        splits,
+      });
+    }
+
+    const timestamp = sar.messages.find((message) => message.type === SarDataType.Timestamp);
+
+    return {
+      segments,
+      timestamp: timestamp?.timestamp
+        ? {
+          year: timestamp.timestamp.year,
+          mon: timestamp.timestamp.mon,
+          day: timestamp.timestamp.day,
+          hour: timestamp.timestamp.hour,
+          min: timestamp.timestamp.min,
+          sec: timestamp.timestamp.sec,
+        }
+        : null,
+    };
+  } catch (err) {
+    logger.error(err);
+  }
+
+  return {
+    segments: null,
+    timestamp: null,
+  };
+};
+
+export interface ChallengeModeData {
+  portalScore: number | null;
+  timeScore: number | null;
+}
+
+// Get portal + time scores.
+const getChallengeModeData = (demo: SourceDemo): ChallengeModeData => {
+  try {
+    const scoreboard = demo.findPacket<NetMessages.SvcUserMessage>((message) => {
+      return message instanceof NetMessages.SvcUserMessage &&
+        message.userMessage instanceof ScoreboardTempUpdate;
+    });
+
+    if (scoreboard) {
+      const { portalScore, timeScore } = scoreboard.userMessage?.as<ScoreboardTempUpdate>() ?? {};
+
+      return {
+        portalScore: portalScore ?? null,
+        timeScore: timeScore ?? null,
+      };
+    }
+  } catch (err) {
+    logger.error(err);
+  }
+
+  return {
+    portalScore: null,
+    timeScore: null,
+  };
+};
+
+export interface PlayerInfoData {
+  playerName: string | null;
+  steamId: string | null;
+}
+
+// Get player's name + SteamID64.
+export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
+  try {
+    const message = demo.findMessage(Messages.StringTable);
+
+    for (const stringTable of message?.stringTables ?? []) {
+      const playerInfo = (stringTable.entries ?? [])
+        .find((entry) => entry.data instanceof StringTables.PlayerInfo);
+
+      if (!playerInfo) {
+        continue;
+      }
+
+      const guid = playerInfo.data?.guid;
+      if (guid === undefined) {
+        break;
+      }
+
+      const steamId = SteamId.from(guid).toSteamId64();
+      if (steamId === null) {
+        logger.error(`Found invalid SteamID: ${guid}`);
+        break;
+      }
+
+      return {
+        playerName: playerInfo.data?.name ?? '',
+        steamId: steamId.toString(),
+      };
+    }
+  } catch (err) {
+    logger.error(err);
+  }
+
+  return {
+    playerName: null,
+    steamId: null,
+  };
 };
