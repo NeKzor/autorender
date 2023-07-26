@@ -700,10 +700,13 @@ router.get('/connect/bot', async (ctx) => {
   };
 
   discordBot.onerror = (event: ErrorEvent | Event) => {
-    logger.error(
-      'Bot connection error',
-      event instanceof ErrorEvent ? event.error : event,
-    );
+    const isErrorEvent = event instanceof ErrorEvent;
+
+    if (isErrorEvent && event.error.code === 'ECONNREFUSED') {
+      return;
+    }
+
+    logger.error('Bot connection error', isErrorEvent ? event.error : event);
   };
 });
 
@@ -1046,10 +1049,13 @@ router.get('/connect/client', async (ctx) => {
   };
 
   ws.onerror = (event: ErrorEvent | Event) => {
-    logger.error(
-      `Client ${clientId} connection error`,
-      event instanceof ErrorEvent ? event.error : event,
-    );
+    const isErrorEvent = event instanceof ErrorEvent;
+
+    if (isErrorEvent && event.error.code === 'ECONNREFUSED') {
+      return;
+    }
+
+    logger.error(`Client ${clientId} connection error`, isErrorEvent ? event.error : event);
   };
 });
 
@@ -1460,7 +1466,7 @@ app.addEventListener('error', (ev) => {
   try {
     logger.error(ev.error);
   } catch (err) {
-    console.error('This should not happen!', err);
+    console.error('This should not happen!', err, ev?.error);
   }
 });
 

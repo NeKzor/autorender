@@ -150,10 +150,13 @@ const onClose = async () => {
 };
 
 const onError = (event: ErrorEvent | Event) => {
-  logger.error(
-    'Connection error',
-    event instanceof ErrorEvent ? event.error : event,
-  );
+  const isErrorEvent = event instanceof ErrorEvent;
+
+  if (isErrorEvent && event.error.code === 'ECONNREFUSED') {
+    return;
+  }
+
+  logger.error('Connection error', isErrorEvent ? event.error : event);
 };
 
 const onMessage = async (message: MessageEvent) => {

@@ -44,10 +44,13 @@ const onClose = async () => {
 };
 
 const onError = (event: ErrorEvent | Event) => {
-  console.error(
-    'Connection error',
-    event instanceof ErrorEvent ? event.error : event,
-  );
+  const isErrorEvent = event instanceof ErrorEvent;
+
+  if (isErrorEvent && event.error.code === 'ECONNREFUSED') {
+    return;
+  }
+
+  console.error('Connection error', isErrorEvent ? event.error : event);
 };
 
 const connect = () => {
