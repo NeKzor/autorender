@@ -706,7 +706,7 @@ router.get('/connect/bot', async (ctx) => {
       return;
     }
 
-    logger.error('Bot connection error', isErrorEvent ? event.error : event);
+    logger.error('Bot connection error', isErrorEvent ? event.error ?? event : event);
   };
 });
 
@@ -1055,7 +1055,7 @@ router.get('/connect/client', async (ctx) => {
       return;
     }
 
-    logger.error(`Client ${clientId} connection error`, isErrorEvent ? event.error : event);
+    logger.error(`Client ${clientId} connection error`, isErrorEvent ? event.error ?? event : event);
   };
 });
 
