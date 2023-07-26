@@ -702,7 +702,7 @@ router.get('/connect/bot', async (ctx) => {
   discordBot.onerror = (event: ErrorEvent | Event) => {
     const isErrorEvent = event instanceof ErrorEvent;
 
-    if (isErrorEvent && event.error.code === 'ECONNREFUSED') {
+    if (isErrorEvent && event.error?.code === 'ECONNREFUSED') {
       return;
     }
 
@@ -1051,7 +1051,7 @@ router.get('/connect/client', async (ctx) => {
   ws.onerror = (event: ErrorEvent | Event) => {
     const isErrorEvent = event instanceof ErrorEvent;
 
-    if (isErrorEvent && event.error.code === 'ECONNREFUSED') {
+    if (isErrorEvent && event.error?.code === 'ECONNREFUSED') {
       return;
     }
 

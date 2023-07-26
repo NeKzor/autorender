@@ -46,7 +46,7 @@ const onClose = async () => {
 const onError = (event: ErrorEvent | Event) => {
   const isErrorEvent = event instanceof ErrorEvent;
 
-  if (isErrorEvent && event.error.code === 'ECONNREFUSED') {
+  if (isErrorEvent && event.error?.code === 'ECONNREFUSED') {
     return;
   }
 
