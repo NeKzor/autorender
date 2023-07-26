@@ -59,7 +59,7 @@ CREATE TABLE videos (
     demo_time_score INT,
     demo_player_name: VARCHAR(64),
     demo_steam_id VARCHAR(64),
-    demo_metadata VARCHAR(1024),
+    demo_metadata TEXT,
     pending INT NOT NULL DEFAULT 0,
     rendered_by BIGINT,
     rendered_by_token BIGINT,
