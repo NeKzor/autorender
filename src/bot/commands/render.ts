@@ -501,7 +501,7 @@ createCommand({
               .value as string;
 
             const url = validateUrl(urlArg);
-            
+
             if (!url) {
               const domain = getPublicUrl('/').hostname;
 
