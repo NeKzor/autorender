@@ -14,7 +14,7 @@ type Data = {
   videos: Video[];
 };
 
-export const meta: PageMeta<Data> = (data) => {
+export const meta: PageMeta<Data> = ({ data }) => {
   return {
     title: data.user?.username ?? 'Profile not found :(',
   };

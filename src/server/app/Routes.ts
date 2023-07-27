@@ -25,7 +25,6 @@ import * as Token from './views/tokens/Token.tsx';
 import * as Tokens from './views/tokens/Index.tsx';
 import * as Privacy from './views/Privacy.tsx';
 import * as ProfileView from './views/Profile.tsx';
-import * as Queue from './views/Queue.tsx';
 import * as VideoView from './views/Video.tsx';
 import { Database } from '../db.ts';
 import { User } from '../models.ts';
@@ -51,6 +50,7 @@ export const useLoaderData = <T>() => routerUseLoaderData() as T;
 export interface RequestContext {
   user: User | null;
   db: Database;
+  url: URL;
 }
 
 // This adds type-safety for using context.
@@ -99,7 +99,7 @@ export type RouteMeta =
     [key in `twitter:${OpenGraphTwitter}`]?: string;
   };
 
-export type PageMeta<Data> = (loaderData: Data) => RouteMeta;
+export type PageMeta<Data> = (args: { data: Data; context: RequestContext }) => RouteMeta;
 
 // deno-lint-ignore no-explicit-any
 export type Route<Context, Data = any> =
@@ -157,9 +157,9 @@ export const routes: Route<RequestContext>[] = [
   },
   {
     path: '/queue/:share_id',
-    Component: Queue.Queue,
-    meta: Queue.meta,
-    loader: Queue.loader,
+    Component: VideoView.VideoView,
+    meta: VideoView.meta,
+    loader: VideoView.loader,
   },
   {
     path: '/videos/:share_id',

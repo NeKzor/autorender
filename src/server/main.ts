@@ -1190,10 +1190,12 @@ router.get('/logout', useSession, async (ctx) => {
 const routeToApp = async (ctx: Context) => {
   const request = await createFetchRequest(ctx.request);
   const user = ctx.state.session?.get('user') ?? null;
+  const url = new URL(ctx.request.url);
 
   const requestContext: RequestContext = {
     user,
     db,
+    url,
   };
 
   const context = await routeHandler.query(request, { requestContext });
@@ -1213,15 +1215,14 @@ const routeToApp = async (ctx: Context) => {
       return {};
     }
 
-    const [_, loadersData] = Object.entries(context.loaderData).find(
-      ([id]) => id === match.route.id,
-    ) ?? [];
+    const [_, loadersData] = Object.entries(context.loaderData)
+      .find(([id]) => id === match.route.id) ?? [];
 
     if (loadersData === undefined) {
       return {};
     }
 
-    return matchedRoute.meta(loadersData);
+    return matchedRoute.meta({ data: loadersData, context: requestContext });
   })();
 
   const initialState: ReactAppState = {
