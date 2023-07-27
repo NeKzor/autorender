@@ -149,5 +149,5 @@ export function escapeMarkdown(text: string) {
  * @returns - The full URL.
  */
 export function getPublicUrl(url: string) {
-  return new URL(url, Deno.env.get('AUTORENDER_PUBLIC_URI')!).toString();
+  return new URL(url, Deno.env.get('AUTORENDER_PUBLIC_URI')!);
 }

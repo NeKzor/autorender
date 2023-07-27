@@ -25,26 +25,81 @@ import { createCommand } from './mod.ts';
 const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 
+const validateUrl = (urlString: string) => {
+  try {
+    const url = new URL(urlString);
+
+    // Input/Output: https://board.portal2.sr/getDemo?id=234826
+
+    if (
+      url.origin === 'https://board.portal2.sr' &&
+      url.pathname === '/getDemo' &&
+      url.search.startsWith('?id=')
+    ) {
+      const id = parseInt(url.search.slice(4), 10);
+      return isNaN(id) ? null : `https://board.portal2.sr/getDemo?id=${id}`;
+    }
+
+    // Input:  https://autorender.portal2.sr/video.html?v=234826
+    // Output: https://board.portal2.sr/getDemo?id=234826
+
+    if (
+      url.origin === 'https://autorender.portal2.sr' &&
+      url.pathname === '/video.html' &&
+      url.search.startsWith('?v=')
+    ) {
+      const id = parseInt(url.search.slice(3), 10);
+      return isNaN(id) ? null : `https://board.portal2.sr/getDemo?id=${id}`;
+    }
+
+    // Input:  https://autorender.nekz.me/queue/ScDd_mkTzZs
+    // Input:  https://autorender.nekz.me/videos/ScDd_mkTzZs
+    // Output: {AUTORENDER_BASE_API}/storage/demos/ScDd_mkTzZs
+
+    const queueUrl = getPublicUrl('/queue/');
+    const videosUrl = getPublicUrl('/videos/');
+
+    if (
+      (url.origin === queueUrl.origin && url.pathname.startsWith(queueUrl.pathname)) ||
+      (url.origin === videosUrl.origin && url.pathname.startsWith(videosUrl.pathname))
+    ) {
+      const [shareId] = url.pathname.split('/', 3).slice(2);
+      return /^[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]$/.test(shareId ?? '')
+        ? `${AUTORENDER_BASE_API}/storage/demos/${shareId}`
+        : null;
+    }
+
+    // deno-lint-ignore no-empty
+  } catch {
+  }
+
+  return null;
+};
+
 const render = async (
   bot: Bot,
   interaction: Interaction,
   interactionData: InteractionDataOption,
-  attachment?: Attachment,
+  attachmentOrUrl?: Attachment | string,
 ) => {
-  attachment ??= interaction.data?.resolved?.attachments?.first()!;
+  const isAttachment = typeof attachmentOrUrl === 'object';
 
-  if (attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE) {
-    await bot.helpers.sendInteractionResponse(
-      interaction.id,
-      interaction.token,
-      {
-        type: InteractionResponseTypes.ChannelMessageWithSource,
-        data: {
-          content: `❌️ File is too big. Uploads are limited to 6 MB.`,
+  if (isAttachment) {
+    const attachment = attachmentOrUrl ?? interaction.data?.resolved?.attachments?.first()!;
+
+    if (attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE) {
+      await bot.helpers.sendInteractionResponse(
+        interaction.id,
+        interaction.token,
+        {
+          type: InteractionResponseTypes.ChannelMessageWithSource,
+          data: {
+            content: `❌️ File is too big. Uploads are limited to 6 MB.`,
+          },
         },
-      },
-    );
-    return;
+      );
+      return;
+    }
   }
 
   await bot.helpers.sendInteractionResponse(
@@ -59,7 +114,7 @@ const render = async (
   );
 
   try {
-    const demo = await fetch(attachment.url, {
+    const demo = await fetch(isAttachment ? attachmentOrUrl.url : attachmentOrUrl!, {
       method: 'GET',
       headers: {
         'User-Agent': 'autorender-bot v1.0',
@@ -68,10 +123,17 @@ const render = async (
 
     if (!demo.ok) {
       await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-        content: `❌️ Unable to download attachment.`,
+        content: `❌️ Unable to download demo.`,
       });
       return;
     }
+
+    const extractFilenameFromHeaders = () => {
+      const location = demo.headers.get('Location');
+      return location ? location.slice(location.lastIndexOf('/')) : 'demo.dem';
+    };
+
+    const filename = isAttachment ? attachmentOrUrl.filename : extractFilenameFromHeaders();
 
     const body = new FormData();
     const args = [...(interactionData.options?.values() ?? [])];
@@ -84,13 +146,13 @@ const render = async (
     }
 
     if (!body.get('title')) {
-      body.append('title', attachment.filename.slice(0, 64));
+      body.append('title', filename.slice(0, 64));
     }
 
     // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
     //       https://github.com/oakserver/oak/issues/581
 
-    body.append('files', await demo.blob(), attachment.filename);
+    body.append('files', await demo.blob(), filename);
 
     const requestedByName = interaction.user.discriminator !== '0'
       ? `${interaction.user.username}#${interaction.user.discriminator}`
@@ -141,14 +203,14 @@ const render = async (
       const video = await response.json() as Video;
 
       const title = escapeMaskedLink(video.title);
-      const link = getPublicUrl(`/queue/${video.share_id}`);
+      const link = getPublicUrl(`/queue/${video.share_id}`).toString();
 
       const buttons: [ButtonComponent] | [ButtonComponent, ButtonComponent] = [
         {
           type: MessageComponentTypes.Button,
           label: 'Download Demo',
           style: ButtonStyles.Link,
-          url: getPublicUrl(`/storage/demos/${video.share_id}`),
+          url: getPublicUrl(`/storage/demos/${video.share_id}`).toString(),
         },
       ];
 
@@ -157,7 +219,7 @@ const render = async (
           type: MessageComponentTypes.Button,
           label: 'Download Fixed Demo',
           style: ButtonStyles.Link,
-          url: getPublicUrl(`/storage/demos/${video.share_id}/fixed`),
+          url: getPublicUrl(`/storage/demos/${video.share_id}/fixed`).toString(),
         });
       }
 
@@ -230,7 +292,7 @@ const renderOptions: ApplicationCommandOption[] = [
 
 createCommand({
   name: 'render',
-  description: 'Render the latest demo file in the channel!',
+  description: 'Render a demo file!',
   type: ApplicationCommandTypes.ChatInput,
   scope: 'Guild',
   options: [
@@ -254,7 +316,7 @@ createCommand({
       type: ApplicationCommandOptionTypes.SubCommand,
       options: [
         {
-          name: 'url_or_id',
+          name: 'url-or-id',
           description: 'Message URL or ID containing a demo file.',
           type: ApplicationCommandOptionTypes.String,
           required: true,
@@ -270,6 +332,20 @@ createCommand({
         ...renderOptions,
       ],
     },
+    {
+      name: 'link',
+      description: 'Render a demo file or re-render a video by link!',
+      type: ApplicationCommandOptionTypes.SubCommand,
+      options: [
+        {
+          name: 'url',
+          description: 'The URL to the demo or video.',
+          type: ApplicationCommandOptionTypes.String,
+          required: true,
+        },
+        ...renderOptions,
+      ],
+    },
   ],
   execute: async (bot: Bot, interaction: Interaction) => {
     const subCommand = [...(interaction.data?.options?.values() ?? [])].at(0)!;
@@ -279,7 +355,8 @@ createCommand({
         switch (subCommand.name) {
           case 'demo':
           case 'latest':
-          case 'message': {
+          case 'message':
+          case 'link': {
             checkQualityOptions(bot, interaction, subCommand);
             break;
           }
@@ -339,7 +416,7 @@ createCommand({
           }
           case 'message': {
             const args = [...(subCommand.options?.values() ?? [])];
-            const messageUrlOrId = args.find((arg) => arg.name === 'url_or_id')!
+            const messageUrlOrId = args.find((arg) => arg.name === 'url-or-id')!
               .value as string;
 
             let message: Message | null = null;
@@ -416,6 +493,32 @@ createCommand({
                 },
               );
             }
+            break;
+          }
+          case 'link': {
+            const args = [...(subCommand.options?.values() ?? [])];
+            const urlArg = args.find((arg) => arg.name === 'url')!
+              .value as string;
+
+            const url = validateUrl(urlArg);
+            
+            if (!url) {
+              const domain = getPublicUrl('/').hostname;
+
+              await bot.helpers.sendInteractionResponse(
+                interaction.id,
+                interaction.token,
+                {
+                  type: InteractionResponseTypes.ChannelMessageWithSource,
+                  data: {
+                    content: `❌️ Invalid URL. Only links from portal2.sr and ${domain} are supported.`,
+                  },
+                },
+              );
+              return;
+            }
+
+            render(bot, interaction, subCommand, url);
             break;
           }
           default:
