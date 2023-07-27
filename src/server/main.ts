@@ -134,7 +134,7 @@ const _sendErrorToBot = (error: {
   }
 };
 
-const b2 = new BackblazeClient({ userAgent: AUTORENDER_V1 });
+const b2 = new BackblazeClient({ userAgent: Deno.env.get('USER_AGENT')! });
 
 if (B2_ENABLED) {
   b2.authorizeAccount({
@@ -1095,7 +1095,7 @@ router.get('/login/discord/authorize', useSession, async (ctx) => {
     {
       method: 'POST',
       headers: {
-        'User-Agent': AUTORENDER_V1,
+        'User-Agent': Deno.env.get('USER_AGENT')!,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: Object.entries(data)
@@ -1119,6 +1119,7 @@ router.get('/login/discord/authorize', useSession, async (ctx) => {
   const usersResponse = await fetch('https://discord.com/api/users/@me', {
     headers: {
       authorization: `Bearer ${access_token}`,
+      'User-Agent': Deno.env.get('USER_AGENT')!,
     },
   });
 

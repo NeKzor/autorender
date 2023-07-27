@@ -117,7 +117,7 @@ const render = async (
     const demo = await fetch(isAttachment ? attachmentOrUrl.url : attachmentOrUrl!, {
       method: 'GET',
       headers: {
-        'User-Agent': 'autorender-bot v1.0',
+        'User-Agent': Deno.env.get('USER_AGENT')!,
       },
     });
 
@@ -188,7 +188,7 @@ const render = async (
       {
         method: 'PUT',
         headers: {
-          'User-Agent': 'autorender-bot v1.0',
+          'User-Agent': Deno.env.get('USER_AGENT')!,
           Authorization: `Bearer ${
             encodeURIComponent(
               Deno.env.get('AUTORENDER_BOT_TOKEN')!,

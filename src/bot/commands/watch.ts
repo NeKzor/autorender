@@ -52,7 +52,7 @@ createCommand({
             {
               method: 'GET',
               headers: {
-                'User-Agent': 'autorender-bot v1.0',
+                'User-Agent': Deno.env.get('USER_AGENT')!,
               },
             },
           );
@@ -131,7 +131,7 @@ createCommand({
             {
               method: 'GET',
               headers: {
-                'User-Agent': 'autorender-bot v1.0',
+                'User-Agent': Deno.env.get('USER_AGENT')!,
               },
             },
           );

@@ -76,7 +76,11 @@ export const getBinary = async (
     onEnd?: () => void;
   },
 ) => {
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': UserAgent,
+    },
+  });
 
   let loaded = 0;
   const total = Number(res.headers.get('Content-Length')) || 0;

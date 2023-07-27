@@ -129,7 +129,7 @@ export const resolveFileUrl = async (appId: WorkshopSteamAppId, mapName: string)
       `http://steampowered.com.mirror.nekz.me/api/v1/workshop/${appId}/files/ugc/${ugc}`,
       {
         headers: {
-          'User-Agent': 'autorender-v1',
+          'User-Agent': Deno.env.get('USER_AGENT')!,
         },
       },
     );
