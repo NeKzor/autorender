@@ -12,5 +12,5 @@ export const generateShareId = () => {
 };
 
 export const validateShareId = (shareId: string) => {
-  return /[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]/.test(shareId);
+  return /^[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]$/.test(shareId);
 };
