@@ -26,13 +26,13 @@ Convert Portal 2 demos into videos with: `/render demo <file>`
 ## Features
 
 - Render videos On-Demand!
-- Support for workshop maps, powered by [mirror.nekz.me]
+- Support for workshop maps, powered by [sdp] and mirror
 - Render files directly in the web platform (TODO)
 - Runs in a secure runtime with [Deno]
 - Written in 100% TypeScript
 - Hosted inside Docker containers (TODO)
 
-[mirror.nekz.me]: https://github.com/NeKzor/mirror
+[sdp]: https://github.com/NeKzor/sdp
 [Deno]: https://deno.com/runtime
 
 ## Commands
@@ -40,6 +40,7 @@ Convert Portal 2 demos into videos with: `/render demo <file>`
 | Command           | Description                                                                                  |
 | ----------------- | -------------------------------------------------------------------------------------------- |
 | `/render demo`    | Render a demo file by uploading it as an attachment.                                         |
+| `/render link`    | Render an already uploaded demo file from portal2.sr.                                        |
 | `/render message` | Render an already uploaded demo file by providing the message link or the ID of the message. |
 | `/render latest`  | Render an already uploaded demo file by automatically finding the latest message.            |
 | `/watch latest`   | List latest requested videos.                                                                |
@@ -198,10 +199,20 @@ Make sure that the `src/bot/.env` file has the correct values for:
 - `AUTORENDER_BASE_API` should point to the internal address of the host, if hosted within the same network
 - `AUTORENDER_PUBLIC_URI` should point to the public domain (used for sending the final Discord message)
 
-For clients we want to only ship the code as a single binary:
+For clients we only want to ship a single binary:
 
 - `deno task client:compile:linux` outputs the executable to `src/client/bin/autorenderclient`
 - `deno task client:compile:windows` outputs the executable to `src/client/bin/autorenderclient.exe`
+
+When deploying make sure that clients have checked the following:
+
+- The game can be launched from the terminal
+- Game updates are disabled
+- Steam client is in offline mode
+- Operating system does not enter sleep mode
+- Operating system does not power off
+- Network connection is stable
+- There is nothing else that could interrupt the autorender
 
 ### Proxy Example with Nginx + Certbot
 
@@ -258,51 +269,55 @@ server {
 - ~~Markdown links~~
 - ~~Quality options~~
 - ~~Use yaml format for client settings~~
-- Bot improvements
-  - Implement "Render demo" as message context menu option
-  - Improve `/bot info`
-  - Edit original interaction message or create a follow up message
 - ~~Add CI/CD~~
   - ~~CI should check for lint and format errors on every push~~
   - ~~CD should compile client code and release all files on every tag~~
-- Support game mods
-- ~~Switch to shorter video IDs~~
-- Advanced render options e.g. sar_ihud
-- Integrate into leaderboards
-- Design frontend platform
-  - Profiles
-  - Search
-  - Users
-  - Audit logs
-  - Demo upload
 - ~~Package client code~~
   - ~~Installer CLI~~
   - ~~Download SAR/autorender.cfg automatically~~
   - ~~Figure out permissions~~
   - ~~Single executable~~
-- Generate video preview + thumbnails
-- Unlisted/private videos
-- Figure out dev setup
-  - Docker + Dev Container
-  - Setup script or tool
-- Implement various data related functions
-  - Delete video button
-    - Delete video from cloud storage
-  - Delete data button
-    - Delete all user videos
-    - Delete all user token data
-    - Delete all videos from cloud storage
-  - Request data button
-    - Request all user data
-- SAR wishlist:
+- ~~Switch to shorter video IDs~~
+- Integrate into leaderboards
+- Advanced render options e.g. sar_ihud
+- Support game mods
+- Bot improvements
+  - Edit original interaction message or create a follow up message
+  - Improve `/bot info`
+- Design frontend platform
+  - Pages
+    - Profiles
+    - Search
+    - Users
+    - Audit logs
+    - Demo upload
+  - Generate video preview + thumbnails
+  - Unlisted/private videos
+  - Implement various data related functions
+    - Delete video button
+    - Delete data button
+    - Request data button
+- Misc
+  - Better testing
+    - Implement test render
+    - Allow multiple ame instance
+    - Fake a game instance
+  - Better dev setup
+    - Docker + dev container
+    - Setup script
+  - Better deployment
+    - Figure out a way to deploy to GPU instances (use DepotDownloader?)
+    - Remove Steam client
+  - Clean up some anti-patterns, code duplications etc.
+- SAR wishlist
   - ~~Remove unnecessary watermark~~
   - Sandbox commands like in 1.0
   - IPC between client and game process
   - Detect if demo could be played
-  - Do not capture mouse input during render
-  - Remove Steam requirement
-- Figure out a way to deploy this to GPU instances (DepotDownloader?)
-- Clean up some anti-patterns, code duplications etc.
+  - Do not lock mouse input inside the game during render
+  - Encode button inputs per frame for
+    - Toggleable overlay
+    - Accurate visualisation
 
 ## Caveats
 
