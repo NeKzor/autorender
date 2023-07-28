@@ -342,25 +342,29 @@ apiV1
       fields,
     );
 
-    await db.execute(
-      `insert into audit_logs (
-            title
-          , audit_type
-          , source
-          , source_user_id
-        ) values (
-            ?
-          , ?
-          , ?
-          , ?
-        )`,
-      [
-        `Created video ${videoId} for Discord user ${requestedByName}`,
-        AuditType.Info,
-        AuditSource.User,
-        authUser?.user_id ?? null,
-      ],
-    );
+    try {
+      await db.execute(
+        `insert into audit_logs (
+              title
+            , audit_type
+            , source
+            , source_user_id
+          ) values (
+              ?
+            , ?
+            , ?
+            , ?
+          )`,
+        [
+          `Created video ${videoId} for Discord user ${requestedByName}`,
+          AuditType.Info,
+          AuditSource.User,
+          authUser?.user_id ?? null,
+        ],
+      );
+    } catch (err) {
+      logger.error(err);
+    }
 
     const [video] = await db.query<Video>(
       `select *
