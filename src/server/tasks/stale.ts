@@ -18,6 +18,7 @@ const { affectedRows } = await db.execute<Video>(
       set pending = ?
     where pending = ?
       and TIMESTAMPDIFF(MINUTE, created_at, NOW()) >= ?
+      and board_changelog_id is null
     `,
   [
     PendingStatus.FinishedRender,

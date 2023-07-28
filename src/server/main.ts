@@ -85,6 +85,7 @@ const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
 );
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
+const DISCORD_BOARD_INTEGRATION_WEBHOOK_URL = Deno.env.get('DISCORD_BOARD_INTEGRATION_WEBHOOK_URL')!;
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 
@@ -125,7 +126,7 @@ const _sendErrorToBot = (error: {
   if (discordBot && discordBot.readyState === WebSocket.OPEN) {
     discordBot.send(JSON.stringify({ type: 'error', data: error }));
   } else {
-    logger.warn('Bot not connected. Failed to send error status.', error);
+    logger.error('Bot not connected. Failed to send error status.', error);
   }
 };
 
@@ -485,32 +486,51 @@ apiV1
       Ok(ctx, { video_id: video.video_id });
 
       try {
-        type VideoUpload = Pick<
-          Video,
-          | 'share_id'
-          | 'title'
-          | 'requested_by_id'
-          | 'requested_in_guild_id'
-          | 'requested_in_channel_id'
-        >;
+        if (video.board_changelog_id !== null) {
+          const webhook = await fetch(DISCORD_BOARD_INTEGRATION_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'User-Agent': Deno.env.get('USER_AGENT')!,
+            },
+            body: JSON.stringify({
+              content: `${AUTORENDER_PUBLIC_URI}/videos/${video.share_id}`,
+            }),
+          });
 
-        const uploadMessage: VideoUpload = {
-          share_id: video.share_id,
-          title: video.title,
-          requested_by_id: video.requested_by_id,
-          requested_in_guild_id: video.requested_in_guild_id,
-          requested_in_channel_id: video.requested_in_channel_id,
-        };
+          logger.info('Board webhook executed:', webhook.statusText);
 
-        if (discordBot && discordBot.readyState === WebSocket.OPEN) {
-          discordBot.send(
-            JSON.stringify({ type: 'upload', data: uploadMessage }),
-          );
+          if (!webhook.ok) {
+            logger.error('Failed to execute board webhook:', await webhook.text());
+          }
         } else {
-          logger.warn(
-            `Bot not connected. Failed to send upload message for ${discordBot}.`,
-            uploadMessage,
-          );
+          type VideoUpload = Pick<
+            Video,
+            | 'share_id'
+            | 'title'
+            | 'requested_by_id'
+            | 'requested_in_guild_id'
+            | 'requested_in_channel_id'
+          >;
+
+          const uploadMessage: VideoUpload = {
+            share_id: video.share_id,
+            title: video.title,
+            requested_by_id: video.requested_by_id,
+            requested_in_guild_id: video.requested_in_guild_id,
+            requested_in_channel_id: video.requested_in_channel_id,
+          };
+
+          if (discordBot && discordBot.readyState === WebSocket.OPEN) {
+            discordBot.send(
+              JSON.stringify({ type: 'upload', data: uploadMessage }),
+            );
+          } else {
+            logger.error(
+              `Bot not connected. Failed to send upload message:`,
+              uploadMessage,
+            );
+          }
         }
       } catch (err) {
         logger.error(err);

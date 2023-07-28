@@ -12,6 +12,7 @@
     "server:test": "deno task --cwd src/server test",
     "server:stale": "deno task --cwd src/server stale",
     "server:perm": "deno task --cwd src/server perm",
+    "server:board": "deno task --cwd src/server board",
     "up": "docker compose up",
     "down": "docker compose down",
     "db": "docker exec -ti p2render-db mariadb"

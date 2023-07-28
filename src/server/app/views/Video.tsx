@@ -93,6 +93,10 @@ const formatCmTime = (time: number) => {
     : `${sec}.${cs < 10 ? `0${cs}` : `${cs}`}`;
 };
 
+const formatRank = (rank: number) => {
+  return `${rank}${['st', 'nd', 'rd'][((rank + 90) % 100 - 10) % 10 - 1] || 'th'}`;
+};
+
 const formatTimestamp = (timestamp: SarDataTimestamp) => {
   const year = timestamp.year.toString().padStart(2, '4');
   const mon = timestamp.mon.toString().padStart(2, '0');
@@ -187,15 +191,17 @@ export const VideoView = () => {
           <div>Comment: {data.comment ?? '-'}</div>
           <div>Quality: {data.render_quality}</div>
           <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
-          <div>
-            Requested by: {data.requested_by_username
-              ? (
-                <a href={`/profile/${data.requested_by_username}`}>
-                  {data.requested_by_username}
-                </a>
-              )
-              : <>{data.requested_by_name}</>}
-          </div>
+          {data.requested_by_username !== null && (
+            <div>
+              Requested by: {data.requested_by_username
+                ? (
+                  <a href={`/profile/${data.requested_by_username}`}>
+                    {data.requested_by_username}
+                  </a>
+                )
+                : <>{data.requested_by_name}</>}
+            </div>
+          )}
           {data.requested_in_channel_name && (
             <div>
               Requested in: {data.requested_in_guild_name}#
@@ -214,8 +220,20 @@ export const VideoView = () => {
           </div>
           {data.demo_time_score !== null && <div>Time Score: {formatCmTime(data.demo_time_score)}</div>}
           {data.demo_portal_score !== null && <div>Portal Score: {data.demo_portal_score}</div>}
+          {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
+          {data.board_profile_number !== null && (
+            <div>
+              Profile:{' '}
+              <a
+                href={`https://board.portal2.sr/profile/${data.board_profile_number}`}
+                target='_blank'
+              >
+                {data.demo_player_name}
+              </a>
+            </div>
+          )}
           {data.demo_steam_id !== null && (
-            <>
+            <div>
               Player:{' '}
               <a
                 href={`https://steamcommunity.com/profiles/${data.demo_steam_id}`}
@@ -223,7 +241,7 @@ export const VideoView = () => {
               >
                 {data.demo_player_name}
               </a>
-            </>
+            </div>
           )}
           {metadata.timestamp !== null && <div>Timestamp: {formatTimestamp(metadata.timestamp)}</div>}
           {(metadata.segments?.length ?? 0) > 0 && (

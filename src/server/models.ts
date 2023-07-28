@@ -134,6 +134,9 @@ export interface Video {
   demo_player_name: string;
   demo_steam_id: string;
   demo_metadata: string;
+  board_changelog_id: number;
+  board_profile_number: string;
+  board_rank: number;
   pending: PendingStatus;
   rendered_by: number;
   rendered_by_token: number;

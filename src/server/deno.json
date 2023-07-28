@@ -4,6 +4,7 @@
     "prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log/server,storage --allow-write=log/server,storage --allow-run=ffprobe --allow-net main.ts",
     "test": "deno test --allow-net --allow-read --allow-env",
     "stale": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/stale.ts",
-    "perm": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/perm.ts"
+    "perm": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=127.0.0.1:3307 tasks/perm.ts",
+    "board": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,storage/demos --allow-write=storage/demos --allow-net=127.0.0.1:3307,board.portal2.sr,board.nekz.me tasks/board.ts"
   }
 }
