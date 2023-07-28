@@ -10,7 +10,6 @@
  */
 
 import 'https://deno.land/std@0.177.0/dotenv/load.ts';
-import { join } from 'https://deno.land/std@0.190.0/path/mod.ts';
 import * as uuid from 'https://deno.land/std@0.192.0/uuid/mod.ts';
 import {
   Application,
@@ -50,7 +49,15 @@ import { createStaticRouter } from 'https://esm.sh/react-router-dom@6.11.2/serve
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
 import { getDemoInfo } from './demo.ts';
 import { basename } from 'https://deno.land/std@0.190.0/path/win32.ts';
-import { generateShareId, validateShareId } from './utils.ts';
+import {
+  generateShareId,
+  getDemoFilePath,
+  getFixedDemoFilePath,
+  getStorageFilePath,
+  getVideoFilePath,
+  Storage,
+  validateShareId,
+} from './utils.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -80,18 +87,10 @@ const AUTORENDER_BOARD_TOKEN_HASH = (() => {
   const boardToken = Deno.env.get('AUTORENDER_BOARD_TOKEN')!;
   return boardToken !== 'none' ? bcrypt.hashSync(boardToken) : null;
 })();
-const AUTORENDER_DEMOS_FOLDER = Deno.env.get('AUTORENDER_DEMOS_FOLDER')!;
-const AUTORENDER_FILES_FOLDER = Deno.env.get('AUTORENDER_FILES_FOLDER')!;
-const AUTORENDER_VIDEOS_FOLDER = Deno.env.get('AUTORENDER_VIDEOS_FOLDER')!;
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
-
-const getDemoFilePath = (videoId: string) => join(AUTORENDER_DEMOS_FOLDER, `${videoId}.dem`);
-const getFixedDemoFilePath = (videoId: string) => join(AUTORENDER_DEMOS_FOLDER, `${videoId}_fixed.dem`);
-const getStorageFilePath = (filename: string) => join(AUTORENDER_FILES_FOLDER, filename);
-const getVideoFilePath = (videoId: string) => join(AUTORENDER_VIDEOS_FOLDER, `${videoId}.mp4`);
 
 const cookieOptions: CookiesSetDeleteOptions = {
   expires: new Date(Date.now() + 86_400_000 * 30),
@@ -234,7 +233,7 @@ apiV1
       customContentTypes: {
         'application/octet-stream': 'dem',
       },
-      outPath: AUTORENDER_DEMOS_FOLDER,
+      outPath: Storage.Demos,
       maxFileSize: AUTORENDER_MAX_DEMO_FILE_SIZE,
     });
 
@@ -415,7 +414,7 @@ apiV1
       customContentTypes: {
         'video/mp4': 'mp4',
       },
-      outPath: AUTORENDER_VIDEOS_FOLDER,
+      outPath: Storage.Videos,
       maxFileSize: AUTORENDER_MAX_VIDEO_FILE_SIZE,
     });
 
