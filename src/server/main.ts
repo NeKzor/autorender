@@ -83,10 +83,6 @@ const SERVER_DOMAIN = new URL(AUTORENDER_PUBLIC_URI).host;
 const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
   Deno.env.get('AUTORENDER_BOT_TOKEN')!,
 );
-const AUTORENDER_BOARD_TOKEN_HASH = (() => {
-  const boardToken = Deno.env.get('AUTORENDER_BOARD_TOKEN')!;
-  return boardToken !== 'none' ? bcrypt.hashSync(boardToken) : null;
-})();
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
@@ -209,18 +205,7 @@ apiV1
           AUTORENDER_BOT_TOKEN_HASH,
         ))
       ) {
-        if (!AUTORENDER_BOARD_TOKEN_HASH) {
-          return Err(ctx, Status.Unauthorized);
-        }
-
-        if (
-          !(await bcrypt.compare(
-            decodedAuthToken,
-            AUTORENDER_BOARD_TOKEN_HASH,
-          ))
-        ) {
-          return Err(ctx, Status.Unauthorized);
-        }
+        return Err(ctx, Status.Unauthorized);
       }
     }
 
