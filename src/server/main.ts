@@ -423,13 +423,32 @@ apiV1
       return Err(ctx, Status.UnsupportedMediaType);
     }
 
+    const { affectedRows } = await db.execute(
+      `update videos
+          set pending = ?
+         where video_id = UUID_TO_BIN(?)
+           and rendered_by_token = ?
+           and pending = ?`,
+      [
+        PendingStatus.UploadingRender,
+        data.fields.video_id,
+        accessToken.access_token_id,
+        PendingStatus.StartedRender,
+      ],
+    );
+
+    if (affectedRows !== 1) {
+      return Err(ctx, Status.BadRequest);
+    }
+
     const [video] = await db.query<Video>(
       `select *
             , BIN_TO_UUID(video_id) as video_id
          from videos
-        where video_id = UUID_TO_BIN(?)
-          and pending = ?`,
-      [data.fields.video_id, PendingStatus.StartedRender],
+        where video_id = UUID_TO_BIN(?)`,
+      [
+        data.fields.video_id,
+      ],
     );
 
     if (!video) {
@@ -472,14 +491,12 @@ apiV1
               , video_url = ?
               , video_size = ?
               , rendered_at = current_timestamp()
-           where video_id = UUID_TO_BIN(?)
-             and pending = ?`,
+           where video_id = UUID_TO_BIN(?)`,
         [
           PendingStatus.FinishedRender,
           videoUrl,
           fileContents.byteLength,
           video.video_id,
-          PendingStatus.StartedRender,
         ],
       );
 
@@ -544,12 +561,10 @@ apiV1
         await db.execute(
           `update videos
               set pending = ?
-             where video_id = UUID_TO_BIN(?)
-               and pending = ?`,
+             where video_id = UUID_TO_BIN(?)`,
           [
             PendingStatus.FinishedRender,
             video.video_id,
-            PendingStatus.StartedRender,
           ],
         );
       } catch (err) {
@@ -864,7 +879,7 @@ router.get('/connect/client', async (ctx) => {
                  where video_id = UUID_TO_BIN(?)
                    and pending = ?`,
               [
-                PendingStatus.StartedRender,
+                PendingStatus.ClaimedRender,
                 accessToken.user_id,
                 accessToken.access_token_id,
                 accessToken.token_name,
@@ -975,6 +990,20 @@ router.get('/connect/client', async (ctx) => {
             break;
           }
 
+          await db.query<Video>(
+            `update videos
+                set pending = ?
+              where pending = ?
+                and rendered_by_token = ?
+                and video_id in (${videoIds.map(() => `UUID_TO_BIN(?)`).join(',')})`,
+            [
+              PendingStatus.StartedRender,
+              PendingStatus.ClaimedRender,
+              accessToken.access_token_id,
+              ...videoIds,
+            ],
+          );
+
           // For all videos which did not come back here mark them as finished.
 
           const failedVideos = await db.query<Video>(
@@ -985,7 +1014,7 @@ router.get('/connect/client', async (ctx) => {
                   and rendered_by_token = ?
                   and video_id not in (${videoIds.map(() => `UUID_TO_BIN(?)`).join(',')})`,
             [
-              PendingStatus.StartedRender,
+              PendingStatus.ClaimedRender,
               accessToken.access_token_id,
               ...videoIds,
             ],

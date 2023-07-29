@@ -72,7 +72,9 @@ export interface AccessToken {
 export enum PendingStatus {
   FinishedRender = 0,
   RequiresRender = 1,
-  StartedRender = 2,
+  ClaimedRender = 2,
+  StartedRender = 3,
+  UploadingRender = 4,
 }
 
 /**
