@@ -9,7 +9,6 @@
 
 import 'https://deno.land/std@0.190.0/dotenv/load.ts';
 
-import { ActivityTypes } from './deps.ts';
 import { logger } from './utils/logger.ts';
 import { escapeMaskedLink, getPublicUrl, updateCommands } from './utils/helpers.ts';
 import { BotDataType, BotMessages } from './protocol.ts';
@@ -96,20 +95,5 @@ worker.addEventListener('message', async (message) => {
 });
 
 log.info('Started bot');
-
-// FIXME: This is the wrong place to update the status
-setTimeout(async () => {
-  await bot.gateway.editBotStatus({
-    status: 'online',
-    activities: [
-      {
-        name: 'your rendered demos!',
-        type: ActivityTypes.Watching,
-      },
-    ],
-  });
-
-  log.info('Updated bot status');
-}, 3_000);
 
 await bot.start();
