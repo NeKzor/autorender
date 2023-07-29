@@ -37,9 +37,9 @@ await import('./commands/fixup.ts');
 await import('./commands/render.ts');
 await import('./commands/watch.ts');
 
-import('./events/guildCreate.ts');
-import('./events/interactionCreate.ts');
-import('./events/ready.ts');
+await import('./events/guildCreate.ts');
+await import('./events/interactionCreate.ts');
+await import('./events/ready.ts');
 
 await updateCommands(bot);
 
