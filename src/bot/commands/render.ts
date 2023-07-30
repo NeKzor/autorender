@@ -81,13 +81,11 @@ const render = async (
   bot: Bot,
   interaction: Interaction,
   interactionData: InteractionDataOption,
-  attachmentOrUrl?: Attachment | string,
+  source?: { attachment?: Attachment; url?: string }
 ) => {
-  const isAttachment = typeof attachmentOrUrl === 'object';
+  const attachment = source?.attachment ?? interaction.data?.resolved?.attachments?.first();
 
-  if (isAttachment) {
-    const attachment = attachmentOrUrl ?? interaction.data?.resolved?.attachments?.first()!;
-
+  if (attachment) {
     if (attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE) {
       await bot.helpers.sendInteractionResponse(
         interaction.id,
@@ -101,6 +99,33 @@ const render = async (
       );
       return;
     }
+  } else if (!source?.url) {
+    await bot.helpers.sendInteractionResponse(
+      interaction.id,
+      interaction.token,
+      {
+        type: InteractionResponseTypes.ChannelMessageWithSource,
+        data: {
+          content: `❌️ Missing attachment.`,
+        },
+      },
+    );
+    return;
+  }
+
+  const url = attachment?.url ?? source?.url;
+  if (!url) {
+    await bot.helpers.sendInteractionResponse(
+      interaction.id,
+      interaction.token,
+      {
+        type: InteractionResponseTypes.ChannelMessageWithSource,
+        data: {
+          content: `❌️ Missing URL.`,
+        },
+      },
+    );
+    return;
   }
 
   await bot.helpers.sendInteractionResponse(
@@ -115,7 +140,7 @@ const render = async (
   );
 
   try {
-    const demo = await fetch(isAttachment ? attachmentOrUrl.url : attachmentOrUrl!, {
+    const demo = await fetch(url, {
       method: 'GET',
       headers: {
         'User-Agent': Deno.env.get('USER_AGENT')!,
@@ -134,7 +159,7 @@ const render = async (
       return location ? location.slice(location.lastIndexOf('/')) : 'demo.dem';
     };
 
-    const filename = isAttachment ? attachmentOrUrl.filename : extractFilenameFromHeaders();
+    const filename = attachment?.filename ?? extractFilenameFromHeaders();
 
     const body = new FormData();
     const args = [...(interactionData.options?.values() ?? [])];
@@ -436,7 +461,7 @@ createCommand({
             })?.attachments?.at(0);
 
             if (attachment) {
-              render(bot, interaction, subCommand, attachment);
+              render(bot, interaction, subCommand, { attachment });
             } else {
               await bot.helpers.sendInteractionResponse(
                 interaction.id,
@@ -517,7 +542,7 @@ createCommand({
             const attachment = message.attachments?.at(0);
 
             if (attachment) {
-              render(bot, interaction, subCommand, attachment);
+              render(bot, interaction, subCommand, { attachment });
             } else {
               await bot.helpers.sendInteractionResponse(
                 interaction.id,
@@ -555,7 +580,7 @@ createCommand({
               return;
             }
 
-            render(bot, interaction, subCommand, url);
+            render(bot, interaction, subCommand, { url });
             break;
           }
           default:
