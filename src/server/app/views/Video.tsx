@@ -208,6 +208,7 @@ export const VideoView = () => {
               {data.requested_in_channel_name}
             </div>
           )}
+          <div>Render options: {data.render_options ?? '-'}</div>
           <div>Render time: {formatRenderTime(data)}</div>
           <div>
             Render node: {data.rendered_by_username !== null
