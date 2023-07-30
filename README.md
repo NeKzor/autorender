@@ -311,6 +311,8 @@ server {
     - Figure out a way to deploy to GPU instances (use DepotDownloader?)
     - Remove Steam client
   - Clean up some anti-patterns, code duplications etc.
+  - Fix logging library or find a better one
+  - Improve error logging
 - Leaderboard wishlist
   - Set filename in Content-Disposition for demos
   - Add endpoint for setting autorender videos
