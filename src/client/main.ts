@@ -555,9 +555,10 @@ const prepareGameLaunch = async () => {
     const demoName = getDemoName(video);
     const isLastVideo = index == videos.length - 1;
     const nextCommand = isLastVideo ? exitCommand : `autorender_video_${index + 1}`;
+    const renderOptions = video.render_options?.split('\n')?.join(';') ?? '';
 
     return (
-      `sar_alias autorender_video_${index} "playdemo ${demoName};` +
+      `sar_alias autorender_video_${index} "${renderOptions};playdemo ${demoName};` +
       `sar_alias autorender_queue ${nextCommand}"`
     );
   };
@@ -568,13 +569,16 @@ const prepareGameLaunch = async () => {
 
   const [width, height] = getGameResolution();
 
+  const firstVideo = state.videos.at(0)!;
+  const renderOptions = firstVideo.render_options?.split('\n')?.join(';') ?? '';
+
   const autoexec = [
     `exec ${game.cfg}`,
     `sar_quickhud_set_texture crosshair/quickhud${height}-`,
     ...state.videos.slice(1).map(playdemo),
     ...(usesQueue ? ['sar_alias autorender_queue autorender_video_0'] : []),
     `${eventCommand} "${nextCommand}"`,
-    `playdemo ${getDemoName(state.videos.at(0)!)}`,
+    `${renderOptions};playdemo ${getDemoName(firstVideo)}`,
   ];
 
   await Deno.writeTextFile(

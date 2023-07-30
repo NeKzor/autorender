@@ -196,11 +196,24 @@ const render = async (
     const body = new FormData();
     const args = [...(interactionData.options?.values() ?? [])];
 
-    for (const option of ['title', 'comment', 'quality', 'render_options']) {
+    for (const option of ['title', 'comment', 'quality']) {
       const value = args.find((arg) => arg.name === option)?.value;
       if (value) {
         body.append(option, value.toString());
       }
+    }
+
+    const presetName = args.find((arg) => arg.name === 'preset')?.value as string | undefined;
+    if (presetName) {
+      const preset = await Presets.find(interaction.user.id, presetName);
+      if (!preset) {
+        await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+          content: `❌️ Unable to find preset.`,
+        });
+        return;
+      }
+
+      body.append('render_options', preset.options);
     }
 
     if (!body.get('title')) {
