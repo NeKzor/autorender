@@ -215,7 +215,7 @@ for (const entry of changelog) {
     const requestedInGuildName = null;
     const requestedInChannelId = null;
     const requestedInChannelName = null;
-    const renderQuality = RenderQuality.FHD_1080p;
+    const renderQuality = RenderQuality.HD_720p;
     const renderOptions = [
       fullbrightValue !== undefined ? `mat_fullbright ${fullbrightValue}` : null,
     ];
