@@ -19,6 +19,7 @@ import {
 } from '../deps.ts';
 import { Interaction } from '../deps.ts';
 import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
+import { Presets } from '../services/presets.ts';
 import { escapeMaskedLink, getPublicUrl } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';
 
@@ -279,15 +280,13 @@ const renderOptions: ApplicationCommandOption[] = [
     required: false,
     autocomplete: true,
   },
-  // TODO: Come up with a better solution.
-  //       Maybe with custom pre-defined settings?
-  // {
-  //   name: "render_options",
-  //   description: "Render options e.g. sar_ihud 1, mat_fullbright 1",
-  //   type: ApplicationCommandOptionTypes.String,
-  //   required: false,
-  //   maxLength: 1024,
-  // },
+  {
+    name: 'preset',
+    description: 'Choose a custom preset.',
+    type: ApplicationCommandOptionTypes.String,
+    required: false,
+    autocomplete: true,
+  },
 ];
 
 createCommand({
@@ -357,7 +356,45 @@ createCommand({
           case 'latest':
           case 'message':
           case 'link': {
-            checkQualityOptions(bot, interaction, subCommand);
+            const args = [...(subCommand.options?.values() ?? [])];
+            const quality = args.find((arg) => arg.name === 'quality');
+            const preset = args.find((arg) => arg.name === 'preset');
+
+            if (quality?.focused) {
+              await bot.helpers.sendInteractionResponse(
+                interaction.id,
+                interaction.token,
+                {
+                  type: InteractionResponseTypes.ApplicationCommandAutocompleteResult,
+                  data: {
+                    choices: qualityOptionChoices,
+                  },
+                },
+              );
+            } else if (preset?.focused) {
+              await bot.helpers.sendInteractionResponse(
+                interaction.id,
+                interaction.token,
+                {
+                  type: InteractionResponseTypes.ApplicationCommandAutocompleteResult,
+                  data: {
+                    choices: [
+                      // TODO: Maybe have a custom preset by default?
+                      // {
+                      //   name: 'No preset (default)',
+                      //   value: 'no-preset',
+                      // },
+                      ...(await Presets.list(interaction.user.id)).map((preset) => {
+                        return {
+                          name: preset.name,
+                          value: preset.name,
+                        };
+                      }),
+                    ],
+                  },
+                },
+              );
+            }
             break;
           }
           default:
@@ -554,28 +591,6 @@ const qualityOptionChoices: ApplicationCommandOptionChoice[] = [
   //   value: "2160p",
   // },
 ];
-
-const checkQualityOptions = async (
-  bot: Bot,
-  interaction: Interaction,
-  interactionData: InteractionDataOption,
-) => {
-  const args = [...(interactionData.options?.values() ?? [])];
-  const quality = args.find((arg) => arg.name === 'quality');
-
-  if (quality?.focused) {
-    await bot.helpers.sendInteractionResponse(
-      interaction.id,
-      interaction.token,
-      {
-        type: InteractionResponseTypes.ApplicationCommandAutocompleteResult,
-        data: {
-          choices: qualityOptionChoices,
-        },
-      },
-    );
-  }
-};
 
 const validateQualityOption = (
   interactionData: InteractionDataOption,

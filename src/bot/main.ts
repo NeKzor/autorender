@@ -7,6 +7,8 @@
  * command. It will send a message once a video is uploaded.
  */
 
+/// <reference lib="deno.unstable" />
+
 import 'https://deno.land/std@0.190.0/dotenv/load.ts';
 
 import { logger } from './utils/logger.ts';
@@ -33,6 +35,7 @@ log.info('Starting bot');
 
 await import('./commands/bot.ts');
 await import('./commands/fixup.ts');
+await import('./commands/preset.ts');
 await import('./commands/render.ts');
 await import('./commands/watch.ts');
 

@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,worker.ts --allow-write=log --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,board.portal2.sr,autorender.portal2.local:8001 --watch main.ts",
-    "prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,worker.ts --allow-write=log --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,board.portal2.sr,127.0.0.1:8834 main.ts"
+    "dev": "deno run --unstable --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,worker.ts --allow-write=log --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,board.portal2.sr,autorender.portal2.local:8001 --watch main.ts",
+    "prod": "deno run --unstable --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,worker.ts --allow-write=log --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,board.portal2.sr,127.0.0.1:8834 main.ts"
   }
 }
