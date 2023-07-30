@@ -24,6 +24,8 @@ addEventListener('error', (ev) => {
 });
 
 addEventListener('unhandledrejection', (ev) => {
+  ev.preventDefault();
+
   console.dir({ unhandledrejection: ev.reason }, { depth: 16 });
 
   if (ev.reason?.body) {
