@@ -7,6 +7,7 @@
 import { ApplicationCommandOptionTypes, Bot, MessageFlags } from '../deps.ts';
 import { Interaction } from '../deps.ts';
 import { ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
+import { getPublicUrl } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';
 
 const startTime = Date.now();
@@ -33,6 +34,8 @@ createCommand({
       ? `${(sec / (60 * 60)).toFixed(2)} hours`
       : `${(sec / (60 * 60 * 24)).toFixed(2)} days`;
 
+    const domain = getPublicUrl('/');
+
     await bot.helpers.sendInteractionResponse(
       interaction.id,
       interaction.token,
@@ -40,7 +43,7 @@ createCommand({
         type: InteractionResponseTypes.ChannelMessageWithSource,
         data: {
           content: [
-            `:robot: autorender.nekz.me`,
+            `:robot: [${domain.hostname}](${domain.origin})`,
             `:small_red_triangle: ${Deno.build.os} ${Deno.build.arch}`,
             `:up: ${uptime}`,
           ].join('\n'),
