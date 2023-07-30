@@ -37,15 +37,20 @@ Convert Portal 2 demos into videos with: `/render demo <file>`
 
 ## Commands
 
-| Command           | Description                                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------- |
-| `/render demo`    | Render a demo file by uploading it as an attachment.                                         |
-| `/render link`    | Render an already uploaded demo file from portal2.sr.                                        |
-| `/render message` | Render an already uploaded demo file by providing the message link or the ID of the message. |
-| `/render latest`  | Render an already uploaded demo file by automatically finding the latest message.            |
-| `/watch latest`   | List latest requested videos.                                                                |
-| `/watch random`   | Watch a random requested video.                                                              |
-| `/fixup`          | Fix an old Portal 2 demo file to make it work on the latest engine version.                  |
+| Command           | Description                                                                       |
+| ----------------- | --------------------------------------------------------------------------------- |
+| `/render demo`    | Render a demo file by uploading it as an attachment.                              |
+| `/render link`    | Render an already uploaded demo file from portal2.sr.                             |
+| `/render message` | Render an already uploaded demo file by providing a message link or an ID.        |
+| `/render latest`  | Render an already uploaded demo file by automatically finding the latest message. |
+| `/preset create`  | Create a custom preset for executing render commands.                             |
+| `/preset get`     | Display and edit a custom preset.                                                 |
+| `/preset delete`  | Delete a created custom preset.                                                   |
+| `/preset help`    | Display all available render commands.                                            |
+| `/watch latest`   | List latest requested videos.                                                     |
+| `/watch random`   | Watch a random requested video.                                                   |
+| `/fixup`          | Fix an old Portal 2 demo file to make it work on the latest engine version.       |
+| `/bot info`       | Display information about the bot.                                                |
 
 ## Local Development
 
