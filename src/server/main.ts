@@ -891,15 +891,6 @@ router.get('/connect/client', async (ctx) => {
             );
 
             if (update.affectedRows === 0) {
-              ws.send(
-                JSON.stringify({
-                  type: 'error',
-                  data: {
-                    status: Status.NotFound,
-                    message: 'Update failed.',
-                  },
-                }),
-              );
               break;
             }
 
