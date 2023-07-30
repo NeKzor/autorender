@@ -279,11 +279,13 @@ server {
   - ~~Single executable~~
 - ~~Switch to shorter video IDs~~
 - Integrate into leaderboards
-- Advanced render options e.g. sar_ihud
+  - ~~Automatic render~~
+  - Send URL to leaderboard
+- ~~Advanced render options e.g. sar_ihud~~
 - Support game mods
 - Bot improvements
   - Edit original interaction message or create a follow up message
-  - Improve `/bot info`
+  - ~~Improve `/bot info`~~
 - Design frontend platform
   - Pages
     - Profiles
@@ -309,6 +311,9 @@ server {
     - Figure out a way to deploy to GPU instances (use DepotDownloader?)
     - Remove Steam client
   - Clean up some anti-patterns, code duplications etc.
+- Leaderboard wishlist
+  - Set filename in Content-Disposition for demos
+  - Add endpoint for setting autorender videos
 - SAR wishlist
   - ~~Remove unnecessary watermark~~
   - Sandbox commands like in 1.0
