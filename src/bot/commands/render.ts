@@ -81,7 +81,7 @@ const render = async (
   bot: Bot,
   interaction: Interaction,
   interactionData: InteractionDataOption,
-  source?: { attachment?: Attachment; url?: string }
+  source?: { attachment?: Attachment; url?: string },
 ) => {
   const attachment = source?.attachment ?? interaction.data?.resolved?.attachments?.first();
 
@@ -140,12 +140,49 @@ const render = async (
   );
 
   try {
-    const demo = await fetch(url, {
+    // FIXME: I wish board.portal2.sr would just return the filename
+    //        in a Content-Disposition header :>
+    const useManualRedirect = (new URL(url)).hostname === 'board.portal2.sr';
+
+    const maybeRedirect = await fetch(url, {
       method: 'GET',
       headers: {
         'User-Agent': Deno.env.get('USER_AGENT')!,
       },
+      redirect: useManualRedirect ? 'manual' : 'follow',
     });
+
+    const [demo, originalFilename] = await (async (res) => {
+      if (!useManualRedirect) {
+        const contentDisposition = res.headers.get('Content-Disposition');
+        const filename = contentDisposition
+          ? contentDisposition.slice(
+            contentDisposition.indexOf('"') + 1,
+            contentDisposition.lastIndexOf('"'),
+          )
+          : null;
+
+        return [res, filename];
+      }
+
+      const location = res.headers.get('Location');
+      if (!location) {
+        console.error({ url: res.url, headers: res.headers });
+        throw new Error('Unable to redirect without location.');
+      }
+
+      const redirect = new URL(res.url);
+      redirect.pathname = location;
+
+      const demo = await fetch(redirect.toString(), {
+        method: 'GET',
+        headers: {
+          'User-Agent': Deno.env.get('USER_AGENT')!,
+        },
+      });
+
+      return [demo, location.slice(location.lastIndexOf('/') + 1)];
+    })(maybeRedirect);
 
     if (!demo.ok) {
       await bot.helpers.editOriginalInteractionResponse(interaction.token, {
@@ -154,12 +191,7 @@ const render = async (
       return;
     }
 
-    const extractFilenameFromHeaders = () => {
-      const location = demo.headers.get('Location');
-      return location ? location.slice(location.lastIndexOf('/')) : 'demo.dem';
-    };
-
-    const filename = attachment?.filename ?? extractFilenameFromHeaders();
+    const filename = attachment?.filename ?? originalFilename ?? 'demo.dem';
 
     const body = new FormData();
     const args = [...(interactionData.options?.values() ?? [])];
