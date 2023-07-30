@@ -504,21 +504,23 @@ apiV1
 
       try {
         if (video.board_changelog_id !== null) {
-          const webhook = await fetch(DISCORD_BOARD_INTEGRATION_WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'User-Agent': Deno.env.get('USER_AGENT')!,
-            },
-            body: JSON.stringify({
-              content: `${AUTORENDER_PUBLIC_URI}/videos/${video.share_id}`,
-            }),
-          });
+          if (video.board_rank === 1) {
+            const webhook = await fetch(DISCORD_BOARD_INTEGRATION_WEBHOOK_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': Deno.env.get('USER_AGENT')!,
+              },
+              body: JSON.stringify({
+                content: `${AUTORENDER_PUBLIC_URI}/videos/${video.share_id}`,
+              }),
+            });
 
-          logger.info('Board webhook executed:', webhook.statusText);
+            logger.info('Board webhook executed:', webhook.statusText);
 
-          if (!webhook.ok) {
-            logger.error('Failed to execute board webhook:', await webhook.text());
+            if (!webhook.ok) {
+              logger.error('Failed to execute board webhook:', await webhook.text());
+            }
           }
         } else {
           type VideoUpload = Pick<
