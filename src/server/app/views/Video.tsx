@@ -109,7 +109,7 @@ const formatTimestamp = (timestamp: SarDataTimestamp) => {
 
 const formatToSeconds = (ticks: number, data: Data) => {
   const tickrate = data?.demo_tickrate ?? 0;
-  return tickrate !== 0 ? (ticks / tickrate).toPrecision(2) : '';
+  return tickrate !== 0 ? (ticks / tickrate).toFixed(3) : '';
 };
 
 export const VideoView = () => {
