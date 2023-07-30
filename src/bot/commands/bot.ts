@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { ApplicationCommandOptionTypes, Bot } from '../deps.ts';
+import { ApplicationCommandOptionTypes, Bot, MessageFlags } from '../deps.ts';
 import { Interaction } from '../deps.ts';
 import { ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
 import { createCommand } from './mod.ts';
@@ -44,6 +44,7 @@ createCommand({
             `:small_red_triangle: ${Deno.build.os} ${Deno.build.arch}`,
             `:up: ${uptime}`,
           ].join('\n'),
+          flags: MessageFlags.Ephemeral,
         },
       },
     );
