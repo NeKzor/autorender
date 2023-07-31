@@ -15,7 +15,7 @@ import { getDemoInfo } from '../demo.ts';
 import { logger } from '../logger.ts';
 
 const BOARD_INTEGRATION_UPDATE_INTERVAL = 60 * 1_000;
-const BOARD_INTEGRATION_STARTED_DATE = '2023-07-30';
+const BOARD_INTEGRATION_STARTED_DATE = '2023-08-01';
 
 addEventListener('unhandledrejection', (ev) => {
   ev.preventDefault();
@@ -160,7 +160,6 @@ const checkChangelogUpdates = async () => {
     submission: 1,
     pending: 0,
     banned: 0,
-    chamber: '47776',
   });
 
   if (!changelog) {
