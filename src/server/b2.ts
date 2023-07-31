@@ -283,7 +283,7 @@ export class BackblazeClient {
 
     if (!res.ok) {
       if (
-        res.status !== 401 &&
+        res.status === 401 &&
         this.#automaticRetryOnUnauthorizedStatus &&
         operation !== 'b2_authorize_account'
       ) {
