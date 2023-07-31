@@ -474,7 +474,7 @@ const supportedCommands: ConsoleCommand[] = [
   },
   {
     name: 'mat_fullbright',
-    argType: 'float',
+    argType: 'integer',
     range: [0, 1],
   },
 ];
