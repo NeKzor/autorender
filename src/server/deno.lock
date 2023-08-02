@@ -276,18 +276,18 @@
     "https://deno.land/x/sqlite@v3.4.0/src/error.ts": "abf9df169951faf8c21a68d99ef9efd257c788c19784f27dd147507fbdfe5fe7",
     "https://deno.land/x/sqlite@v3.4.0/src/query.ts": "df4d3d6b23d52b36243dd47c07ed6ed7cd23f7834a0f6a2f2c6dbffba63d4c28",
     "https://deno.land/x/sqlite@v3.4.0/src/wasm.ts": "e79d0baa6e42423257fb3c7cc98091c54399254867e0f34a09b5bdef37bd9487",
-    "https://esm.sh/react-dom@18.2.0/server": "c853c81aec2a14318ac5612162aad8c630eadbec911fe3892f5c97ef8e7e0404",
-    "https://esm.sh/react-router-dom@6.11.2": "93dee3168570a692a9d1f7daaf49932643ba144e4ad56c15dc808a7ed08a8917",
-    "https://esm.sh/react-router-dom@6.11.2/server": "9c0b5abe944a0c92230ce83ee9d28e9668f3e84b9cf5d461a767567748b849e2",
+    "https://esm.sh/react-dom@18.2.0/server": "a356014fe905a58b1da74149b1981d714a06338ce52f81cc07afc0946747ed76",
+    "https://esm.sh/react-router-dom@6.11.2": "7cf65e5ab81d6362f56a65c8b75cb2171e0f5268145c1e44c967154ae9c886ce",
+    "https://esm.sh/react-router-dom@6.11.2/server": "80d06cd41ba366139373e5cddfd22324ce1cccbc76c1739d3cb374fd4bc473a2",
     "https://esm.sh/react@18.2.0": "8950a34a030620fce8349d6bd3913b3bdb186c5ec7968fa5ba4d054e22d78e6c",
     "https://esm.sh/stable/react@18.2.0/denonext/react.mjs": "3c4f23bcfc53b256fcfaf6f834fa9f584c3bb7be667b2682c6cb6ba8ef88f8e6",
     "https://esm.sh/v124/@remix-run/router@1.6.2": "0089fb2f53e6f13d24743ab3c076442724d62732355d59c3c119f4de62f3b65b",
     "https://esm.sh/v124/@remix-run/router@1.6.2/denonext/router.mjs": "327c1b11271b72c199b8fe80f343445d7693335f2f4c7a9fb8667f2c0d514ff4",
-    "https://esm.sh/v129/@remix-run/router@1.6.2/denonext/router.mjs": "b73070a826d1b118c992d182b0de97cde4d3b7ef407ace5bd671f48009d32a70",
-    "https://esm.sh/v129/react-dom@18.2.0/denonext/server.js": "0460557cf83e61c275692fc0b9b22837cad662db116c048e354eac3109f8b326",
-    "https://esm.sh/v129/react-router-dom@6.11.2/denonext/react-router-dom.mjs": "05598274e2ae6c9a5d85505276cf47f4331c55d01623ed1d80fc09b0731e98ae",
-    "https://esm.sh/v129/react-router-dom@6.11.2/denonext/server.js": "6dc7f6299c57ea391fc2ab54efaac92e136ccb8d0e3ffd7f46de46d18a5d095e",
-    "https://esm.sh/v129/react-router@6.11.2/denonext/react-router.mjs": "895d371f5efdb3e093c08cf36e9edfc14b2f9484d4c310d1b655cbb6980159b1"
+    "https://esm.sh/v130/@remix-run/router@1.6.2/denonext/router.mjs": "b73070a826d1b118c992d182b0de97cde4d3b7ef407ace5bd671f48009d32a70",
+    "https://esm.sh/v130/react-dom@18.2.0/denonext/server.js": "0460557cf83e61c275692fc0b9b22837cad662db116c048e354eac3109f8b326",
+    "https://esm.sh/v130/react-router-dom@6.11.2/denonext/react-router-dom.mjs": "44bac62038df7da6354cb2a47ffbdac8c6913c1a3ed661f64376d7b4924efc42",
+    "https://esm.sh/v130/react-router-dom@6.11.2/denonext/server.js": "07792b618f30d03391e9ca8d37d8a18d87c52497c8c90abfac6d0b21ee6cebac",
+    "https://esm.sh/v130/react-router@6.11.2/denonext/react-router.mjs": "0e4504e7541e9656543d99658b99e87101f4e122c6282f2aa3b29d4b18fac077"
   },
   "npm": {
     "specifiers": {
