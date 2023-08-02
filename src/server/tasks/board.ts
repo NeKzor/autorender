@@ -8,7 +8,7 @@
 
 import 'https://deno.land/std@0.177.0/dotenv/load.ts';
 import { db } from '../db.ts';
-import { AuditSource, AuditType, FixedDemoStatus, PendingStatus, RenderQuality } from '../models.ts';
+import { AuditSource, AuditType, FixedDemoStatus, PendingStatus, RenderQuality } from '../../shared/models.ts';
 import * as uuid from 'https://deno.land/std@0.192.0/uuid/mod.ts';
 import { generateShareId, getDemoFilePath, getFixedDemoFilePath } from '../utils.ts';
 import { getDemoInfo } from '../demo.ts';

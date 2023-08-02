@@ -9,7 +9,7 @@
 
 import 'https://deno.land/std@0.177.0/dotenv/load.ts';
 import { db } from '../db.ts';
-import { UserPermissions } from '../models.ts';
+import { UserPermissions } from '../../shared/models.ts';
 
 const { affectedRows } = await db.execute(
   `update users

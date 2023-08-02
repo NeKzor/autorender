@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Video } from '../../server/models.ts';
+import { Video } from '../../shared/models.ts';
 import { Bot } from '../deps.ts';
 import { Interaction } from '../deps.ts';
 import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';

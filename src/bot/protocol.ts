@@ -6,7 +6,7 @@
  * This defines the protocol between the server and the bot.
  */
 
-import { Video } from '../server/models.ts';
+import { Video } from '../shared/models.ts';
 
 export enum BotDataType {
   Upload = 'upload',

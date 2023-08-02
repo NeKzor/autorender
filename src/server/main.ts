@@ -39,7 +39,7 @@ import {
   User,
   UserPermissions,
   Video,
-} from './models.ts';
+} from '../shared/models.ts';
 import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 import * as _bcrypt_worker from 'https://deno.land/x/bcrypt@v0.4.1/src/worker.ts';
 import { Buffer } from 'https://deno.land/std@0.190.0/io/buffer.ts';
@@ -662,7 +662,7 @@ const isHotReloadEnabled = Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true';
 if (isHotReloadEnabled) {
   let reload = true;
 
-  router.get('/__hot_reload', (ctx) => {
+  router.get('/connect/__hot_reload', (ctx) => {
     if (ctx.isUpgradable) {
       const ws = ctx.upgrade();
       ws.onmessage = () => {
@@ -1528,16 +1528,16 @@ app.use(async (ctx, next) => {
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-logger.info(`Server listening at http://${SERVER_HOST}:${SERVER_PORT}`);
+logger.info(`Server listening at http${SERVER_SSL_CERT !== 'none' ? 's' : ''}://${SERVER_HOST}:${SERVER_PORT}`);
 
 await app.listen(
-  SERVER_SSL_CERT !== 'none' && SERVER_SSL_KEY !== 'none'
+  SERVER_SSL_CERT !== 'none'
     ? {
       hostname: SERVER_HOST,
       port: SERVER_PORT,
       secure: true,
-      cert: SERVER_SSL_CERT,
-      key: SERVER_SSL_KEY,
+      certFile: SERVER_SSL_CERT,
+      keyFile: SERVER_SSL_KEY,
       alpnProtocols: ['h2', 'http/1.1'],
     }
     : {

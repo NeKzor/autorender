@@ -1,5 +1,6 @@
 .vscode/
-docker/compose/
+docker/ssl/
+docker/logs/
 log/
 .autorender.yaml
 autorender.yaml

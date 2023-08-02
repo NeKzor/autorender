@@ -5,7 +5,7 @@
  */
 
 import * as React from 'https://esm.sh/react@18.2.0';
-import { User } from '../models.ts';
+import { User } from '../../shared/models.ts';
 import { RouteMeta } from './Routes.ts';
 
 export interface AppState {

@@ -17,6 +17,18 @@ create_config_and_env()
     cp -n src/server/.env.example src/server/.env
 }
 
+# Mounted log directories:
+#   src/bot/log/bot
+#   src/server/log/server
+
+create_logs()
+{
+    echo "[+] creating log directories in docker/logs"
+
+    mkdir -p docker/logs/bot
+    mkdir -p docker/logs/server
+}
+
 # Other mounted volumes.
 #   docker/volumes/mysql -> database used by the server
 
@@ -61,7 +73,7 @@ setup_dev()
     create_config_and_env
     create_logs
     create_volumes
-    #create_ssl_cert
+    create_ssl_cert
 
     echo "[+] done"
 }
@@ -79,8 +91,16 @@ setup_prod()
     echo "[+] done"
 }
 
+# Resets permission of developer account.
+
+setup_perm()
+{
+    deno task perm
+}
+
 case $1 in
 dev)    setup_dev ;;
 prod)   setup_prod ;;
+perm)   setup_perm ;;
 * )     echo "usage: ./setup <dev|prod|perm>" ;;
 esac

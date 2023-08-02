@@ -1,9 +1,11 @@
 .git/
+.github/
 docker/
+src/client/bin/
+src/server/storage/
 
 # from .gitignore
 .vscode/
-docker/compose/
 log/
 .autorender.yaml
 autorender.yaml

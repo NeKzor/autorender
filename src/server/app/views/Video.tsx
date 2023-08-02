@@ -8,7 +8,7 @@ import * as React from 'https://esm.sh/react@18.2.0';
 import { useLocation } from 'https://esm.sh/react-router-dom@6.11.2';
 import Footer from '../components/Footer.tsx';
 import { DataLoader, json, notFound, PageMeta, redirect, useLoaderData } from '../Routes.ts';
-import { FixedDemoStatus, PendingStatus, Video } from '../../models.ts';
+import { FixedDemoStatus, PendingStatus, Video } from '../../../shared/models.ts';
 import { DemoMetadata, SarDataTimestamp } from '../../demo.ts';
 
 type JoinedVideo = Video & {

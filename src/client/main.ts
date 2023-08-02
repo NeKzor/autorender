@@ -17,7 +17,7 @@ import {
   AutorenderSendMessages,
   VideoPayload,
 } from './protocol.ts';
-import { RenderQuality, Video as VideoModel } from '../server/models.ts';
+import { RenderQuality, Video as VideoModel } from '../shared/models.ts';
 import { ClientState, ClientStatus } from './state.ts';
 import { UploadWorkerDataType } from './upload.ts';
 import { getConfig } from './config.ts';

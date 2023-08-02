@@ -9,12 +9,17 @@ services:
     restart: always
     links:
       - database:${PROJECT_NAME}.database
+    ports:
+      - "127.0.0.1:${HTTP_PORT}:8001"
+      - "127.0.0.1:${HTTPS_PORT}:8001"
+    extra_hosts: 
+      - ${SERVER_NAME}:127.0.0.1
     environment:
       DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
       - ./docker/logs/server:/app/log/server:rw
-      - ./src/server:/app:rw
-      - ./src/shared:/shared:rw
+      - ./src/server/.env:/app/.env:rw
+      - ./src/server/storage:/app/storage:rw
   bot:
     image: "${PROJECT_NAME}-bot"
     build:
@@ -24,12 +29,9 @@ services:
     restart: always
     links:
       - server:${PROJECT_NAME}.server
-    environment:
-      DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
       - ./docker/logs/bot:/app/log/bot:rw
-      - ./src/bot:/app:rw
-      - ./src/shared:/shared:rw
+      - ./src/bot/.env:/app/.env:rw
   database:
     image: mariadb:latest
     container_name: "${PROJECT_NAME}-db"
@@ -45,19 +47,3 @@ services:
     volumes:
       - ./docker/initdb:/docker-entrypoint-initdb.d
       - ./docker/volumes/mysql:/var/lib/mysql
-  proxy:
-    image: nginx:stable-alpine
-    container_name: "${PROJECT_NAME}-proxy"
-    links:
-      - server:${PROJECT_NAME}.server
-    ports:
-      - 443:443
-    environment:
-      - NGINX_HOST=${SERVER_NAME}
-      - NGINX_PORT=443
-      - SERVER_PORT=${SERVER_PORT}
-      - PROJECT_NAME=${PROJECT_NAME}
-    volumes:
-      - ./docker/ssl:/ssl:r
-      - ./docker/nginx:/etc/nginx/templates
-      - ./docker/logs/nginx:/var/log/nginx:rw

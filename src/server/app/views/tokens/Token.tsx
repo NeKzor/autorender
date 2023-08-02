@@ -19,7 +19,7 @@ import {
   unauthorized,
   useLoaderData,
 } from '../../Routes.ts';
-import { AccessPermission, AccessToken, UserPermissions } from '../../../models.ts';
+import { AccessPermission, AccessToken, UserPermissions } from '../../../../shared/models.ts';
 
 type Data = Partial<AccessToken> | null;
 

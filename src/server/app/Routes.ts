@@ -27,7 +27,7 @@ import * as Privacy from './views/Privacy.tsx';
 import * as ProfileView from './views/Profile.tsx';
 import * as VideoView from './views/Video.tsx';
 import { Database } from '../db.ts';
-import { User } from '../models.ts';
+import { User } from '../../shared/models.ts';
 
 const throwStatus = (status: Status) => {
   throw new Response(null, { status: status, statusText: STATUS_TEXT[status] });

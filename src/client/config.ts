@@ -15,7 +15,7 @@ import ProgressBar from 'https://deno.land/x/progress@v1.3.8/mod.ts';
 import { logger } from './logger.ts';
 import { writeAll } from 'https://deno.land/std@0.189.0/streams/write_all.ts';
 import { UserAgent } from './version.ts';
-import { RenderQuality } from '../server/models.ts';
+import { RenderQuality } from '../shared/models.ts';
 
 const isWindows = Deno.build.os === 'windows';
 
@@ -343,8 +343,8 @@ const createConfig = async () => {
 
   const [connectUri, baseApi] = options.devMode
     ? [
-      'ws://autorender.portal2.local:8001/connect/client',
-      'http://autorender.portal2.local:8001',
+      'wss://autorender.portal2.local/connect/client',
+      'https://autorender.portal2.local',
     ]
     : [
       'wss://autorender.nekz.me/connect/client',

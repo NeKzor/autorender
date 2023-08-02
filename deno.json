@@ -1,21 +1,27 @@
 {
   "tasks": {
-    "bot:dev": "deno task --cwd src/bot dev",
-    "bot:prod": "deno task --cwd src/bot prod",
-    "client:dev": "deno task --cwd src/client dev",
-    "client:prod": "deno task --cwd src/client prod",
+    "client": "deno task --cwd src/client dev",
     "client:test": "deno task --cwd src/client test",
     "client:compile:linux": "deno task --cwd src/client compile:linux",
     "client:compile:windows": "deno task --cwd src/client compile:windows",
-    "server:dev": "deno task --cwd src/server dev",
-    "server:prod": "deno task --cwd src/server prod",
     "server:test": "deno task --cwd src/server test",
-    "server:stale": "deno task --cwd src/server stale",
-    "server:perm": "deno task --cwd src/server perm",
-    "server:board": "deno task --cwd src/server board",
+    "server:debug": "docker exec -ti autorender-server sh",
+    "server:restart": "docker container restart autorender-server",
+    "server:stop": "docker container stop autorender-server",
+    "bot:debug": "docker exec -ti autorender-bot sh",
+    "bot:restart": "docker container restart autorender-bot",
+    "bot:stop": "docker container stop autorender-bot",
+    "proxy:debug": "docker exec -ti autorender-proxy sh",
+    "proxy:restart": "docker container restart autorender-proxy",
+    "proxy:stop": "docker container stop autorender-proxy",
+    "stale": "deno task --cwd src/server stale",
+    "perm": "deno task --cwd src/server perm",
+    "board": "deno task --cwd src/server board",
     "up": "docker compose up",
+    "up:prod": "docker compose up docker/compose/autorender.nekz.me.yml",
     "down": "docker compose down",
-    "db": "docker exec -ti p2render-db mariadb"
+    "db": "docker exec -ti autorender-db mariadb",
+    "db:debug": "docker exec -ti autorender-db bash"
   },
   "lint": {
     "exclude": [

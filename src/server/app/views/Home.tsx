@@ -7,7 +7,7 @@
 import * as React from 'https://esm.sh/react@18.2.0';
 import { AppStateContext } from '../AppState.ts';
 import Footer from '../components/Footer.tsx';
-import { PendingStatus, User, UserPermissions, Video } from '../../models.ts';
+import { PendingStatus, User, UserPermissions, Video } from '../../../shared/models.ts';
 import { DataLoader, json, PageMeta, useLoaderData } from '../Routes.ts';
 
 type LatestVideo =

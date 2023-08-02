@@ -9,7 +9,7 @@
 
 import 'https://deno.land/std@0.177.0/dotenv/load.ts';
 import { db } from '../db.ts';
-import { PendingStatus, Video } from '../models.ts';
+import { PendingStatus, Video } from '../../shared/models.ts';
 import { logger } from '../logger.ts';
 
 const STALE_VIDEOS_UPDATE_INTERVAL = 60 * 1_000;
