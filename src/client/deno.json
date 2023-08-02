@@ -5,5 +5,15 @@
     "test": "deno test --allow-net --allow-read --allow-env",
     "compile:linux": "deno compile --output bin/autorenderclient --target x86_64-unknown-linux-gnu --include ./worker.ts --include ./upload.ts --no-prompt --allow-env --allow-read=\"autorender.yaml,autorender.cfg,log,worker.ts\" --allow-write=\"autorender.yaml,log\" --allow-run --allow-net=deno.land,autorender.portal2.local,autorender.nekz.me,steamusercontent-a.akamaihd.net,api.github.com,github.com,objects.githubusercontent.com --unsafely-ignore-certificate-errors=autorender.portal2.local main.ts",
     "compile:windows": "deno compile --output bin/autorenderclient.exe --target x86_64-pc-windows-msvc --include ./worker.ts --include ./upload.ts --no-prompt --allow-env --allow-read=\"autorender.yaml,autorender.cfg,log,worker.ts\" --allow-write=\"autorender.yaml,log\" --allow-run --allow-net=deno.land,autorender.portal2.local,autorender.nekz.me,steamusercontent-a.akamaihd.net,api.github.com,github.com,objects.githubusercontent.com --unsafely-ignore-certificate-errors=autorender.portal2.local main.ts"
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 120,
+    "indentWidth": 2,
+    "singleQuote": true,
+    "proseWrap": "preserve"
+  },
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true
   }
 }

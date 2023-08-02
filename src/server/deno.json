@@ -6,5 +6,15 @@
     "stale": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=autorender.database:3307 tasks/stale.ts",
     "perm": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=autorender.database:3307 tasks/perm.ts",
     "board": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,storage/demos --allow-write=storage/demos --allow-net=autorender.database:3307,board.portal2.sr,board.nekz.me tasks/board.ts"
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 120,
+    "indentWidth": 2,
+    "singleQuote": true,
+    "proseWrap": "preserve"
+  },
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true
   }
 }
