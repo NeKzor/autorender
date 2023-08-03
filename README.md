@@ -128,6 +128,7 @@ The server should now be available at `https://autorender.portal2.local` and the
 ### src/server/.env
 
 Set the redirect URI of the Discord OAuth2 application to:
+
 > `https://autorender.portal2.local/login/discord/authorize`
 
 The domain has to match the value of `AUTORENDER_PUBLIC_URI`.
@@ -140,7 +141,7 @@ For development it is recommended to enable `HOT_RELOAD=true`.
 | DISCORD_USER_ID       | Discord user ID of developer account. This is only used to reset the permissions.   |
 | DISCORD_CLIENT_ID     | Client ID of the Discord OAuth2 application.                                        |
 | DISCORD_CLIENT_SECRET | Client secret of the Discord OAuth2 application.                                    |
-| AUTORENDER_PUBLIC_URI | This is used for public links which the server generates.                            |
+| AUTORENDER_PUBLIC_URI | This is used for public links which the server generates.                           |
 | AUTORENDER_BOT_TOKEN  | Generated token which is shared between the server and the bot.<sup>1</sup>         |
 | COOKIE_SECRET_KEY     | Non-predictable key used to encrypt/decrypt session cookies.                        |
 | B2_ENABLED            | Value `true` enables video storage on Backblaze.                                    |
@@ -196,6 +197,7 @@ Then connect to the database with: `deno task db`
 ### Testing
 
 There are several demo files in `src/server/tests/demos` which can be used for testing:
+
 - `benchmark.dem` 10 seconds long demo
 - `short.dem` 1 second long demo
 - `workshop.dem` 10 seconds long demo of a workshop map
@@ -204,30 +206,30 @@ There are several demo files in `src/server/tests/demos` which can be used for t
 
 The project contains several tasks for convenience which can be executed with `deno task <name>`.
 
-|Task|Description|
-|---|---|
-|`client`|Starts the client.|
-|`client:test`|Runs all client tests.|
-|`client:compile:linux`|Compiles client code for Linux.|
-|`client:compile:windows`|Compiles client code for Windows.|
-|`server:test`|Runs all server tests.|
-|`server:debug`|Connects to the server container.|
-|`server:restart`|Restarts the server container.|
-|`server:stop`|Stops the server container.|
-|`bot:debug`|Connects to the server container.|
-|`bot:restart`|Restarts the bot container.|
-|`bot:stop`|Restarts the bot container.|
-|`proxy:debug`|Connects to the bot container.|
-|`proxy:restart`|Restarts the bot container.|
-|`proxy:stop`|Restarts the bot container.|
-|`stale`|Automatically clears render queue.|
-|`perm`|Resets permissions of developer account.|
-|`board`|Automatically checks for videos to render on board.portal2.sr.|
-|`up`|Starts all containers.|
-|`up:prod`|Starts all containers in prod environment.|
-|`down`|Removes all containers.|
-|`db`|Connect to the database.|
-|`db:debug`|Connect to the database container.|
+| Task                     | Description                                                    |
+| ------------------------ | -------------------------------------------------------------- |
+| `client`                 | Starts the client.                                             |
+| `client:test`            | Runs all client tests.                                         |
+| `client:compile:linux`   | Compiles client code for Linux.                                |
+| `client:compile:windows` | Compiles client code for Windows.                              |
+| `server:test`            | Runs all server tests.                                         |
+| `server:debug`           | Connects to the server container.                              |
+| `server:restart`         | Restarts the server container.                                 |
+| `server:stop`            | Stops the server container.                                    |
+| `bot:debug`              | Connects to the server container.                              |
+| `bot:restart`            | Restarts the bot container.                                    |
+| `bot:stop`               | Restarts the bot container.                                    |
+| `proxy:debug`            | Connects to the bot container.                                 |
+| `proxy:restart`          | Restarts the bot container.                                    |
+| `proxy:stop`             | Restarts the bot container.                                    |
+| `stale`                  | Automatically clears render queue.                             |
+| `perm`                   | Resets permissions of developer account.                       |
+| `board`                  | Automatically checks for videos to render on board.portal2.sr. |
+| `up`                     | Starts all containers.                                         |
+| `up:prod`                | Starts all containers in prod environment.                     |
+| `down`                   | Removes all containers.                                        |
+| `db`                     | Connect to the database.                                       |
+| `db:debug`               | Connect to the database container.                             |
 
 ## Production
 
