@@ -9,6 +9,7 @@ src/server/storage/
 log/
 .autorender.yaml
 autorender.yaml
+prod.yml
 
 # Logs
 logs

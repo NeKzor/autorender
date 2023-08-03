@@ -46,6 +46,7 @@ services:
       - ./docker/initdb:/docker-entrypoint-initdb.d
       - ./docker/volumes/mysql:/var/lib/mysql
   proxy:
+    profiles: ["nginx"]
     image: nginx:stable-alpine
     container_name: "${PROJECT_NAME}-proxy"
     links:
