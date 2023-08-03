@@ -114,13 +114,13 @@ sequenceDiagram
 ### Setup
 
 - Generate files with: `chmod +x setup && ./setup dev`
-- Build server image with: `docker compose build`
+- Build server image with: `deno task build`
 
 ### Install & Run Server
 
 - Configure [src/server/.env](#srcserverenv) file
 - Configure [src/bot/.env](#srcbotenv) file
-- Start all containers: `docker compose up`
+- Start all containers: `deno task up`
 - Add a host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts`
 
 The server should now be available at `https://autorender.portal2.local` and the bot should be online on Discord.
@@ -225,9 +225,12 @@ The project contains several tasks for convenience which can be executed with `d
 | `stale`                  | Automatically clears render queue.                             |
 | `perm`                   | Resets permissions of developer account.                       |
 | `board`                  | Automatically checks for videos to render on board.portal2.sr. |
+| `build`                  | Builds server image.                                           |
+| `build:prod`             | Builds server image in prod environment.                       |
 | `up`                     | Starts all containers.                                         |
 | `up:prod`                | Starts all containers in prod environment.                     |
 | `down`                   | Removes all containers.                                        |
+| `down:prod`              | Removes all containers in prod environment.                    |
 | `db`                     | Connect to the database.                                       |
 | `db:debug`               | Connect to the database container.                             |
 
@@ -235,16 +238,25 @@ The project contains several tasks for convenience which can be executed with `d
 
 - Generate files: `chmod +x setup && ./setup prod`
 - Change `DENO_TASK_ENTRYPOINT` to `prod` in the `.env` file
-- Build server image: `docker compose build`
+- Copy a docker-compose template file from `docker/compose` to `prod.yml`
+  - Example: `cp docker/compose/autorender.nekz.me.yml prod.yml`
+  - Modify `prod.yml` if needed
+- Build the server image: `deno task build:prod`
 - Configure `src/bot/.env` and `src/server/.env` files
-- Use a compose file for production: `docker compose up docker/compose/autorender.nekz.me.yml`
+- Start the containers with `deno task up:prod`
 
 Make sure that the `src/bot/.env` file has the correct values for:
 
 - `AUTORENDER_BASE_API` should point to the internal address of the host, if hosted within the same network
 - `AUTORENDER_PUBLIC_URI` should point to the public domain (used for sending the final Discord message)
 
-For clients we only want to ship a single binary:
+Difference between `dev` and `prod`:
+
+- Entrypoint in `Dockerfile`
+- In development all source files are mounted as read-write
+- In production only `.env` files and data files are mounted
+
+Client code will be compiled and shipped in a single executable:
 
 - `deno task client:compile:linux` outputs the executable to `src/client/bin/autorenderclient`
 - `deno task client:compile:windows` outputs the executable to `src/client/bin/autorenderclient.exe`
