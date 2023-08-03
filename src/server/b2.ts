@@ -166,6 +166,8 @@ export interface UploadFileOptions {
   contentType?: string;
   /** Response object when calling `getUploadUrl()`. */
   uploadUrl?: GetUploadUrlResponse;
+  /** Sets the 'X-Bz-Info-b2-content-disposition' header value. */
+  contentDisposition?: string;
 }
 
 /** SHA-1 hash function. */
@@ -389,6 +391,9 @@ export class BackblazeClient {
           options.fileContents.byteLength + hash.length
         ).toString(),
         'X-Bz-Content-Sha1': hash,
+        ...(options.contentDisposition
+          ? { 'X-Bz-Info-b2-content-disposition': encodeURIComponent(options.contentDisposition) }
+          : {}),
       },
       body: options.fileContents,
     });

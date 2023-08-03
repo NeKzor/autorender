@@ -54,6 +54,7 @@ import {
   getDemoFilePath,
   getFixedDemoFilePath,
   getStorageFilePath,
+  getVideoDownloadFilename,
   getVideoFilePath,
   Storage,
   validateShareId,
@@ -474,6 +475,7 @@ apiV1
           fileName,
           fileContents,
           contentType: 'video/mp4',
+          contentDisposition: `attachment; filename="${encodeURIComponent(getVideoDownloadFilename(video))}"`,
         });
 
         videoUrl = b2.getDownloadUrl(upload.fileName);
@@ -1297,15 +1299,9 @@ if (!B2_ENABLED) {
 
       const file = await Deno.readFile(getVideoFilePath(video.video_id));
 
-      const filename = video.title === video.file_name ? `${video.file_name} Video.mp4` : `${video.title}.mp4`;
-
       ctx.response.headers.set(
         'Content-Disposition',
-        `filename="${
-          filename
-            .replaceAll('\\', '\\\\')
-            .replaceAll('"', '\\"')
-        }"`,
+        `filename="${encodeURIComponent(getVideoDownloadFilename(video))}"`,
       );
 
       Ok(ctx, file, 'video/mp4');
@@ -1342,15 +1338,9 @@ if (!B2_ENABLED) {
 
       const file = await Deno.readFile(getVideoFilePath(video.video_id));
 
-      const filename = video.title === video.file_name ? `${video.file_name} Video.mp4` : `${video.title}.mp4`;
-
       ctx.response.headers.set(
         'Content-Disposition',
-        `filename="${
-          filename
-            .replaceAll('\\', '\\\\')
-            .replaceAll('"', '\\"')
-        }"`,
+        `filename="${encodeURIComponent(getVideoDownloadFilename(video))}"`,
       );
 
       Ok(ctx, file, 'video/mp4');

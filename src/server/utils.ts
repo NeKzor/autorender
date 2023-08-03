@@ -5,6 +5,7 @@
  */
 
 import { join } from 'https://deno.land/std@0.190.0/path/mod.ts';
+import { Video } from '../shared/models.ts';
 
 export const Storage = {
   Demos: Deno.env.get('AUTORENDER_DEMOS_FOLDER')!,
@@ -27,3 +28,5 @@ export const getDemoFilePath = (videoId: string) => join(Storage.Demos, `${video
 export const getFixedDemoFilePath = (videoId: string) => join(Storage.Demos, `${videoId}_fixed.dem`);
 export const getStorageFilePath = (filename: string) => join(Storage.Files, filename);
 export const getVideoFilePath = (videoId: string) => join(Storage.Videos, `${videoId}.mp4`);
+export const getVideoDownloadFilename = (video: Pick<Video, 'title' | 'file_name'>) =>
+  video.title === video.file_name ? `${video.file_name} Video.mp4` : `${video.title}.mp4`;
