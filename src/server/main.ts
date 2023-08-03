@@ -92,7 +92,8 @@ const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 const cookieOptions: CookiesSetDeleteOptions = {
   expires: new Date(Date.now() + 86_400_000 * 30),
   sameSite: 'lax',
-  secure: IS_HTTPS,
+  secure: true,
+  ignoreInsecure: true,
 };
 
 const store = new CookieStore(Deno.env.get('COOKIE_SECRET_KEY')!, {
