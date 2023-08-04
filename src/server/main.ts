@@ -6,7 +6,7 @@
  * The server is mostly responsible for:
  *    - Handling incoming websocket messages from the Discord bot
  *    - Handling incoming websocket messages from clients
- *    - Serving the web platform (`/app`)
+ *    - Serving the web platform (`app/`)
  */
 
 import 'https://deno.land/std@0.177.0/dotenv/load.ts';
@@ -64,7 +64,6 @@ const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
 const SERVER_SSL_CERT = Deno.env.get('SERVER_SSL_CERT')!;
 const SERVER_SSL_KEY = Deno.env.get('SERVER_SSL_KEY')!;
-const IS_HTTPS = SERVER_SSL_CERT !== 'none' && SERVER_SSL_KEY !== 'none';
 // FIXME: Clients are not well prepared to handle multiple videos at once
 const MAX_VIDEOS_PER_REQUEST = 1;
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
