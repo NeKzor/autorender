@@ -3,10 +3,10 @@ name: Deno CI
 on:
   push:
     paths:
-      - "src/**/*.tx?"
+      - "src/**/*.tsx?"
   pull_request:
     paths:
-      - "src/**/*.tx?"
+      - "src/**/*.tsx?"
   workflow_dispatch:
 
 permissions:
