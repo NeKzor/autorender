@@ -1,3 +1,6 @@
+[![Deno CI](https://github.com/NeKzor/autorender/actions/workflows/deno.yml/badge.svg)](https://github.com/NeKzor/autorender/actions/workflows/deno.yml)
+[![Release CD](https://github.com/NeKzor/autorender/actions/workflows/release.yml/badge.svg)](https://github.com/NeKzor/autorender/actions/workflows/release.yml)
+
 # autorender
 
 Render Portal 2 demos on-demand with: `/render demo <file>`
