@@ -165,8 +165,7 @@ const runCheck = async (options: Options) => {
         colors.red('Failed to fetch latest autorender release'),
       );
 
-      // TODO: Ignore because repo is private for now.
-      //Deno.exit(1);
+      Deno.exit(1);
     }
 
     if (autorender && autorender.tag_name !== AutorenderVersion) {
