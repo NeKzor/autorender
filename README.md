@@ -362,8 +362,8 @@ server {
   - Send URL to leaderboard
 - ~~Advanced render options e.g. sar_ihud~~
 - ~~Support game mods~~
-- Bot improvements
-  - Edit original interaction message or create a follow up message
+- ~~Bot improvements~~
+  - ~~Edit original interaction message or create a followup message~~
   - ~~Improve `/bot info`~~
 - Design frontend platform
   - Pages
