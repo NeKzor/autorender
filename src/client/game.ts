@@ -5,7 +5,7 @@
  */
 
 import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
-import { Config } from './config.ts';
+import { Config, gameModsWhichSupportWorkshop } from './config.ts';
 import { logger } from './logger.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 
@@ -48,11 +48,13 @@ export const createFolders = async (config: Config | null) => {
       // deno-lint-ignore no-empty
     } catch {}
 
-    try {
-      const workshopDir = join(game.dir, game.mod, 'maps', 'workshop');
-      await Deno.mkdir(workshopDir);
-      logger.info(`Created workshop directory ${workshopDir}`);
-      // deno-lint-ignore no-empty
-    } catch {}
+    if (gameModsWhichSupportWorkshop.includes(game.mod)) {
+      try {
+        const workshopDir = join(game.dir, game.mod, 'maps', 'workshop');
+        await Deno.mkdir(workshopDir);
+        logger.info(`Created workshop directory ${workshopDir}`);
+        // deno-lint-ignore no-empty
+      } catch {}
+    }
   }
 };
