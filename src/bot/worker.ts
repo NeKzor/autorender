@@ -27,7 +27,6 @@ const onOpen = () => {
 };
 
 const onMessage = (message: MessageEvent) => {
-  console.log('Server:', message);
   self.postMessage(message.data);
 };
 
