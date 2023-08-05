@@ -24,6 +24,7 @@ import { GameConfig, getConfig } from './config.ts';
 import { getOptions } from './options.ts';
 import { WorkerDataType } from './worker.ts';
 import { UserAgent } from './version.ts';
+import { createFolders } from './game.ts';
 
 addEventListener('error', (ev) => {
   console.dir({ error: ev.error }, { depth: 16 });
@@ -39,47 +40,7 @@ const config = await getConfig();
 // TODO: Upstream sar_on_renderer feature
 const AUTORENDER_PATCHED_SAR = true;
 
-const createFolders = async () => {
-  for (const game of config.games) {
-    const commonDir = dirname(game.dir);
-
-    const { state: readAccess } = await Deno.permissions.request({
-      name: 'read',
-      path: commonDir,
-    });
-
-    if (readAccess !== 'granted') {
-      logger.error(`Unable to get read access for path ${commonDir}`);
-      Deno.exit(1);
-    }
-
-    const { state: writeAccess } = await Deno.permissions.request({
-      name: 'write',
-      path: commonDir,
-    });
-
-    if (writeAccess !== 'granted') {
-      logger.error(`Unable to get write access for path ${commonDir}`);
-      Deno.exit(1);
-    }
-
-    try {
-      const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
-      await Deno.mkdir(autorenderDir);
-      logger.info(`Created autorender directory ${autorenderDir}`);
-      // deno-lint-ignore no-empty
-    } catch {}
-
-    try {
-      const workshopDir = join(game.dir, game.mod, 'maps', 'workshop');
-      await Deno.mkdir(workshopDir);
-      logger.info(`Created workshop directory ${workshopDir}`);
-      // deno-lint-ignore no-empty
-    } catch {}
-  }
-};
-
-await createFolders();
+await createFolders(config);
 
 const state: ClientState = {
   toDownload: 0,
