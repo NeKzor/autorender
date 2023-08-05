@@ -42,7 +42,7 @@ export type UploadWorkerMessageUpload = UploadWorkerMessage<
 
 export type UploadWorkerMessageError = UploadWorkerMessage<
   UploadWorkerDataType.Error,
-  { video_id: VideoPayload['video_id']; error: string }
+  { video_id: VideoPayload['video_id']; message: string }
 >;
 
 export type UploadWorkerMessages =
@@ -116,7 +116,7 @@ self.addEventListener(
               type: UploadWorkerDataType.Error,
               data: {
                 video_id,
-                error: err.toString(),
+                message: err.toString(),
               },
             });
           }
