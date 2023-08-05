@@ -361,7 +361,7 @@ server {
   - ~~Automatic render~~
   - Send URL to leaderboard
 - ~~Advanced render options e.g. sar_ihud~~
-- Support game mods
+- ~~Support game mods~~
 - Bot improvements
   - Edit original interaction message or create a follow up message
   - ~~Improve `/bot info`~~
@@ -381,7 +381,7 @@ server {
 - Misc
   - Better testing
     - Implement test render
-    - Allow multiple ame instance
+    - Allow multiple game instances
     - Fake a game instance
   - ~~Better dev setup~~
     - ~~Docker~~
