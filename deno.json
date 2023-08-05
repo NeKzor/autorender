@@ -1,5 +1,6 @@
 {
   "tasks": {
+    "check": "deno fmt --check && deno lint",
     "client": "deno task --cwd src/client dev",
     "client:test": "deno task --cwd src/client test",
     "client:compile:linux": "deno task --cwd src/client compile:linux",
