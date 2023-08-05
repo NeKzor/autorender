@@ -45,10 +45,17 @@ export const getDemoInfo = async (filePath: string) => {
         stringTables: true,
       });
 
-    const demo = parser
-      .parse(buffer)
-      .adjustTicks()
-      .adjustRange();
+    let demo: SourceDemo;
+
+    try {
+      demo = parser
+        .parse(buffer)
+        .adjustTicks()
+        .adjustRange();
+    } catch (err) {
+      logger.error(err);
+      return 'Corrupted demo.';
+    }
 
     const supportedGame = supportedGameMods[demo.gameDirectory!];
     if (supportedGame === undefined) {
