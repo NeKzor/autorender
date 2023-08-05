@@ -20,6 +20,7 @@ import {
 import { Interaction } from '../deps.ts';
 import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
 import { Presets } from '../services/presets.ts';
+import { Queue } from '../services/queue.ts';
 import { escapeMaskedLink, getPublicUrl } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';
 
@@ -294,7 +295,7 @@ const render = async (
         });
       }
 
-      await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+      const queueMessage = await bot.helpers.editOriginalInteractionResponse(interaction.token, {
         content: `⏳️ Queued video [${title}](<${link}>) for rendering.`,
         components: [
           {
@@ -303,6 +304,16 @@ const render = async (
           },
         ],
       });
+
+      if (queueMessage) {
+        Queue.set(video.share_id, {
+          token: interaction.token as string,
+          userId: interaction.user.id,
+          timestamp: queueMessage!.timestamp!,
+        });
+      } else {
+        console.log('Unable to queue message', video.share_id);
+      }
     } else {
       if (
         response.headers.get('Content-Type')?.includes('application/json')

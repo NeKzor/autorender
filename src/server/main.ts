@@ -117,9 +117,10 @@ const useRateLimiter = await RateLimiter({
 
 let discordBot: WebSocket | null = null;
 
-const _sendErrorToBot = (error: {
+const sendErrorToBot = (error: {
   status: number;
   message: string;
+  share_id: string;
   requested_by_id: string;
   requested_in_guild_id: string;
   requested_in_channel_id: string;
@@ -985,15 +986,22 @@ router.get('/connect/client', async (ctx) => {
         }
         case 'downloaded': {
           const downloaded = data as { video_ids: Video['video_id'][] };
-          const videoIds = downloaded.video_ids.slice(
-            0,
-            MAX_VIDEOS_PER_REQUEST,
-          );
+          const videoIds = downloaded.video_ids;
 
-          if (
-            !videoIds.length ||
-            downloaded.video_ids.length > MAX_VIDEOS_PER_REQUEST
-          ) {
+          if (videoIds.some((id) => !uuid.validate(id))) {
+            ws.send(
+              JSON.stringify({
+                type: 'error',
+                data: {
+                  status: Status.BadRequest,
+                  message: 'Invalid video ID.',
+                },
+              }),
+            );
+            break;
+          }
+
+          if (videoIds.length > MAX_VIDEOS_PER_REQUEST) {
             ws.send(
               JSON.stringify({
                 type: 'error',
@@ -1006,19 +1014,21 @@ router.get('/connect/client', async (ctx) => {
             break;
           }
 
-          await db.query<Video>(
-            `update videos
-                set pending = ?
-              where pending = ?
-                and rendered_by_token = ?
-                and video_id in (${videoIds.map(() => `UUID_TO_BIN(?)`).join(',')})`,
-            [
-              PendingStatus.StartedRender,
-              PendingStatus.ClaimedRender,
-              accessToken.access_token_id,
-              ...videoIds,
-            ],
-          );
+          if (videoIds.length !== 0) {
+            await db.query<Video>(
+              `update videos
+                  set pending = ?
+                where pending = ?
+                  and rendered_by_token = ?
+                  and video_id in (${videoIds.map(() => `UUID_TO_BIN(?)`).join(',')})`,
+              [
+                PendingStatus.StartedRender,
+                PendingStatus.ClaimedRender,
+                accessToken.access_token_id,
+                ...videoIds,
+              ],
+            );
+          }
 
           // For all videos which did not come back here mark them as finished.
 
@@ -1028,7 +1038,7 @@ router.get('/connect/client', async (ctx) => {
                  from videos
                 where pending = ?
                   and rendered_by_token = ?
-                  and video_id not in (${videoIds.map(() => `UUID_TO_BIN(?)`).join(',')})`,
+                  ${videoIds.length ? `and video_id not in (${videoIds.map(() => `UUID_TO_BIN(?)`).join(',')})` : ''}`,
             [
               PendingStatus.ClaimedRender,
               accessToken.access_token_id,
@@ -1039,21 +1049,22 @@ router.get('/connect/client', async (ctx) => {
           for (const video of failedVideos) {
             await db.execute(
               `update videos
-                    set pending = ?
-                  where video_id = UUID_TO_BIN(?)`,
+                  set pending = ?
+                where video_id = UUID_TO_BIN(?)`,
               [
                 PendingStatus.FinishedRender,
                 video.video_id,
               ],
             );
 
-            // sendErrorToBot({
-            //   status: Status.InternalServerError,
-            //   message: `Failed to render video "${video.title}".`,
-            //   requested_by_id: video.requested_by_id,
-            //   requested_in_guild_id: video.requested_in_guild_id,
-            //   requested_in_channel_id: video.requested_in_channel_id,
-            // });
+            sendErrorToBot({
+              status: Status.InternalServerError,
+              message: `Failed to render video.`,
+              share_id: video.share_id,
+              requested_by_id: video.requested_by_id,
+              requested_in_guild_id: video.requested_in_guild_id,
+              requested_in_channel_id: video.requested_in_channel_id,
+            });
           }
 
           ws.send(

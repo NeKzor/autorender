@@ -25,6 +25,7 @@ export type VideoUpload = Pick<
 export interface ErrorStatus {
   status: number;
   message: string;
+  share_id: string;
   requested_by_id: string;
   requested_in_guild_id: string;
   requested_in_channel_id: string;

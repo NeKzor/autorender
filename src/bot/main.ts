@@ -15,6 +15,7 @@ import { logger } from './utils/logger.ts';
 import { escapeMaskedLink, getPublicUrl, updateCommands } from './utils/helpers.ts';
 import { BotDataType, BotMessages } from './protocol.ts';
 import { bot } from './bot.ts';
+import { Queue } from './services/queue.ts';
 
 // TODO: file logging
 const log = logger({ name: 'Main' });
@@ -66,26 +67,32 @@ worker.addEventListener('message', async (message) => {
           `📽️ Rendered video [${title}](${link})`,
         ].join('\n');
 
-        if (data.requested_in_guild_id && data.requested_in_channel_id) {
-          await bot.helpers.sendMessage(data.requested_in_channel_id, {
-            content,
-          });
+        const interaction = Queue.getAndDelete(data.share_id);
+        if (interaction) {
+          await bot.helpers.sendFollowupMessage(interaction.token, { content });
         } else {
-          const channel = await bot.helpers.getDmChannel(data.requested_by_id);
-          await bot.helpers.sendMessage(channel.id, { content });
+          if (data.requested_in_guild_id && data.requested_in_channel_id) {
+            await bot.helpers.sendMessage(data.requested_in_channel_id, { content });
+          } else {
+            const channel = await bot.helpers.getDmChannel(data.requested_by_id);
+            await bot.helpers.sendMessage(channel.id, { content });
+          }
         }
         break;
       }
       case BotDataType.Error: {
         const content = `❌️ ${data.message}`;
 
-        if (data.requested_in_guild_id && data.requested_in_channel_id) {
-          await bot.helpers.sendMessage(data.requested_in_channel_id, {
-            content,
-          });
+        const interaction = Queue.getAndDelete(data.share_id);
+        if (interaction) {
+          await bot.helpers.sendFollowupMessage(interaction.token, { content });
         } else {
-          const channel = await bot.helpers.getDmChannel(data.requested_by_id);
-          await bot.helpers.sendMessage(channel.id, { content });
+          if (data.requested_in_guild_id && data.requested_in_channel_id) {
+            await bot.helpers.sendMessage(data.requested_in_channel_id, { content });
+          } else {
+            const channel = await bot.helpers.getDmChannel(data.requested_by_id);
+            await bot.helpers.sendMessage(channel.id, { content });
+          }
         }
         break;
       }
@@ -98,6 +105,12 @@ worker.addEventListener('message', async (message) => {
     log.error(err);
   }
 });
+
+setInterval(() => {
+  log.info(`Deleting outdated interactions`, Queue.cache.size);
+  Queue.deleteOutdated();
+  log.info(`Deleted interactions`, Queue.cache.size);
+}, 60 * 1_000);
 
 log.info('Started bot');
 
