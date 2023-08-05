@@ -141,6 +141,11 @@ const supportedGames: Record<string, Partial<GameConfig>> = {
   },
 };
 
+export const getGameName = (game: GameConfig) => {
+  const [name] = Object.entries(supportedGames).find(([_, { mod }]) => mod === game.mod) ?? [];
+  return name;
+};
+
 const configFile = join(Deno.env.get('PWD') ?? '', 'autorender.yaml');
 
 let config: Config | null = null;

@@ -17,11 +17,13 @@ import {
   downloadSourceAutoRecord,
   gameModsWhichSupportWorkshop,
   getConfigOnly,
+  getGameName,
   parseAndValidateConfig,
 } from './config.ts';
 import { AutorenderVersion, UserAgent } from './version.ts';
 import { YAMLError } from 'https://deno.land/std@0.193.0/yaml/_error.ts';
 import { Confirm } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/confirm.ts';
+import { Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/select.ts';
 import * as yaml from 'https://deno.land/std@0.193.0/yaml/mod.ts';
 
 export interface Options {
@@ -44,9 +46,10 @@ export const getOptions = async () => {
       .option('-C, --cfg', 'Download latest autorender.cfg file.')
       .option('-q, --quickhud', 'Download latest quickhud files.')
       .option('-b, --benchmark', 'Run a benchmark render for finding the correct scale-timeout value.')
+      .option('-l, --launch', 'Test if a game can be launched.')
       .option('-e, --explain', 'Explain all config options.')
       .option('-a, --validate', 'Validate if the config file is correct.')
-      .action(async ({ verbose, check, dev, sar, cfg, quickhud, benchmark, explain, validate }) => {
+      .action(async ({ verbose, check, dev, sar, cfg, quickhud, benchmark, launch, explain, validate }) => {
         const options = {
           devMode: !!dev,
           verboseMode: !!verbose,
@@ -73,6 +76,11 @@ export const getOptions = async () => {
 
         if (benchmark) {
           await runBenchmark(await getConfigOnly(), options);
+          Deno.exit(0);
+        }
+
+        if (launch) {
+          await launchGame(await getConfigOnly(), options);
           Deno.exit(0);
         }
       })
@@ -531,6 +539,65 @@ const runBenchmark = async (
         console.log(colors.red(`Failed to remove temporary autoexec ${autoexecFile}`), err);
       }
     }
+  }
+};
+
+const launchGame = async (
+  config: Config | null,
+  options: Options,
+) => {
+  if (!config) {
+    console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
+    Deno.exit(1);
+  }
+
+  try {
+    const gameToLaunch = await Select.prompt<string>({
+      message: '🎮️ Select a game to test if it can ben launched.',
+      options: config.games.map((game) => ({ value: game.mod, name: getGameName(game) ?? '' })),
+    });
+
+    const game = config.games.find((game) => game.mod === gameToLaunch)!;
+
+    const getCommand = (): [string, string] => {
+      const command = join(game.dir, game.exe);
+
+      switch (Deno.build.os) {
+        case 'windows':
+          return [command, game.exe];
+        case 'linux':
+          return ['/bin/bash', command];
+        default:
+          throw new Error('Unsupported operating system');
+      }
+    };
+
+    const [command, argv0] = getCommand();
+
+    const args = [
+      argv0,
+      '-game',
+      game.mod === 'portalreloaded' ? 'portal2' : game.mod,
+      '-novid',
+      '-windowed',
+      '-w',
+      '1280',
+      '-h',
+      '720',
+    ];
+
+    const cmd = new Deno.Command(command, { args });
+
+    console.log(colors.white('Spawning process'));
+
+    const gameProcess = cmd.spawn();
+
+    console.log(colors.white(`Spawned process ${gameProcess.pid}`));
+
+    const { code } = await gameProcess.output();
+    console.log(colors.white('Game exited'), { code });
+  } catch (err) {
+    options?.verboseMode === false && console.error(err);
   }
 };
 
