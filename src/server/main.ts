@@ -1536,6 +1536,9 @@ router.get('/storage/files/autorender.cfg', async (ctx) => {
 router.get('/storage/files/quickhud.zip', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('quickhud.zip')), 'application/zip');
 });
+router.get('/storage/files/portal2_benchmark.dem', async (ctx) => {
+  Ok(ctx, await Deno.readFile(getStorageFilePath('portal2_benchmark.dem')), 'application/octet-stream');
+});
 
 router.get('/favicon.ico', (ctx) => (ctx.response.status = Status.NotFound));
 router.post('/tokens/:access_token_id(\\d+)', useSession, routeToApp);

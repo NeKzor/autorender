@@ -10,6 +10,7 @@ import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 import { Cell, Table } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/table/mod.ts';
 import { logger } from './logger.ts';
 import {
+  Config,
   configExplanation,
   downloadAutorenderConfig,
   downloadQuickhud,
@@ -20,6 +21,8 @@ import {
 } from './config.ts';
 import { AutorenderVersion, UserAgent } from './version.ts';
 import { YAMLError } from 'https://deno.land/std@0.193.0/yaml/_error.ts';
+import { Confirm } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/confirm.ts';
+import * as yaml from 'https://deno.land/std@0.193.0/yaml/mod.ts';
 
 export interface Options {
   devMode: boolean;
@@ -40,9 +43,10 @@ export const getOptions = async () => {
       .option('-s, --sar', 'Download latest SourceAutoRecord version.')
       .option('-C, --cfg', 'Download latest autorender.cfg file.')
       .option('-q, --quickhud', 'Download latest quickhud files.')
+      .option('-b, --benchmark', 'Run a benchmark render for finding the correct scale-timeout value.')
       .option('-e, --explain', 'Explain all config options.')
       .option('-a, --validate', 'Validate if the config file is correct.')
-      .action(async ({ verbose, check, dev, sar, cfg, quickhud, explain, validate }) => {
+      .action(async ({ verbose, check, dev, sar, cfg, quickhud, benchmark, explain, validate }) => {
         const options = {
           devMode: !!dev,
           verboseMode: !!verbose,
@@ -64,6 +68,11 @@ export const getOptions = async () => {
 
         if (quickhud) {
           await downloadQuickhud(await getConfigOnly(), options);
+          Deno.exit(0);
+        }
+
+        if (benchmark) {
+          await runBenchmark(await getConfigOnly(), options);
           Deno.exit(0);
         }
       })
@@ -324,6 +333,204 @@ const runValidate = async ({ verboseMode }: Options) => {
     }
 
     Deno.exit(1);
+  }
+};
+
+const runBenchmark = async (
+  config: Config | null,
+  options: Options,
+) => {
+  if (!config) {
+    console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
+    Deno.exit(1);
+  }
+
+  const game = config.games.find(({ mod }) => mod === 'portal2');
+  if (!game) {
+    console.log(colors.red(`❌️ Benchmark is currently only available on Portal 2`));
+    Deno.exit(1);
+  }
+
+  let autoexecFile = '';
+
+  try {
+    const { state: readAccess } = await Deno.permissions.request({
+      name: 'read',
+      path: game.dir,
+    });
+
+    if (readAccess !== 'granted') {
+      Deno.exit(1);
+    }
+
+    const { state: writeAccess } = await Deno.permissions.request({
+      name: 'write',
+      path: game.dir,
+    });
+
+    if (writeAccess !== 'granted') {
+      Deno.exit(1);
+    }
+
+    const demoPlaybackTime = 9.666;
+    const demoBenchmarkFile = 'portal2_benchmark.dem';
+
+    console.log(colors.white(`🚦️ Downloading ${demoBenchmarkFile}`));
+
+    const res = await fetch(`${config.autorender['base-api']}/storage/files/${demoBenchmarkFile}`, {
+      headers: {
+        'User-Agent': UserAgent,
+      },
+    });
+
+    if (!res.ok) {
+      console.log(colors.red(`❌️ Failed to fetch ${demoBenchmarkFile}`));
+      Deno.exit(1);
+    }
+
+    console.log(colors.white(`🚦️ Downloaded ${demoBenchmarkFile}`));
+
+    const data = new Uint8Array(await res.arrayBuffer());
+    const file = join(game.dir, game.mod, config.autorender['folder-name'], demoBenchmarkFile);
+
+    try {
+      await Deno.writeFile(file, data);
+
+      console.log(
+        colors.white(`🚦️ Installed ${colors.italic.gray(file)}`),
+      );
+    } catch (err) {
+      options.verboseMode && logger.error(err);
+
+      console.log(colors.red(`❌️ Failed to install ${colors.italic.gray(file)}`));
+      Deno.exit(1);
+    }
+
+    const videoFile = join(game.dir, game.mod, config.autorender['folder-name'], `${demoBenchmarkFile}.mp4`);
+
+    try {
+      await Deno.remove(videoFile);
+    // deno-lint-ignore no-empty
+    } catch {}
+
+    const autoexec = [
+      `exec ${game.cfg}`,
+      `sar_quickhud_set_texture crosshair/quickhud720-`,
+      `sar_on_renderer_finish "wait 300;exit"`,
+      `playdemo ${join(config.autorender['folder-name'], demoBenchmarkFile)}`,
+    ];
+
+    autoexecFile = join(game.dir, game.mod, 'cfg', 'autoexec.cfg');
+
+    await Deno.writeTextFile(autoexecFile, autoexec.join('\n'));
+
+    const getCommand = (): [string, string] => {
+      const command = join(game.dir, game.exe);
+
+      switch (Deno.build.os) {
+        case 'windows':
+          return [command, game.exe];
+        case 'linux':
+          return ['/bin/bash', command];
+        default:
+          throw new Error('Unsupported operating system');
+      }
+    };
+
+    const [command, argv0] = getCommand();
+
+    const args = [
+      argv0,
+      '-game',
+      game.mod === 'portalreloaded' ? 'portal2' : game.mod,
+      '-novid',
+      '-windowed',
+      '-w',
+      '1280',
+      '-h',
+      '720',
+    ];
+
+    const cmd = new Deno.Command(command, { args });
+
+    const gameProcess = cmd.spawn();
+    const gameProcessName = game.proc;
+
+    console.log(colors.white(`Spawned process ${gameProcess.pid}`));
+
+    let killed = false;
+
+    const killGameProcess = () => {
+      killed = true;
+
+      const pid = Deno.build.os === 'windows' ? gameProcess.pid : -gameProcess.pid;
+
+      console.log(colors.white(`Killing process ${pid}`));
+
+      if (Deno.build.os !== 'windows') {
+        const kill = new Deno.Command('pkill', { args: [gameProcessName] });
+        const { code } = kill.outputSync();
+        console.log(colors.white(`pkill ${gameProcessName}`), { code });
+      } else {
+        Deno.kill(pid, 'SIGKILL');
+      }
+
+      console.log(colors.white('killed'));
+    };
+
+    console.log(colors.white('Killing process after 5 minutes'));
+    setTimeout(killGameProcess, 5 * 60 * 1_000);
+
+    const start = performance.now();
+    const { code } = await gameProcess.output();
+    const end = performance.now();
+
+    console.log(colors.white('Game exited'), { code });
+
+    if (killed || code !== 0) {
+      console.log(colors.red('Failed to render the benchmark video'));
+      Deno.exit(1);
+    }
+
+    try {
+      await Deno.stat(videoFile);
+      console.log(colors.green('Successfully rendered the benchmark video'));
+
+      const renderTime = (end - start) / 1_000;
+      const scaleTimeout = renderTime / demoPlaybackTime;
+      const suggestedScaleTimeout = Math.ceil(scaleTimeout) + 1;
+
+      console.log(colors.white('Render time:'), renderTime.toFixed(3), 'seconds');
+      console.log(colors.white('Suggested render scale-timeout setting:'), suggestedScaleTimeout);
+
+      const confirmed = await Confirm.prompt('🚦️ Should this value be saved in the autorender config?');
+      if (confirmed) {
+        try {
+          config.autorender['scale-timeout'] = suggestedScaleTimeout;
+          // deno-lint-ignore no-explicit-any
+          const autorenderYaml = yaml.stringify(config as any);
+          const configFile = join(Deno.env.get('PWD') ?? '', 'autorender.yaml');
+          await Deno.writeTextFile(configFile, autorenderYaml);
+
+          console.log(colors.green(`🛠️  Saved config file ${configFile}`));
+        } catch (err) {
+          options?.verboseMode === false && console.error(err);
+        }
+      }
+    } catch (err) {
+      console.log(colors.red('Failed to find rendered video'));
+      options?.verboseMode === false && console.error(err);
+    }
+  } catch (err) {
+    options?.verboseMode === false && console.error(err);
+  } finally {
+    if (autoexecFile) {
+      try {
+        await Deno.remove(autoexecFile);
+      } catch (err) {
+        console.log(colors.red(`Failed to remove temporary autoexec ${autoexecFile}`), err);
+      }
+    }
   }
 };
 
