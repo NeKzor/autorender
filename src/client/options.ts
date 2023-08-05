@@ -11,6 +11,8 @@ import { Cell, Table } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/table/mod.ts
 import { logger } from './logger.ts';
 import {
   configExplanation,
+  downloadAutorenderConfig,
+  downloadQuickhud,
   downloadSourceAutoRecord,
   gameModsWhichSupportWorkshop,
   getConfigOnly,
@@ -36,9 +38,11 @@ export const getOptions = async () => {
       .option('-v, --verbose', 'Turn on verbose logging.')
       .option('-d, --dev', 'Switch into developer mode.')
       .option('-s, --sar', 'Download latest SourceAutoRecord version.')
+      .option('-C, --cfg', 'Download latest autorender.cfg file.')
+      .option('-q, --quickhud', 'Download latest quickhud files.')
       .option('-e, --explain', 'Explain all config options.')
       .option('-a, --validate', 'Validate if the config file is correct.')
-      .action(async ({ verbose, check, dev, sar, explain, validate }) => {
+      .action(async ({ verbose, check, dev, sar, cfg, quickhud, explain, validate }) => {
         const options = {
           devMode: !!dev,
           verboseMode: !!verbose,
@@ -50,6 +54,16 @@ export const getOptions = async () => {
 
         if (sar) {
           await downloadSourceAutoRecord(await getConfigOnly(), options);
+          Deno.exit(0);
+        }
+
+        if (cfg) {
+          await downloadAutorenderConfig(await getConfigOnly(), options);
+          Deno.exit(0);
+        }
+
+        if (quickhud) {
+          await downloadQuickhud(await getConfigOnly(), options);
           Deno.exit(0);
         }
       })
