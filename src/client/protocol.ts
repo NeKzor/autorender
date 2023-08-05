@@ -42,7 +42,7 @@ export type AutorenderMessageStart = AutorenderMessage<
 
 export type AutorenderMessageError = AutorenderMessage<
   AutorenderDataType.Error,
-  { status: number }
+  { status: number; message?: string }
 >;
 
 export type AutorenderMessages =

@@ -467,7 +467,7 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
           break;
         }
         case AutorenderDataType.Error: {
-          logger.error(`Error code: ${data.status}`);
+          logger.error(`Error code ${data.status}${data.message ? ` : ${data.message}` : ''}`);
           fetchNextVideos();
           break;
         }
