@@ -410,7 +410,7 @@ const runBenchmark = async (
 
     try {
       await Deno.remove(videoFile);
-    // deno-lint-ignore no-empty
+      // deno-lint-ignore no-empty
     } catch {}
 
     const autoexec = [
