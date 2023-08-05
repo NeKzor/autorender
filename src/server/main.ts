@@ -297,7 +297,7 @@ apiV1
       PendingStatus.RequiresRender,
     ];
 
-    await db.execute(
+    const { affectedRows } = await db.execute(
       `insert into videos (
             video_id
           , share_id
@@ -331,6 +331,8 @@ apiV1
     );
 
     try {
+      logger.info(`Queued video ${videoId} (${shareId})`, { affectedRows });
+
       await db.execute(
         `insert into audit_logs (
               title
@@ -480,7 +482,7 @@ apiV1
 
         videoUrl = b2.getDownloadUrl(upload.fileName);
 
-        logger.info('Uploaded', upload, videoUrl);
+        logger.info('Uploaded', filePath, upload, videoUrl);
       } else {
         videoUrl = `${AUTORENDER_PUBLIC_URI}/storage/videos/${video.share_id}`;
       }
@@ -488,7 +490,7 @@ apiV1
       // TODO: Determine video length, create video preview and
       //       small/large thumbnails in a different thread.
 
-      await db.execute(
+      const { affectedRows } = await db.execute(
         `update videos
             set pending = ?
               , video_url = ?
@@ -503,11 +505,15 @@ apiV1
         ],
       );
 
+      logger.info('Finished render for', video.video_id, { affectedRows });
+
       Ok(ctx, { video_id: video.video_id });
 
       try {
         if (video.board_changelog_id !== null) {
           if (video.board_rank === 1) {
+            logger.info('Sending webhook message for', video.video_id);
+
             const webhook = await fetch(DISCORD_BOARD_INTEGRATION_WEBHOOK_URL, {
               method: 'POST',
               headers: {
@@ -519,10 +525,10 @@ apiV1
               }),
             });
 
-            logger.info('Board webhook executed:', webhook.statusText);
+            logger.info('Board webhook executed for', video.video_id, ':', webhook.statusText);
 
             if (!webhook.ok) {
-              logger.error('Failed to execute board webhook:', await webhook.text());
+              logger.error('Failed to execute board webhook for', video.video_id, ':', await webhook.text());
             }
           }
         } else {
@@ -555,15 +561,15 @@ apiV1
           }
         }
       } catch (err) {
-        logger.error(err);
+        logger.error('Error while sending message for', video.video_id, ':', err);
       }
     } catch (err) {
-      logger.error(err);
+      logger.error('Error while uploading video for', video.video_id, ':', err);
 
       Err(ctx, Status.InternalServerError);
 
       try {
-        await db.execute(
+        const { affectedRows } = await db.execute(
           `update videos
               set pending = ?
              where video_id = UUID_TO_BIN(?)`,
@@ -572,6 +578,8 @@ apiV1
             video.video_id,
           ],
         );
+
+        logger.error('Set video as finished for', video.video_id, { affectedRows });
       } catch (err) {
         logger.error(err);
       }
@@ -580,7 +588,7 @@ apiV1
         try {
           Deno.remove(filePath);
         } catch (err) {
-          logger.error('Failed to remove video file:', err);
+          logger.error('Failed to remove video file', filePath, ':', err);
         }
       }
     }
@@ -801,6 +809,7 @@ router.get('/connect/client', async (ctx) => {
   };
 
   ws.onmessage = async (message) => {
+    let messageType = '';
     try {
       if (typeof message.data !== 'string') {
         throw new Error('Invalid payload data type');
@@ -808,6 +817,8 @@ router.get('/connect/client', async (ctx) => {
 
       // FIXME: Protocol types
       const { type, data } = JSON.parse(message.data);
+
+      messageType = type;
 
       switch (type) {
         case 'videos': {
@@ -916,6 +927,8 @@ router.get('/connect/client', async (ctx) => {
               break;
             }
 
+            logger.info(`Client ${clientId} claimed video ${videoId}`);
+
             type VideoSelect = Pick<
               Video,
               | 'video_id'
@@ -971,6 +984,8 @@ router.get('/connect/client', async (ctx) => {
             await buffer.write(await Deno.readFile(filePath));
 
             ws.send(buffer.bytes());
+
+            logger.info(`Sent video ${videoId} to client ${clientId}`);
           } else {
             ws.send(
               JSON.stringify({
@@ -985,8 +1000,22 @@ router.get('/connect/client', async (ctx) => {
           break;
         }
         case 'downloaded': {
-          const downloaded = data as { video_ids: Video['video_id'][] };
-          const videoIds = downloaded.video_ids;
+          const { video_ids: videoIds } = data as { video_ids: Video['video_id'][] };
+
+          if (!Array.isArray(videoIds)) {
+            ws.send(
+              JSON.stringify({
+                type: 'error',
+                data: {
+                  status: Status.BadRequest,
+                  message: 'Expected video IDs as array.',
+                },
+              }),
+            );
+            break;
+          }
+
+          logger.info(`Client ${clientId} downloaded: ${videoIds.join(', ')}`);
 
           if (videoIds.some((id) => !uuid.validate(id))) {
             ws.send(
@@ -1015,7 +1044,7 @@ router.get('/connect/client', async (ctx) => {
           }
 
           if (videoIds.length !== 0) {
-            await db.query<Video>(
+            const { affectedRows } = await db.execute<Video>(
               `update videos
                   set pending = ?
                 where pending = ?
@@ -1028,6 +1057,14 @@ router.get('/connect/client', async (ctx) => {
                 ...videoIds,
               ],
             );
+
+            ws.send(
+              JSON.stringify({
+                type: 'start',
+              }),
+            );
+
+            logger.info(`Sent start request to client ${clientId}`, { affectedRows });
           }
 
           // For all videos which did not come back here mark them as finished.
@@ -1047,7 +1084,7 @@ router.get('/connect/client', async (ctx) => {
           );
 
           for (const video of failedVideos) {
-            await db.execute(
+            const { affectedRows } = await db.execute(
               `update videos
                   set pending = ?
                 where video_id = UUID_TO_BIN(?)`,
@@ -1056,6 +1093,8 @@ router.get('/connect/client', async (ctx) => {
                 video.video_id,
               ],
             );
+
+            logger.error(`Client ${clientId} set ${video.video_id} as finished`, { affectedRows });
 
             sendErrorToBot({
               status: Status.InternalServerError,
@@ -1066,34 +1105,38 @@ router.get('/connect/client', async (ctx) => {
               requested_in_channel_id: video.requested_in_channel_id,
             });
           }
-
-          ws.send(
-            JSON.stringify({
-              type: 'start',
-            }),
-          );
           break;
         }
         case 'error': {
-          const { video_id } = data as {
+          const { video_id, message } = data as {
             video_id: Video['video_id'] | undefined;
             message: string;
           };
 
+          logger.error(`Client ${clientId} sent an error: ${message}`);
+
           if (video_id) {
-            await db.execute(
+            const { affectedRows } = await db.execute(
               `update videos
-                    set pending = ?
-                  where video_id = UUID_TO_BIN(?)`,
+                  set pending = ?
+                where video_id = UUID_TO_BIN(?)
+                  and pending <> ?
+                  and rendered_by_token = ?`,
               [
                 PendingStatus.FinishedRender,
                 video_id,
+                PendingStatus.FinishedRender,
+                accessToken.access_token_id,
               ],
             );
+
+            logger.error(`Client ${clientId} set ${video_id} as finished`, { affectedRows });
           }
           break;
         }
         default: {
+          logger.error(`Client ${clientId} sent an unknown message type`);
+
           ws.send(
             JSON.stringify({
               type: 'error',
@@ -1107,7 +1150,7 @@ router.get('/connect/client', async (ctx) => {
         }
       }
     } catch (err) {
-      logger.error(err);
+      logger.error(`Error while processing message "${messageType}" from client ${clientId}.`, err);
 
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(
