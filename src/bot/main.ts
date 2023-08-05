@@ -106,11 +106,7 @@ worker.addEventListener('message', async (message) => {
   }
 });
 
-setInterval(() => {
-  log.info(`Deleting outdated interactions`, Queue.cache.size);
-  Queue.deleteOutdated();
-  log.info(`Deleted interactions`, Queue.cache.size);
-}, 60 * 1_000);
+setInterval(() => Queue.deleteOutdated(), 60 * 1_000);
 
 log.info('Started bot');
 
