@@ -15,6 +15,7 @@ export type VideoPayload = Pick<
   | 'render_options'
   | 'file_url'
   | 'full_map_name'
+  | 'demo_game_dir'
   | 'demo_playback_time'
 >;
 
@@ -63,7 +64,7 @@ export type AutorenderSendMessage<T extends AutorenderSendDataType, P> = {
 
 export type AutorenderSendMessageVideos = AutorenderSendMessage<
   AutorenderSendDataType.Videos,
-  { game: string; maxRenderQuality: string }
+  { gameMods: string[]; maxRenderQuality: string }
 >;
 
 export type AutorenderSendMessageDemo = AutorenderSendMessage<

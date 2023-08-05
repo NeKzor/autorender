@@ -17,10 +17,10 @@ import {
   AutorenderSendMessages,
   VideoPayload,
 } from './protocol.ts';
-import { RenderQuality, Video as VideoModel } from '../shared/models.ts';
+import { RenderQuality } from '../shared/models.ts';
 import { ClientState, ClientStatus } from './state.ts';
 import { UploadWorkerDataType } from './upload.ts';
-import { getConfig } from './config.ts';
+import { GameConfig, getConfig } from './config.ts';
 import { getOptions } from './options.ts';
 import { WorkerDataType } from './worker.ts';
 import { UserAgent } from './version.ts';
@@ -36,46 +36,47 @@ addEventListener('unhandledrejection', (ev) => {
 const _options = await getOptions();
 const config = await getConfig();
 
-// TODO: Handle multiple games
-const game = config.games.at(0)!;
-
 // TODO: Upstream sar_on_renderer feature
 const AUTORENDER_PATCHED_SAR = true;
 
 const createFolders = async () => {
-  const { state: readAccess } = await Deno.permissions.request({
-    name: 'read',
-    path: game.dir,
-  });
+  for (const game of config.games) {
+    const commonDir = dirname(game.dir);
 
-  if (readAccess !== 'granted') {
-    logger.error(`Unable to get read access for path ${game.dir}`);
-    Deno.exit(1);
+    const { state: readAccess } = await Deno.permissions.request({
+      name: 'read',
+      path: commonDir,
+    });
+
+    if (readAccess !== 'granted') {
+      logger.error(`Unable to get read access for path ${commonDir}`);
+      Deno.exit(1);
+    }
+
+    const { state: writeAccess } = await Deno.permissions.request({
+      name: 'write',
+      path: commonDir,
+    });
+
+    if (writeAccess !== 'granted') {
+      logger.error(`Unable to get write access for path ${commonDir}`);
+      Deno.exit(1);
+    }
+
+    try {
+      const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
+      await Deno.mkdir(autorenderDir);
+      logger.info(`Created autorender directory ${autorenderDir}`);
+      // deno-lint-ignore no-empty
+    } catch {}
+
+    try {
+      const workshopDir = join(game.dir, game.mod, 'maps', 'workshop');
+      await Deno.mkdir(workshopDir);
+      logger.info(`Created workshop directory ${workshopDir}`);
+      // deno-lint-ignore no-empty
+    } catch {}
   }
-
-  const { state: writeAccess } = await Deno.permissions.request({
-    name: 'write',
-    path: game.dir,
-  });
-
-  if (writeAccess !== 'granted') {
-    logger.error(`Unable to get write access for path ${game.dir}`);
-    Deno.exit(1);
-  }
-
-  try {
-    const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
-    await Deno.mkdir(autorenderDir);
-    logger.info(`Created autorender directory ${autorenderDir}`);
-    // deno-lint-ignore no-empty
-  } catch {}
-
-  try {
-    const workshopDir = join(game.dir, game.mod, 'maps', 'workshop');
-    await Deno.mkdir(workshopDir);
-    logger.info(`Created workshop directory ${workshopDir}`);
-    // deno-lint-ignore no-empty
-  } catch {}
 };
 
 await createFolders();
@@ -186,7 +187,7 @@ const fetchNextVideos = () => {
           {
             type: AutorenderSendDataType.Videos,
             data: {
-              game: game.mod,
+              gameMods: config.games.map(({ mod }) => mod),
               maxRenderQuality: config.autorender['max-supported-quality'],
             },
           },
@@ -212,22 +213,24 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos['data']) => {
   state.videos = [];
 
   // Delete demo and video files from previous render.
-  const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
+  for (const game of config.games) {
+    const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
 
-  for await (const file of Deno.readDir(autorenderDir)) {
-    if (
-      file.isFile &&
-      (file.name.endsWith('.dem') || file.name.endsWith('.mp4'))
-    ) {
-      const filename = join(autorenderDir, file.name);
+    for await (const file of Deno.readDir(autorenderDir)) {
+      if (
+        file.isFile &&
+        (file.name.endsWith('.dem') || file.name.endsWith('.mp4'))
+      ) {
+        const filename = join(autorenderDir, file.name);
 
-      try {
-        Deno.remove(filename);
-      } catch (err) {
-        logger.error(
-          `Failed to remove file ${filename}:`,
-          err,
-        );
+        try {
+          Deno.remove(filename);
+        } catch (err) {
+          logger.error(
+            `Failed to remove file ${filename}:`,
+            err,
+          );
+        }
       }
     }
   }
@@ -239,6 +242,7 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos['data']) => {
 };
 
 let gameProcess: Deno.ChildProcess | null = null;
+let gameProcessName = '';
 let timeout: number | null = null;
 
 /**
@@ -258,9 +262,9 @@ const killGameProcess = () => {
 
   // Deno.kill does not work for some reason :>
   if (Deno.build.os !== 'windows') {
-    const kill = new Deno.Command('pkill', { args: [game.proc] });
+    const kill = new Deno.Command('pkill', { args: [gameProcessName] });
     const { code } = kill.outputSync();
-    logger.info(`pkill ${game.proc}`, { code });
+    logger.info(`pkill ${gameProcessName}`, { code });
   } else {
     Deno.kill(pid, 'SIGKILL');
   }
@@ -287,7 +291,7 @@ Deno.addSignalListener('SIGINT', () => {
 /**
  * Server requests the start of a render after it got the confirmed videos.
  */
-const handleMessageStart = async () => {
+const handleMessageStart = async (game: GameConfig) => {
   try {
     if (!state.videos.length) {
       throw new Error('No videos available');
@@ -295,11 +299,12 @@ const handleMessageStart = async () => {
 
     state.status = ClientStatus.Rendering;
 
-    const command = await prepareGameLaunch();
+    const command = await prepareGameLaunch(game);
 
     logger.info('Spawning process...');
 
     gameProcess = command.spawn();
+    gameProcessName = game.proc;
 
     logger.info(`Spawned process ${gameProcess.pid}`);
 
@@ -369,7 +374,7 @@ const handleMessageStart = async () => {
   }
 };
 
-const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
+const downloadWorkshopMap = async (mapFile: string, video: VideoPayload) => {
   logger.info('Downloading map', video.file_url);
 
   const steamResponse = await fetch(video.file_url, {
@@ -403,7 +408,7 @@ const downloadWorkshopMap = async (mapFile: string, video: VideoModel) => {
  *      length + 1 ... = demo file
  */
 const handleMessageBuffer = async (buffer: ArrayBuffer) => {
-  let videoId: VideoModel['video_id'] | undefined = undefined;
+  let videoId: VideoPayload['video_id'] | undefined = undefined;
 
   try {
     const length = new DataView(buffer).getUint32(0);
@@ -414,9 +419,16 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
     logger.info('Decoded payload:', decoded);
     logger.info('Demo byte length:', demo.byteLength);
 
-    const video = JSON.parse(decoded) as VideoModel;
+    const video = JSON.parse(decoded) as VideoPayload;
 
     videoId = video.video_id;
+
+    const game = config.games.find(({ mod }) => mod === video.demo_game_dir);
+    if (!game) {
+      throw new Error(
+        `Unable to handle message buffer because unsupported game mod "${video.demo_game_dir}" found.`,
+      );
+    }
 
     // Check if a workshop map needs to be downloaded.
     if (video.file_url) {
@@ -483,7 +495,14 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
           break;
         }
         case AutorenderDataType.Start: {
-          await handleMessageStart();
+          // NOTE: Expected to only be one video at a time
+          const gameDir = state.videos.at(0)?.demo_game_dir;
+          const game = config.games.find(({ mod }) => mod === gameDir);
+          if (!game) {
+            logger.error(`Unable to start because unsupported game mod "${gameDir}" found.`);
+            break;
+          }
+          await handleMessageStart(game);
           break;
         }
         case AutorenderDataType.Error: {
@@ -540,7 +559,7 @@ const getGameResolution = (): [string, string] => {
 /**
  * Prepares autoexec.cfg to queue all demos.
  */
-const prepareGameLaunch = async () => {
+const prepareGameLaunch = async (game: GameConfig) => {
   const getDemoName = ({ video_id }: VideoPayload) => {
     return join(config.autorender['folder-name'], video_id.toString());
   };
@@ -582,7 +601,7 @@ const prepareGameLaunch = async () => {
   ];
 
   await Deno.writeTextFile(
-    join(game.dir, 'portal2', 'cfg', 'autoexec.cfg'),
+    join(game.dir, game.mod, 'cfg', 'autoexec.cfg'),
     autoexec.join('\n'),
   );
 
@@ -594,26 +613,28 @@ const prepareGameLaunch = async () => {
         return [command, game.exe];
       case 'linux':
         return ['/bin/bash', command];
-      default: {
-        throw new Error('unsupported operating system');
-      }
+      default:
+        throw new Error('Unsupported operating system');
     }
   };
 
   const [command, argv0] = getCommand();
 
-  return new Deno.Command(command, {
-    args: [
-      argv0,
-      '-game',
-      game.mod,
-      '-novid',
-      //"-vulkan", // TODO: vulkan is not always available
-      '-windowed',
-      '-w',
-      width,
-      '-h',
-      height,
-    ],
-  });
+  const args = [
+    argv0,
+    '-game',
+    game.mod === 'portalreloaded' ? 'portal2' : game.mod,
+    '-novid',
+    // TODO: vulkan is not always available
+    //"-vulkan",
+    '-windowed',
+    '-w',
+    width,
+    '-h',
+    height,
+  ];
+
+  console.log({ command, args });
+
+  return new Deno.Command(command, { args });
 };

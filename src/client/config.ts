@@ -82,25 +82,25 @@ export const configExplanation: {
 export type GameMods =
   | 'portal2'
   | 'aperturetag'
-  | 'twtm'
-  | 'portalstories'
-  | 'p2ce'
+  | 'TWTM'
+  | 'portal_stories'
+  // | 'p2ce'
   | 'portalreloaded';
 
 export const gameModsWhichSupportWorkshop: GameMods[] = [
   'portal2',
   'aperturetag',
-  'twtm',
-  'p2ce',
+  'TWTM',
+  // 'p2ce',
   'portalreloaded',
 ];
 
 export const supportedGameMods: GameMods[] = [
   'portal2',
   'aperturetag',
-  'twtm',
-  'portalstories',
-  'p2ce',
+  'TWTM',
+  'portal_stories',
+  // 'p2ce',
   'portalreloaded',
 ];
 
@@ -116,18 +116,26 @@ const supportedGames: Record<string, Partial<GameConfig>> = {
   'Portal 2': {
     mod: 'portal2',
   },
-  'Aperture Tag': {
-    mod: 'aperturetag',
-  },
+  ...(isWindows
+    ? {
+      'Aperture Tag': {
+        mod: 'aperturetag',
+      },
+    }
+    : {}),
   'Thinking with Time Machine': {
-    mod: 'twtm',
+    mod: 'TWTM',
+    exe: isWindows ? 'TWTM.exe' : 'TWTM.sh',
+    proc: isWindows ? 'TWTM.exe' : 'TWTM_linux',
   },
   'Portal Stories Mel': {
-    mod: 'portalstories',
+    mod: 'portal_stories',
   },
-  'Portal 2 Community Edition': {
-    mod: 'p2ce',
-  },
+  // 'Portal 2 Community Edition': {
+  //   mod: 'p2ce',
+  //   exe: isWindows ? 'p2ce.bat' : 'p2ce.sh',
+  //   proc: isWindows ? 'chaos.exe' : 'chaos',
+  // },
   'Portal Reloaded': {
     mod: 'portalreloaded',
   },

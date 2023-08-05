@@ -47,8 +47,8 @@ import { AppState as ReactAppState } from './app/AppState.ts';
 import { db } from './db.ts';
 import { createStaticRouter } from 'https://esm.sh/react-router-dom@6.11.2/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
-import { getDemoInfo } from './demo.ts';
-import { basename } from 'https://deno.land/std@0.190.0/path/win32.ts';
+import { getDemoInfo, supportedGameDirs } from './demo.ts';
+import { basename } from 'https://deno.land/std@0.190.0/path/mod.ts';
 import {
   generateShareId,
   getDemoFilePath,
@@ -811,7 +811,24 @@ router.get('/connect/client', async (ctx) => {
       switch (type) {
         case 'videos': {
           if (accessToken.permissions & AccessPermission.CreateVideos) {
-            // TODO: Filter by game mod
+            const clientGameDirs = Array.isArray(data.gameMods)
+              ? data.gameMods.length <= supportedGameDirs.length
+                ? supportedGameDirs.filter((dir) => data.gameMods.includes(dir))
+                : []
+              : ['portal2'];
+
+            if (!clientGameDirs.length) {
+              ws.send(
+                JSON.stringify({
+                  type: 'error',
+                  data: {
+                    status: Status.BadRequest,
+                    message: 'Invalid game mods.',
+                  },
+                }),
+              );
+              break;
+            }
 
             const renderQualities = [
               RenderQuality.SD_480p,
@@ -837,11 +854,13 @@ router.get('/connect/client', async (ctx) => {
                  from videos
                 where pending = ?
                   and render_quality in (${clientRenderQualities.map(() => '?').join(',')})
+                  and demo_game_dir in (${clientGameDirs.map(() => '?').join(',')})
              order by render_quality desc
                 limit ?`,
               [
                 PendingStatus.RequiresRender,
                 ...clientRenderQualities,
+                ...clientGameDirs,
                 MAX_VIDEOS_PER_REQUEST,
               ],
             );
@@ -903,16 +922,18 @@ router.get('/connect/client', async (ctx) => {
               | 'render_options'
               | 'file_url'
               | 'full_map_name'
+              | 'demo_game_dir'
               | 'demo_playback_time'
               | 'demo_required_fix'
             >;
 
-            const [selectedVideo] = await db.query<VideoSelect>(
+            const [video] = await db.query<VideoSelect>(
               `select BIN_TO_UUID(video_id) as video_id
                      , render_quality
                      , render_options
                      , file_url
                      , full_map_name
+                     , demo_game_dir
                      , demo_playback_time
                      , demo_required_fix
                   from videos
@@ -920,7 +941,7 @@ router.get('/connect/client', async (ctx) => {
               [videoId],
             );
 
-            if (!selectedVideo) {
+            if (!video) {
               ws.send(
                 JSON.stringify({
                   type: 'error',
@@ -933,10 +954,10 @@ router.get('/connect/client', async (ctx) => {
               break;
             }
 
-            const { demo_required_fix, ...video } = selectedVideo;
+            const { demo_required_fix, ...videoPayload } = video;
 
             const buffer = new Buffer();
-            const payload = new TextEncoder().encode(JSON.stringify(video));
+            const payload = new TextEncoder().encode(JSON.stringify(videoPayload));
             const length = new Uint8Array(4);
             new DataView(length.buffer).setUint32(0, payload.byteLength);
 
@@ -945,7 +966,7 @@ router.get('/connect/client', async (ctx) => {
 
             const getFilePath = demo_required_fix === FixedDemoStatus.Required ? getFixedDemoFilePath : getDemoFilePath;
 
-            const filePath = getFilePath(video.video_id);
+            const filePath = getFilePath(videoPayload.video_id);
             await buffer.write(await Deno.readFile(filePath));
 
             ws.send(buffer.bytes());

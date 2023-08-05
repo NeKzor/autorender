@@ -23,15 +23,16 @@ enum WorkshopSteamAppId {
   PortalReloaded = 1255980,
 }
 
-// TODO: Add support for more games
-const supportedGameMods: { [key: string]: WorkshopSteamAppId } = {
+const supportedGameMods: { [gameDir: string]: WorkshopSteamAppId } = {
   'portal2': WorkshopSteamAppId.Portal2,
-  // "TWTM": WorkshopSteamAppId.ThinkingWithTimeMachine,
-  // "aperturetag": WorkshopSteamAppId.ApertureTag,
-  // "portal_stories": WorkshopSteamAppId.None,
-  // "portalreloaded": WorkshopSteamAppId.PortalReloaded,
+  'TWTM': WorkshopSteamAppId.ThinkingWithTimeMachine,
+  'aperturetag': WorkshopSteamAppId.ApertureTag,
+  'portal_stories': WorkshopSteamAppId.None,
+  'portalreloaded': WorkshopSteamAppId.PortalReloaded,
   // "p2ce": WorkshopSteamAppId.Portal2CommunityEdition,
 };
+
+export const supportedGameDirs = Object.keys(supportedGameMods);
 
 export const getDemoInfo = async (filePath: string) => {
   const buffer = await Deno.readFile(filePath);
@@ -50,7 +51,7 @@ export const getDemoInfo = async (filePath: string) => {
       .adjustRange();
 
     const supportedGame = supportedGameMods[demo.gameDirectory!];
-    if (!supportedGame) {
+    if (supportedGame === undefined) {
       return 'Game is not supported.';
     }
 

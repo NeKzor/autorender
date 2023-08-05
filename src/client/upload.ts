@@ -63,11 +63,13 @@ self.addEventListener(
         break;
       }
       case UploadWorkerDataType.Upload: {
-        for (const { video_id } of data.videos) {
+        for (const { video_id, demo_game_dir } of data.videos) {
           try {
+            const game = config.games.find((game) => game.mod === demo_game_dir)!;
+
             const videoFile = join(
-              config.games.at(0)!.dir,
-              config.games.at(0)!.mod,
+              game.dir,
+              game.mod,
               config.autorender['folder-name'],
               `${video_id}.dem.mp4`,
             );
