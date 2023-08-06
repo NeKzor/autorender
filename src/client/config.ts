@@ -416,7 +416,7 @@ const createConfig = async () => {
       name: 'steam_common',
       message: '📂️ Please enter your Steam\'s common directory path where all games are installed.',
       suggestions: [
-        isWindows ? 'C:\\Program Files\\Steam\\steamapps\\common' : join(
+        isWindows ? 'C:\\Program Files (x86)\\Steam\\steamapps\\common' : join(
           '/home/',
           Deno.env.get('USER') ?? 'user',
           '/.steam/steam/steamapps/common',
