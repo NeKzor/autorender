@@ -9,7 +9,7 @@ src/server/storage/
 log/
 .autorender.yaml
 autorender.yaml
-prod.yml
+docker-compose.yml
 
 # Logs
 logs
