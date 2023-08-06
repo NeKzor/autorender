@@ -1179,7 +1179,8 @@ router.get('/connect/client', async (ctx) => {
   };
 });
 
-router.get('/login/discord/authorize', useSession, async (ctx) => {
+// deno-lint-ignore no-explicit-any
+router.get('/login/discord/authorize', useRateLimiter as any, useSession, async (ctx) => {
   const code = ctx.request.url.searchParams.get('code');
   if (!code) {
     //return Err(ctx, Status.BadRequest);
