@@ -558,7 +558,7 @@ export const downloadSourceAutoRecord = async (
 
   const url = sarRelease
     ?.assets
-    ?.find(({ name }) => name.includes('linux'))
+    ?.find(({ name }) => name.includes(isWindows ? 'windows' : 'linux'))
     ?.browser_download_url;
 
   if (!url) {
