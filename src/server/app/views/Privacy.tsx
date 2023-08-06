@@ -10,7 +10,7 @@ export const Privacy = () => {
   return (
     <>
       <h1>Privacy Notice</h1>
-      <p>Last Update: June 3, 2023</p>
+      <p>Last Update: Aug 6, 2023</p>
       <h2>Cookies</h2>
       <ul>
         <li>We only use two "session" cookies.</li>
@@ -21,12 +21,16 @@ export const Privacy = () => {
       <h2>Stored Data</h2>
       <ul>
         <li>
-          We only store your Discord username and ID from your authenticated Discord account.
+          We store username and ID from your Discord account.
         </li>
-        <li>We do not store anything else related to Discord.</li>
-        <li>We temporarily store any demo you uploaded.</li>
         <li>
-          Our Third Party render clients store uploaded demos and rendered videos temporarily.
+          We store information about which server and which channel a render request came from.
+        </li>
+        <li>
+          We store the uploaded demo file and its metadata for each requested video.
+        </li>
+        <li>
+          Our Third Party render clients temporarily store uploaded demos and rendered videos.
         </li>
         <li>
           We store any video you rendered on Backblaze, see Third Party section.
