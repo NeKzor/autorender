@@ -187,8 +187,8 @@ recommended to use local storage during development since every request to b2 wi
 
 In [production](#production) the client code will be compiled into a single executable which should also be tested:
 
-- Compile the binary for your OS with `deno task client:compile:<linux|windows>`
-- Run the binary in developer mode with `./src/client/bin/autorenderclient --dev`
+- Compile the binary: `deno task compile`
+- Run the binary in developer mode: `./src/client/bin/autorenderclient --dev`
 
 [logged in account]: #user-setup
 
@@ -262,8 +262,7 @@ Difference between `dev` and `prod`:
 
 Client code will be compiled and shipped in a single executable:
 
-- `deno task client:compile:linux` outputs the executable to `src/client/bin/autorenderclient`
-- `deno task client:compile:windows` outputs the executable to `src/client/bin/autorenderclient.exe`
+- `deno task client --all --release` outputs the executables to `src/client/bin`
 
 When deploying make sure that clients have checked the following:
 
