@@ -9,7 +9,6 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
-import { join } from 'https://deno.land/std@0.190.0/path/mod.ts';
 import { logger } from './logger.ts';
 import { ClientState } from './state.ts';
 import { Video } from '../shared/models.ts';
