@@ -18,14 +18,14 @@
     "stale": "deno task --cwd src/server stale",
     "perm": "deno task --cwd src/server perm",
     "board": "deno task --cwd src/server board",
-    "build": "docker compose --profile nginx build",
-    "build:prod": "docker compose -f prod.yml build",
-    "up": "docker compose --profile nginx up",
-    "up:prod": "docker compose -f prod.yml up",
-    "down": "docker compose --profile nginx down",
-    "down:prod": "docker compose -f prod.yml down",
+    "build": "docker compose build",
+    "up": "docker compose up",
+    "down": "docker compose down",
     "db": "docker exec -ti autorender-db mariadb",
-    "db:debug": "docker exec -ti autorender-db bash"
+    "db:debug": "docker exec -ti autorender-db bash",
+    "db:restart": "docker container restart autorender-db",
+    "db:stop": "docker container stop autorender-db",
+    "setup": "deno run --allow-read=. --allow-write=. --allow-run=mkcert setup.ts"
   },
   "lint": {
     "exclude": [
