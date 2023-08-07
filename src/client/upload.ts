@@ -16,6 +16,7 @@ import { Video } from '../shared/models.ts';
 import { Config } from './config.ts';
 import { VideoPayload } from './protocol.ts';
 import { UserAgent } from './version.ts';
+import { realGameModFolder } from './utils.ts';
 
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 
@@ -67,12 +68,7 @@ self.addEventListener(
           try {
             const game = config.games.find((game) => game.mod === demo_game_dir)!;
 
-            const videoFile = join(
-              game.dir,
-              game.mod,
-              config.autorender['folder-name'],
-              `${video_id}.dem.mp4`,
-            );
+            const videoFile = realGameModFolder(game, config.autorender['folder-name'], `${video_id}.dem.mp4`);
 
             const stat = await Deno.stat(videoFile);
             if (stat.size > AUTORENDER_MAX_VIDEO_FILE_SIZE) {

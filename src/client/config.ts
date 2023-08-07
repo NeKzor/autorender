@@ -8,7 +8,7 @@ import * as yaml from 'https://deno.land/std@0.193.0/yaml/mod.ts';
 import { Checkbox, Input, prompt, Secret, Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/mod.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 import { bgCyan } from 'https://deno.land/std@0.192.0/fmt/colors.ts';
-import { join } from 'https://deno.land/std@0.192.0/path/mod.ts';
+import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
 import { getBinary, getOptionsOnly, getRelease, Options } from './options.ts';
 import { BlobReader, Uint8ArrayWriter, ZipReader } from 'https://deno.land/x/zipjs@v2.7.20/index.js';
 import ProgressBar from 'https://deno.land/x/progress@v1.3.8/mod.ts';
@@ -16,6 +16,7 @@ import { logger } from './logger.ts';
 import { writeAll } from 'https://deno.land/std@0.189.0/streams/write_all.ts';
 import { UserAgent } from './version.ts';
 import { RenderQuality } from '../shared/models.ts';
+import { gameFolder, realGameModFolder } from './utils.ts';
 
 const isWindows = Deno.build.os === 'windows';
 
@@ -75,6 +76,7 @@ export const configExplanation: {
       cfg: 'Name of the installed autorender cfg file for the game.',
       mod: 'Name of the game\'s mod directory.',
       dir: 'Path where the game is installed.',
+      sourcemod: 'If the game is a sourcemod.',
     },
   ],
 };
@@ -85,7 +87,8 @@ export type GameMods =
   | 'TWTM'
   | 'portal_stories'
   // | 'p2ce'
-  | 'portalreloaded';
+  | 'portalreloaded'
+  | 'Portal 2 Speedrun Mod';
 
 export const gameModsWhichSupportWorkshop: GameMods[] = [
   'portal2',
@@ -102,6 +105,7 @@ export const supportedGameMods: GameMods[] = [
   'portal_stories',
   // 'p2ce',
   'portalreloaded',
+  'Portal 2 Speedrun Mod',
 ];
 
 export interface GameConfig {
@@ -110,6 +114,7 @@ export interface GameConfig {
   cfg: string;
   mod: GameMods;
   dir: string;
+  sourcemod: boolean;
 }
 
 const supportedGames: Record<string, Partial<GameConfig>> = {
@@ -139,6 +144,10 @@ const supportedGames: Record<string, Partial<GameConfig>> = {
   'Portal Reloaded': {
     mod: 'portalreloaded',
   },
+  'Portal 2 Speedrun Mod': {
+    mod: 'Portal 2 Speedrun Mod',
+    sourcemod: true,
+  },
 };
 
 export const getGameName = (game: GameConfig) => {
@@ -155,7 +164,7 @@ export const parseAndValidateConfig = async () => {
 
   const autorenderValidations: [
     keyof Config['autorender'],
-    ['string' | 'number', (number | ((value: unknown) => void))?],
+    ['string' | 'number' | 'boolean', (number | ((value: unknown) => void))?],
   ][] = [
     ['access-token', ['string']],
     ['connect-uri', ['string']],
@@ -183,14 +192,14 @@ export const parseAndValidateConfig = async () => {
 
   const sarValidations: [
     keyof Config['sar'],
-    ['string' | 'number', (number | ((value: string | number) => void))?],
+    ['string' | 'number' | 'boolean', (number | ((value: string | number) => void))?],
   ][] = [
     ['version', ['string']],
   ];
 
   const gamesValidations: [
     keyof Config['games']['0'],
-    ['string' | 'number', (number | ((value: string | number, key: string) => void))?],
+    ['string' | 'number' | 'boolean', (number | ((value: string | number, key: string) => void))?],
   ][] = [
     ['exe', ['string']],
     ['proc', ['string']],
@@ -207,6 +216,7 @@ export const parseAndValidateConfig = async () => {
       }
     }]],
     ['dir', ['string']],
+    ['sourcemod', ['boolean']],
   ];
 
   const configValidations = [
@@ -256,7 +266,7 @@ export const parseAndValidateConfig = async () => {
 
         for (const [objKey, innerValidator] of innerValidations) {
           const [expectedType, validator] = innerValidator as [
-            'string' | 'number',
+            'string' | 'number' | 'boolean',
             (number | ((value: unknown, key: string) => void) | undefined)?,
           ];
 
@@ -269,7 +279,8 @@ export const parseAndValidateConfig = async () => {
 
           if (
             (expectedType === 'string' && typeof innerValue !== 'string') ||
-            (expectedType === 'number' && typeof innerValue !== 'number')
+            (expectedType === 'number' && typeof innerValue !== 'number') ||
+            (expectedType === 'boolean' && typeof innerValue !== 'boolean')
           ) {
             bail(`Expected value type for key ${itemObjKey} to be of type ${expectedType}`);
           }
@@ -294,7 +305,7 @@ export const parseAndValidateConfig = async () => {
 
       for (const [objKey, innerValidator] of validations) {
         const [expectedType, validator] = innerValidator as [
-          'string' | 'number',
+          'string' | 'number' | 'boolean',
           (number | ((value: unknown, key: string) => void) | undefined)?,
         ];
 
@@ -308,7 +319,8 @@ export const parseAndValidateConfig = async () => {
 
         if (
           (expectedType === 'string' && typeof innerValue !== 'string') ||
-          (expectedType === 'number' && typeof innerValue !== 'number')
+          (expectedType === 'number' && typeof innerValue !== 'number') ||
+          (expectedType === 'boolean' && typeof innerValue !== 'boolean')
         ) {
           bail(`Expected value type for key ${itemObjKey} to be of type ${expectedType}`);
         }
@@ -406,21 +418,30 @@ const createConfig = async () => {
     },
     {
       name: 'game_mod',
-      message: '🎮️ Which games do you support? (default: Portal 2) Select a game with spacebar.',
+      message: '🎮️ Which games do you support? Select a game with spacebar.',
       type: Checkbox,
       options: Object.keys(supportedGames),
       minOptions: 1,
       confirmSubmit: false,
+      after: async ({ game_mod }, next) => {
+        if (
+          game_mod!.some((game) => supportedGames[game as keyof typeof supportedGames]!.sourcemod) &&
+          !game_mod!.includes('Portal 2')
+        ) {
+          console.error(colors.red(`❌️ Portal 2 is required for sourcemods.`));
+          await next('game_mod');
+        } else {
+          await next();
+        }
+      },
     },
     {
       name: 'steam_common',
       message: '📂️ Please enter your Steam\'s common directory path where all games are installed.',
       suggestions: [
-        isWindows ? 'C:\\Program Files (x86)\\Steam\\steamapps\\common' : join(
-          '/home/',
-          Deno.env.get('USER') ?? 'user',
-          '/.steam/steam/steamapps/common',
-        ),
+        isWindows
+          ? 'C:\\Program Files (x86)\\Steam\\steamapps\\common'
+          : join('/home/', Deno.env.get('USER') ?? 'user', '/.steam/steam/steamapps/common'),
       ],
       type: Input,
       after: async ({ steam_common, game_mod }, next) => {
@@ -430,10 +451,9 @@ const createConfig = async () => {
               name: 'read',
               path: steam_common,
             });
+
             if (state !== 'granted') {
-              console.log(
-                colors.red('❌️ Access denied for Steam\'s common folder.'),
-              );
+              console.log(colors.red('❌️ Access denied for Steam\'s common folder.'));
               Deno.exit(1);
             }
 
@@ -442,14 +462,27 @@ const createConfig = async () => {
               let errored = false;
 
               for (const game of game_mod ?? []) {
+                const supportedGame = supportedGames[game as keyof typeof supportedGames]!;
+                const gamesDir = supportedGame.sourcemod ? join(dirname(steam_common), 'sourcemods') : steam_common;
+
+                if (supportedGame.sourcemod) {
+                  const { state } = await Deno.permissions.request({
+                    name: 'read',
+                    path: gamesDir,
+                  });
+
+                  if (state !== 'granted') {
+                    console.log(colors.red('❌️ Access denied for Steam\'s sourcemods folder.'));
+                    Deno.exit(1);
+                  }
+                }
+
                 try {
-                  await Deno.stat(join(steam_common, game));
+                  await Deno.stat(join(gamesDir, game));
                 } catch (err) {
                   options.verboseMode && logger.error(err);
 
-                  console.error(
-                    colors.red(`❌️ ${game} is not installed.`),
-                  );
+                  console.error(colors.red(`❌️ ${game} is not installed.`));
 
                   errored = true;
                 }
@@ -490,12 +523,19 @@ const createConfig = async () => {
     },
     'games': [
       ...setup.game_mod!.map((game) => {
+        const supportedGame = supportedGames[game as keyof typeof supportedGames]!;
+        const steamCommon = setup.steam_common!;
+        const gamesDir = supportedGame.sourcemod ? join(dirname(steamCommon), 'sourcemods') : steamCommon;
+
+        console.log(gamesDir);
+
         return {
           exe: isWindows ? 'portal2.exe' : 'portal2.sh',
           proc: isWindows ? 'portal2.exe' : 'portal2_linux',
           cfg: 'autorender.cfg',
-          ...supportedGames[game as keyof typeof supportedGames],
-          dir: join(setup.steam_common!, game),
+          sourcemod: false,
+          ...supportedGame,
+          dir: join(gamesDir, game),
         } as Config['games']['0'];
       }),
     ],
@@ -613,7 +653,11 @@ export const downloadSourceAutoRecord = async (
     const data = await binary.getData!(new Uint8ArrayWriter());
 
     for (const game of config.games) {
-      const file = join(game.dir, binary.filename);
+      if (game.sourcemod) {
+        continue;
+      }
+
+      const file = gameFolder(game, binary.filename);
 
       try {
         const { state } = await Deno.permissions.request({
@@ -677,7 +721,7 @@ export const downloadAutorenderConfig = async (
   const data = new Uint8Array(await res.arrayBuffer());
 
   for (const game of config.games) {
-    const file = join(game.dir, game.mod, 'cfg', 'autorender.cfg');
+    const file = realGameModFolder(game, 'cfg', 'autorender.cfg');
 
     try {
       const { state } = await Deno.permissions.request({
@@ -753,7 +797,7 @@ export const downloadQuickhud = async (
     for (const game of config.games) {
       for (const entry of entries) {
         const data = await entry.getData!(new Uint8ArrayWriter());
-        const folder = join(game.dir, game.mod, 'crosshair');
+        const folder = realGameModFolder(game, 'crosshair');
         const file = join(folder, entry.filename);
 
         try {

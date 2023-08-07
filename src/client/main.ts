@@ -25,6 +25,7 @@ import { getOptions } from './options.ts';
 import { WorkerDataType } from './worker.ts';
 import { UserAgent } from './version.ts';
 import { createFolders } from './game.ts';
+import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
 
 addEventListener('error', (ev) => {
   console.dir({ error: ev.error }, { depth: 16 });
@@ -175,7 +176,7 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos['data']) => {
 
   // Delete demo and video files from previous render.
   for (const game of config.games) {
-    const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
+    const autorenderDir = realGameModFolder(game, config.autorender['folder-name']);
 
     for await (const file of Deno.readDir(autorenderDir)) {
       if (
@@ -302,7 +303,7 @@ const handleMessageStart = async (game: GameConfig) => {
     logger.info('Game exited', { code });
 
     // Let the upload thread do the work.
-    const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
+    const autorenderDir = realGameModFolder(game, config.autorender['folder-name']);
 
     upload.postMessage({
       type: UploadWorkerDataType.Upload,
@@ -393,7 +394,7 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
 
     // Check if a workshop map needs to be downloaded.
     if (video.file_url) {
-      const mapFile = join(game.dir, game.mod, 'maps', `${video.full_map_name}.bsp`);
+      const mapFile = gameModFolder(game, 'maps', `${video.full_map_name}.bsp`);
       let downloadMapFile = false;
 
       try {
@@ -409,7 +410,7 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
     }
 
     await Deno.writeFile(
-      join(game.dir, game.mod, config.autorender['folder-name'], `${video.video_id}.dem`),
+      realGameModFolder(game, config.autorender['folder-name'], `${video.video_id}.dem`),
       new Uint8Array(demo),
     );
 
@@ -562,12 +563,12 @@ const prepareGameLaunch = async (game: GameConfig) => {
   ];
 
   await Deno.writeTextFile(
-    join(game.dir, game.mod, 'cfg', 'autoexec.cfg'),
+    realGameModFolder(game, 'cfg', 'autoexec.cfg'),
     autoexec.join('\n'),
   );
 
   const getCommand = (): [string, string] => {
-    const command = join(game.dir, game.exe);
+    const command = gameFolder(game, game.exe);
 
     switch (Deno.build.os) {
       case 'windows':
@@ -584,7 +585,7 @@ const prepareGameLaunch = async (game: GameConfig) => {
   const args = [
     argv0,
     '-game',
-    game.mod === 'portalreloaded' ? 'portal2' : game.mod,
+    game.mod === 'portalreloaded' ? 'portal2' : game.sourcemod ? `../../sourcemods/${game.mod}` : game.mod,
     '-novid',
     // TODO: vulkan is not always available
     //"-vulkan",

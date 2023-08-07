@@ -28,8 +28,9 @@ const supportedGameMods: { [gameDir: string]: WorkshopSteamAppId } = {
   'TWTM': WorkshopSteamAppId.ThinkingWithTimeMachine,
   'aperturetag': WorkshopSteamAppId.ApertureTag,
   'portal_stories': WorkshopSteamAppId.None,
-  'portalreloaded': WorkshopSteamAppId.PortalReloaded,
   // "p2ce": WorkshopSteamAppId.Portal2CommunityEdition,
+  'portalreloaded': WorkshopSteamAppId.PortalReloaded,
+  'Portal 2 Speedrun Mod': WorkshopSteamAppId.None,
 };
 
 export const supportedGameDirs = Object.keys(supportedGameMods);

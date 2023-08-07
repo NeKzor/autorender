@@ -4,13 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
+import { dirname } from 'https://deno.land/std@0.192.0/path/mod.ts';
 import { Config, gameModsWhichSupportWorkshop } from './config.ts';
 import { logger } from './logger.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
+import { realGameModFolder } from './utils.ts';
 
 /**
- * Request access to the game's subdirectory and create all folders for rendering
+ * Request access to the game's subdirectory and create all folders for rendering.
  */
 export const createFolders = async (config: Config | null) => {
   if (!config) {
@@ -42,7 +43,7 @@ export const createFolders = async (config: Config | null) => {
     }
 
     try {
-      const autorenderDir = join(game.dir, game.mod, config.autorender['folder-name']);
+      const autorenderDir = realGameModFolder(game, config.autorender['folder-name']);
       await Deno.mkdir(autorenderDir);
       logger.info(`Created autorender directory ${autorenderDir}`);
       // deno-lint-ignore no-empty
@@ -50,7 +51,7 @@ export const createFolders = async (config: Config | null) => {
 
     if (gameModsWhichSupportWorkshop.includes(game.mod)) {
       try {
-        const workshopDir = join(game.dir, game.mod, 'maps', 'workshop');
+        const workshopDir = realGameModFolder(game, 'maps', 'workshop');
         await Deno.mkdir(workshopDir);
         logger.info(`Created workshop directory ${workshopDir}`);
         // deno-lint-ignore no-empty

@@ -25,6 +25,7 @@ import { YAMLError } from 'https://deno.land/std@0.193.0/yaml/_error.ts';
 import { Confirm } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/confirm.ts';
 import { Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/select.ts';
 import * as yaml from 'https://deno.land/std@0.193.0/yaml/mod.ts';
+import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
 
 export interface Options {
   devMode: boolean;
@@ -255,14 +256,14 @@ const runCheck = async (options: Options) => {
       }
 
       const files = [
-        join(game.dir, sarFilename),
-        join(game.dir, game.mod, config.autorender['folder-name']),
-        join(game.dir, game.mod, 'cfg', game.cfg),
-        join(game.dir, game.mod, 'crosshair'),
+        gameFolder(game, sarFilename),
+        realGameModFolder(game, config.autorender['folder-name']),
+        realGameModFolder(game, 'cfg', game.cfg),
+        realGameModFolder(game, 'crosshair'),
       ];
 
       if (gameModsWhichSupportWorkshop.includes(game.mod)) {
-        files.push(join(game.dir, game.mod, 'maps', 'workshop'));
+        files.push(gameModFolder(game, 'maps', 'workshop'));
       }
 
       for (const file of files) {
@@ -399,7 +400,7 @@ const runBenchmark = async (
     console.log(colors.white(`🚦️ Downloaded ${demoBenchmarkFile}`));
 
     const data = new Uint8Array(await res.arrayBuffer());
-    const file = join(game.dir, game.mod, config.autorender['folder-name'], demoBenchmarkFile);
+    const file = realGameModFolder(game, config.autorender['folder-name'], demoBenchmarkFile);
 
     try {
       await Deno.writeFile(file, data);
@@ -414,7 +415,7 @@ const runBenchmark = async (
       Deno.exit(1);
     }
 
-    const videoFile = join(game.dir, game.mod, config.autorender['folder-name'], `${demoBenchmarkFile}.mp4`);
+    const videoFile = realGameModFolder(game, config.autorender['folder-name'], `${demoBenchmarkFile}.mp4`);
 
     try {
       await Deno.remove(videoFile);
@@ -428,12 +429,12 @@ const runBenchmark = async (
       `playdemo ${join(config.autorender['folder-name'], demoBenchmarkFile)}`,
     ];
 
-    autoexecFile = join(game.dir, game.mod, 'cfg', 'autoexec.cfg');
+    autoexecFile = realGameModFolder(game, 'cfg', 'autoexec.cfg');
 
     await Deno.writeTextFile(autoexecFile, autoexec.join('\n'));
 
     const getCommand = (): [string, string] => {
-      const command = join(game.dir, game.exe);
+      const command = gameFolder(game, game.exe);
 
       switch (Deno.build.os) {
         case 'windows':
@@ -450,7 +451,7 @@ const runBenchmark = async (
     const args = [
       argv0,
       '-game',
-      game.mod === 'portalreloaded' ? 'portal2' : game.mod,
+      game.mod === 'portalreloaded' ? 'portal2' : game.sourcemod ? `../../sourcemods/${game.mod}` : game.mod,
       '-novid',
       '-windowed',
       '-w',
@@ -560,7 +561,7 @@ const launchGame = async (
     const game = config.games.find((game) => game.mod === gameToLaunch)!;
 
     const getCommand = (): [string, string] => {
-      const command = join(game.dir, game.exe);
+      const command = gameFolder(game, game.exe);
 
       switch (Deno.build.os) {
         case 'windows':
@@ -577,7 +578,7 @@ const launchGame = async (
     const args = [
       argv0,
       '-game',
-      game.mod === 'portalreloaded' ? 'portal2' : game.mod,
+      game.mod === 'portalreloaded' ? 'portal2' : game.sourcemod ? `../../sourcemods/${game.mod}` : game.mod,
       '-novid',
       '-windowed',
       '-w',
