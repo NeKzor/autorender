@@ -268,6 +268,7 @@ When deploying make sure that clients have checked the following:
 
 - The game can be launched from the terminal
 - Game updates are disabled
+- Steam Overlay is disabled
 - Steam client is in offline mode
 - Operating system does not enter sleep mode
 - Operating system does not power off
