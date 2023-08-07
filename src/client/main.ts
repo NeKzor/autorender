@@ -519,6 +519,32 @@ const getGameResolution = (): [string, string] => {
 };
 
 /**
+ * Game specific quirks.
+ */
+const getAutoExecQuirks = (game: GameConfig) => {
+  let sarTogglewait: string | null = 'sar_togglewait';
+  let sndRestart: string | null = 'sar_on_demo_start snd_restart';
+
+  switch (game.mod) {
+    case 'TWTM':
+      // No snd_restart here because it crashes the game.
+      sndRestart = null;
+      break;
+    case 'Portal 2 Speedrun Mod':
+      // No sar_togglewait here because the smsm plugin enables it.
+      sarTogglewait = null;
+      break;
+    default:
+      break;
+  }
+
+  return [
+    sarTogglewait,
+    sndRestart,
+  ].filter((quirk) => quirk !== null) as string[];
+};
+
+/**
  * Prepares autoexec.cfg to queue all demos.
  */
 const prepareGameLaunch = async (game: GameConfig) => {
@@ -555,6 +581,7 @@ const prepareGameLaunch = async (game: GameConfig) => {
 
   const autoexec = [
     `exec ${game.cfg}`,
+    ...getAutoExecQuirks(game),
     `sar_quickhud_set_texture crosshair/quickhud${height}-`,
     ...state.videos.slice(1).map(playdemo),
     ...(usesQueue ? ['sar_alias autorender_queue autorender_video_0'] : []),
