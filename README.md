@@ -116,21 +116,28 @@ sequenceDiagram
 
 ### Setup
 
-- Generate files with: `chmod +x setup && ./setup dev`
-- Build server image with: `deno task build`
+- Have the following ready:
+  - Discord user ID of the developer account
+  - Discord client ID of the application
+  - Discord client secret of the application
+  - Discord bot token of the application
+- Add the OAuth redirect for the Discord application: `https://autorender.portal2.local/login/discord/authorize`
+- Enable `message content intent` for the Discord bot application
+- Go through the setup process: `deno task setup`
+- Build server image: `deno task build`
 
 ### Install & Run Server
 
-- Configure [src/server/.env](#srcserverenv) file
-- Configure [src/bot/.env](#srcbotenv) file
+- Optional: Configure [src/server/.env](#srcserverenv) file
+- Optional: Configure [src/bot/.env](#srcbotenv) file
 - Start all containers: `deno task up`
-- Add a host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts`
+- Add a host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts` or `C:\Windows\System32\drivers\etc\hosts`
 
 The server should now be available at `https://autorender.portal2.local` and the bot should be online on Discord.
 
 ### src/server/.env
 
-Set the redirect URI of the Discord OAuth2 application to:
+The redirect URI of the Discord OAuth2 application should be set to:
 
 > `https://autorender.portal2.local/login/discord/authorize`
 
@@ -145,15 +152,13 @@ For development it is recommended to enable `HOT_RELOAD=true`.
 | DISCORD_CLIENT_ID     | Client ID of the Discord OAuth2 application.                                        |
 | DISCORD_CLIENT_SECRET | Client secret of the Discord OAuth2 application.                                    |
 | AUTORENDER_PUBLIC_URI | This is used for public links which the server generates.                           |
-| AUTORENDER_BOT_TOKEN  | Generated token which is shared between the server and the bot.<sup>1</sup>         |
+| AUTORENDER_BOT_TOKEN  | Generated token which is shared between the server and the bot.                     |
 | COOKIE_SECRET_KEY     | Non-predictable key used to encrypt/decrypt session cookies.                        |
 | B2_ENABLED            | Value `true` enables video storage on Backblaze.                                    |
 | B2_BUCKET_ID          | Bucket ID from Backblaze.                                                           |
 | B2_KEY_ID             | Key ID from Backblaze.                                                              |
 | B2_KEY_NAME           | Key name from Backblaze.                                                            |
 | B2_APP_KEY            | App key from Backblaze.                                                             |
-
-<sup>1</sup> Example: `openssl rand -hex 12`
 
 #### src/bot/.env
 
@@ -236,27 +241,23 @@ The project contains several tasks for convenience which can be executed with `d
 | `down:prod`              | Removes all containers in prod environment.                    |
 | `db`                     | Connect to the database.                                       |
 | `db:debug`               | Connect to the database container.                             |
+| `db:stop`                | Stop the database container.                                   |
+| `db:restart`             | Restart the database container.                                |
+| `setup`                  | Run the setup process.                                         |
 
 ## Production
 
-- Generate files: `chmod +x setup && ./setup prod`
-- Change `DENO_TASK_ENTRYPOINT` to `prod` in the `.env` file
-- Copy a docker-compose template file from `docker/compose` to `prod.yml`
-  - Example: `cp docker/compose/autorender.nekz.me.yml prod.yml`
-  - Modify `prod.yml` if needed
-- Build the server image: `deno task build:prod`
-- Configure `src/bot/.env` and `src/server/.env` files
-- Start the containers with `deno task up:prod`
+Setup should be self-explanatory as it's the same setup process as in [development](#setup).
 
 Make sure that the `src/bot/.env` file has the correct values for:
 
 - `AUTORENDER_BASE_API` should point to the internal address of the host, if hosted within the same network
-- `AUTORENDER_PUBLIC_URI` should point to the public domain (used for sending the final Discord message)
+- `AUTORENDER_PUBLIC_URI` should point to the public domain
 
 Difference between `dev` and `prod`:
 
 - Entrypoint in `Dockerfile`
-- In development all source files are mounted as read-write
+- In development all source and data files are mounted as read-write
 - In production only `.env` files and data files are mounted
 
 Client code will be compiled and shipped in a single executable:
@@ -272,7 +273,7 @@ When deploying make sure that clients have checked the following:
 - Operating system does not enter sleep mode
 - Operating system does not power off
 - Network connection is stable
-- There is nothing else that could interrupt the autorender
+- There is nothing else that could interrupt the autorender client
 
 ### Proxy Example with Nginx + Certbot
 
@@ -361,7 +362,9 @@ server {
   - ~~Automatic render~~
   - Send URL to leaderboard
 - ~~Advanced render options e.g. sar_ihud~~
-- ~~Support game mods~~
+- Support more games
+  - ~~Common Portal 2 mods~~
+  - Sourcemods
 - ~~Bot improvements~~
   - ~~Edit original interaction message or create a followup message~~
   - ~~Improve `/bot info`~~
@@ -386,7 +389,7 @@ server {
   - ~~Better dev setup~~
     - ~~Docker~~
     - ~~HTTPS~~
-    - Cross-platform setup script
+    - ~~Cross-platform setup script~~
     - Usage of deps.ts
   - Better deployment
     - Figure out a way to deploy to GPU instances (use DepotDownloader?)
