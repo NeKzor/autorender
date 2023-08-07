@@ -30,8 +30,7 @@ jobs:
 
       - name: Compile
         run: |
-          deno task client:compile:linux
-          deno task client:compile:windows
+          deno task compile --all --release
 
       - name: Create archives
         run: |
