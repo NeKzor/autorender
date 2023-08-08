@@ -281,13 +281,18 @@
     "https://esm.sh/react-router-dom@6.11.2/server": "80d06cd41ba366139373e5cddfd22324ce1cccbc76c1739d3cb374fd4bc473a2",
     "https://esm.sh/react@18.2.0": "8950a34a030620fce8349d6bd3913b3bdb186c5ec7968fa5ba4d054e22d78e6c",
     "https://esm.sh/stable/react@18.2.0/denonext/react.mjs": "3c4f23bcfc53b256fcfaf6f834fa9f584c3bb7be667b2682c6cb6ba8ef88f8e6",
+    "https://esm.sh/twind@0.16.16": "78dd3e2e3a8ee60ef4b3a78f03c79a4b287d4217de4ffcbc96cc07161cba70f9",
+    "https://esm.sh/twind@0.16.16/sheets": "fb1ec83bf5c03d49d1c5072116179caff9e67988ce44449c5a112893ce6dbff0",
     "https://esm.sh/v124/@remix-run/router@1.6.2": "0089fb2f53e6f13d24743ab3c076442724d62732355d59c3c119f4de62f3b65b",
     "https://esm.sh/v124/@remix-run/router@1.6.2/denonext/router.mjs": "327c1b11271b72c199b8fe80f343445d7693335f2f4c7a9fb8667f2c0d514ff4",
     "https://esm.sh/v130/@remix-run/router@1.6.2/denonext/router.mjs": "b73070a826d1b118c992d182b0de97cde4d3b7ef407ace5bd671f48009d32a70",
     "https://esm.sh/v130/react-dom@18.2.0/denonext/server.js": "0460557cf83e61c275692fc0b9b22837cad662db116c048e354eac3109f8b326",
     "https://esm.sh/v130/react-router-dom@6.11.2/denonext/react-router-dom.mjs": "44bac62038df7da6354cb2a47ffbdac8c6913c1a3ed661f64376d7b4924efc42",
     "https://esm.sh/v130/react-router-dom@6.11.2/denonext/server.js": "07792b618f30d03391e9ca8d37d8a18d87c52497c8c90abfac6d0b21ee6cebac",
-    "https://esm.sh/v130/react-router@6.11.2/denonext/react-router.mjs": "0e4504e7541e9656543d99658b99e87101f4e122c6282f2aa3b29d4b18fac077"
+    "https://esm.sh/v130/react-router@6.11.2/denonext/react-router.mjs": "0e4504e7541e9656543d99658b99e87101f4e122c6282f2aa3b29d4b18fac077",
+    "https://esm.sh/v130/style-vendorizer@2.2.3/denonext/style-vendorizer.mjs": "121455e7b04b631ef6463ce63cdcd29febd74d88c37713c774ceca8a1561c83d",
+    "https://esm.sh/v130/twind@0.16.16/denonext/sheets.js": "aff2004484fdf713c8d39492ce89ffd0d8f1fabf48fdb44e19d78948fecfa9aa",
+    "https://esm.sh/v130/twind@0.16.16/denonext/twind.mjs": "9899409a1065e6feac1e5754edc3fb6b00865fed200e085900bd660d79e04247"
   },
   "npm": {
     "specifiers": {
