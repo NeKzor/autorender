@@ -9,11 +9,11 @@
   },
   "npm": {
     "specifiers": {
-      "@discordeno/bot": "@discordeno/bot@19.0.0-next.0aeadbb",
-      "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.0aeadbb",
-      "@discordeno/rest": "@discordeno/rest@19.0.0-next.0aeadbb",
-      "@discordeno/types": "@discordeno/types@19.0.0-next.0aeadbb",
-      "@discordeno/utils": "@discordeno/utils@19.0.0-next.0aeadbb",
+      "@discordeno/bot": "@discordeno/bot@19.0.0-next.2d0f76e",
+      "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.2d0f76e",
+      "@discordeno/rest": "@discordeno/rest@19.0.0-next.2d0f76e",
+      "@discordeno/types": "@discordeno/types@19.0.0-next.2d0f76e",
+      "@discordeno/utils": "@discordeno/utils@19.0.0-next.2d0f76e",
       "@nekz/sdp": "@nekz/sdp@0.4.0"
     },
     "packages": {
@@ -24,6 +24,15 @@
           "@discordeno/rest": "@discordeno/rest@19.0.0-next.0aeadbb",
           "@discordeno/types": "@discordeno/types@19.0.0-next.0aeadbb",
           "@discordeno/utils": "@discordeno/utils@19.0.0-next.0aeadbb"
+        }
+      },
+      "@discordeno/bot@19.0.0-next.2d0f76e": {
+        "integrity": "sha512-ei4+hkW87QkB0ENEwLf3pweaLf3IoxQC3R5DBiBW1B5qRnUDaZnJTa1B1MyDOA4btqEv7DITj1Us1Y9N6CuuQQ==",
+        "dependencies": {
+          "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.2d0f76e",
+          "@discordeno/rest": "@discordeno/rest@19.0.0-next.2d0f76e",
+          "@discordeno/types": "@discordeno/types@19.0.0-next.2d0f76e",
+          "@discordeno/utils": "@discordeno/utils@19.0.0-next.2d0f76e"
         }
       },
       "@discordeno/bot@19.0.0-next.3445211": {
@@ -43,6 +52,14 @@
           "ws": "ws@8.13.0"
         }
       },
+      "@discordeno/gateway@19.0.0-next.2d0f76e": {
+        "integrity": "sha512-Linhr33cQiF0cRd6XGCnWLWX5ERfF4kp0TKIRp4Uj+9y52Qq33s2Ziytrm3lt3H4WqE14ltZtrJv+0xfwB4eAg==",
+        "dependencies": {
+          "@discordeno/types": "@discordeno/types@19.0.0-next.2d0f76e",
+          "@discordeno/utils": "@discordeno/utils@19.0.0-next.2d0f76e",
+          "ws": "ws@8.13.0"
+        }
+      },
       "@discordeno/gateway@19.0.0-next.3445211": {
         "integrity": "sha512-XEIThjK4VAI7TwmCPKCQE9sOPtEtAb+Ah1bzdSDDXEje7Nag1mDsA4HcnAJ8TASBue0dtWT0VAB5LnY1ghSuzQ==",
         "dependencies": {
@@ -59,6 +76,14 @@
           "dotenv": "dotenv@16.3.1"
         }
       },
+      "@discordeno/rest@19.0.0-next.2d0f76e": {
+        "integrity": "sha512-KCFDiPN6GoUcZtJIWe/S71k/bY1CXZw7rjd/HRnC2f1TbM+pLoq2qoINzQW94gsu8n0xrAoWxb5yyhqpIIeBhA==",
+        "dependencies": {
+          "@discordeno/types": "@discordeno/types@19.0.0-next.2d0f76e",
+          "@discordeno/utils": "@discordeno/utils@19.0.0-next.2d0f76e",
+          "dotenv": "dotenv@16.3.1"
+        }
+      },
       "@discordeno/rest@19.0.0-next.3445211": {
         "integrity": "sha512-mY7VKAryic4nrAUBEc7FvuktUkbgDw76bVzz7VcvcD5yydiqvAxGLKa7yHvmlW9Bf7sBlRpUe7SbMK8rCbNP2A==",
         "dependencies": {
@@ -71,6 +96,10 @@
         "integrity": "sha512-MTc2E/aZBDfMB1weJaajfCsB2lnqPA5dB4tQaFaijrEEnZvfkdsbNNBkVcN0YsaCYl+LdeTPhdihStsNO+6Tmw==",
         "dependencies": {}
       },
+      "@discordeno/types@19.0.0-next.2d0f76e": {
+        "integrity": "sha512-fW40w3/il4QGK4c9VbpXIECaCo+46oY7Bi1eY2OOk9X/b1HKo9YUNI1ehpbBE8EERepphiyaqzbx3us5gY2cOg==",
+        "dependencies": {}
+      },
       "@discordeno/types@19.0.0-next.3445211": {
         "integrity": "sha512-zEt7XZUb/hG/sRijhYAt7pzmuX/LcuYv+xUFdMUhQlWiAUXSLgE9u3gjCWzfzdFhjwyuOzZtUD7LISzaWkli0Q==",
         "dependencies": {}
@@ -79,6 +108,13 @@
         "integrity": "sha512-Lb6qteT1G+gsZkvkq8zKZ4zCBPX94KTxMR3zNi7mdRSJYuB3hV7aodti6ZhUx37uqk+Uki05ZMOwnJauRc/UxA==",
         "dependencies": {
           "@discordeno/types": "@discordeno/types@19.0.0-next.0aeadbb",
+          "tweetnacl": "tweetnacl@1.0.3"
+        }
+      },
+      "@discordeno/utils@19.0.0-next.2d0f76e": {
+        "integrity": "sha512-4y7n7E63OD4XFkmCoxPnx37dsS8TWtkQhfhtgb68mFUixA3FAioaJrBNtBGvS0n6RcmiZrDQxtx7Kz3WMcCUKQ==",
+        "dependencies": {
+          "@discordeno/types": "@discordeno/types@19.0.0-next.2d0f76e",
           "tweetnacl": "tweetnacl@1.0.3"
         }
       },
