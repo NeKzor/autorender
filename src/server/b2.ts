@@ -277,23 +277,37 @@ export class BackblazeClient {
     const uri = options.url ??
       `${options.baseApi ?? this.#baseApi}/b2api/${this.#apiVersion}/${operation}`;
 
-    const res = await fetch(uri, {
-      method: options.body ? 'POST' : 'GET',
-      headers,
-      body: options.body,
-    });
+    const fetchResponse = async () => {
+      return await fetch(uri, {
+        method: options.body ? 'POST' : 'GET',
+        headers,
+        body: options.body,
+      });
+    };
+
+    let res = await fetchResponse();
 
     if (!res.ok) {
+      const throwError = async () => {
+        const text = await res.text();
+        throw new Error(`Call to ${uri} failed: ${res.status}\n${text}`);
+      };
+
       if (
         res.status === 401 &&
         this.#automaticRetryOnUnauthorizedStatus &&
         operation !== 'b2_authorize_account'
       ) {
         await this.internalAuthorizeAccount();
-      }
 
-      const text = await res.text();
-      throw new Error(`Call to ${uri} failed: ${res.status}\n${text}`);
+        res = await fetchResponse();
+
+        if (!res.ok) {
+          await throwError();
+        }
+      } else {
+        await throwError();
+      }
     }
 
     return await res.json();
