@@ -1542,9 +1542,9 @@ router.get('/storage/files/portal2_benchmark.dem', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('portal2_benchmark.dem')), 'application/octet-stream');
 });
 
-const routeToImages = async (ctx: Context) => {
+const routeToImages = async (ctx: Context, file: string) => {
   try {
-    const image = await Deno.readFile(`./app/images/${ctx.params.file}`);
+    const image = await Deno.readFile(`./app/images/${file}`);
     Ok(ctx, image, 'image/png');
   } catch (err) {
     logger.error(err);
@@ -1552,8 +1552,8 @@ const routeToImages = async (ctx: Context) => {
   }
 };
 
-router.get('/images/:file([\\w]+\\.png)', routeToImages);
-router.get('/images/:file([\\w]+\\.jpg)', routeToImages);
+router.get('/images/:file([\\w]+\\.png)', (ctx) => routeToImages(ctx, ctx.params.file!));
+router.get('/images/:file([\\w]+\\.jpg)', (ctx) => routeToImages(ctx, ctx.params.file!));
 
 router.get('/favicon.ico', (ctx) => (ctx.response.status = Status.NotFound));
 router.post('/tokens/:access_token_id(\\d+)', useSession, routeToApp);
