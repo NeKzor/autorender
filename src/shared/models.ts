@@ -38,6 +38,10 @@ export interface User {
   username: string;
   discord_id: string;
   discord_avatar: string;
+  discord_avatar_url: string;
+  discord_banner: string;
+  discord_banner_url: string;
+  discord_accent_color: number;
   donation_link: string;
   permissions: UserPermissions;
   created_at: string;

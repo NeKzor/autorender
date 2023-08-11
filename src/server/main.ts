@@ -1232,12 +1232,19 @@ router.get('/login/discord/authorize', rateLimits.authorize, useSession, async (
 
   if (authUser?.user_id) {
     await db.execute(
-      `update users set username = ?, discord_avatar = ? where user_id = ?`,
+      `update users
+          set username = ?
+            , discord_avatar = ?
+            , discord_banner = ?
+            , discord_accent_color = ?
+        where user_id = ?`,
       [
         discordUser.discriminator !== '0'
           ? `${discordUser.username}#${discordUser.discriminator}`
           : discordUser.username,
         discordUser.avatar,
+        discordUser.banner ?? null,
+        discordUser.accent_color ?? null,
         authUser.user_id,
       ],
     );
@@ -1247,6 +1254,8 @@ router.get('/login/discord/authorize', rateLimits.authorize, useSession, async (
             username
           , discord_id
           , discord_avatar
+          , discord_banner
+          , discord_accent_color
           , permissions
         ) values (
             ?
@@ -1260,6 +1269,8 @@ router.get('/login/discord/authorize', rateLimits.authorize, useSession, async (
           : discordUser.username,
         discordUser.id,
         discordUser.avatar,
+        discordUser.banner ?? null,
+        discordUser.accent_color ?? null,
         UserPermissions.ListVideos,
       ],
     );

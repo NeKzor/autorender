@@ -73,7 +73,6 @@ const Navbar = () => {
         <div className={tw`flex items-center md:order-2`}>
           <button
             id='theme-toggle'
-            data-tooltip-target='tooltip-toggle'
             type='button'
             className={tw`mr-4 text-gray-500 inline-flex items-center justify-center dark:text-gray-400 hover:bg-gray-100 w-10 h-10 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5`}
           >
@@ -114,7 +113,7 @@ const Navbar = () => {
                 >
                   <img
                     className={tw`w-8 h-8 rounded-full`}
-                    src={`https://cdn.discordapp.com/avatars/${state.user.discord_id}/${state.user.discord_avatar}.png`}
+                    src={state.user.discord_avatar_url}
                     alt='user_avatar'
                   />
                 </button>

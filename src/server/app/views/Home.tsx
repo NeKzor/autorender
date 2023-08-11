@@ -17,7 +17,7 @@ type LatestVideo =
   >
   & {
     requested_by_username: string | null;
-    requested_by_discord_avatar: string | null;
+    requested_by_discord_avatar_url: string | null;
   };
 
 type MostViewedVideo =
@@ -60,7 +60,7 @@ export const loader: DataLoader = async ({ context }) => {
           , share_id
           , requested_by_id
           , requester.username as requested_by_username
-          , requester.discord_avatar as requested_by_discord_avatar
+          , requester.discord_avatar_url as requested_by_discord_avatar_url
        from videos
        left join users requester
             on requester.discord_id = videos.requested_by_id
@@ -189,7 +189,7 @@ export const Home = () => {
                             ? (
                               <img
                                 className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
-                                src={`https://cdn.discordapp.com/avatars/${video.requested_by_id}/${video.requested_by_discord_avatar}.png`}
+                                src={video.requested_by_discord_avatar_url!}
                               />
                             )
                             : (

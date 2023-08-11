@@ -6,7 +6,27 @@ CREATE TABLE users (
     user_id BIGINT NOT NULL AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
     discord_id  VARCHAR(64) NOT NULL,
-    discord_avatar VARCHAR(1024) NOT NULL,
+    discord_avatar VARCHAR(64) NULL,
+    discord_avatar_url VARCHAR(128) AS (
+        CONCAT(
+            'https://cdn.discordapp.com/avatars/',
+            discord_id,
+            '/',
+            discord_avatar,
+            IF(discord_avatar REGEXP '^a_', '.gif', '.png')
+        )
+    ) STORED,
+    discord_banner VARCHAR(64),
+    discord_banner_url VARCHAR(128) AS (
+        CONCAT(
+            'https://cdn.discordapp.com/banners/',
+            discord_id,
+            '/',
+            discord_banner,
+            IF(discord_banner REGEXP '^a_', '.gif', '.png')
+        )
+    ) STORED,
+    discord_accent_color INT,
     donation_link VARCHAR(1024),
     permissions INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

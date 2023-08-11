@@ -53,7 +53,7 @@ export const Tokens = () => {
         <tbody>
           {tokens.map((token) => {
             return (
-              <tr className={tw`bg-white border-b dark:bg-gray-800 dark:border-gray-700`}>
+              <tr className={tw`bg-white dark:bg-gray-800 dark:border-gray-700`}>
                 <th
                   scope='row'
                   className={tw`px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white`}
