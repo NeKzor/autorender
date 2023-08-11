@@ -1338,12 +1338,13 @@ const routeToApp = async (ctx: Context) => {
     user,
     meta,
     domain: SERVER_DOMAIN,
+    nonce: btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))),
     discordAuthorizeLink: DISCORD_AUTHORIZE_LINK,
   };
 
   const router = createStaticRouter(routeHandler.dataRoutes, context);
 
-  ctx.response.body = await index(router, context, initialState);
+  ctx.response.body = index(router, context, initialState);
   ctx.response.headers.set('content-type', 'text/html');
 };
 
@@ -1540,7 +1541,8 @@ router.get('/storage/files/quickhud.zip', async (ctx) => {
 router.get('/storage/files/portal2_benchmark.dem', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('portal2_benchmark.dem')), 'application/octet-stream');
 });
-router.get('/images/:file([\\w]+\\.png)', async (ctx) => {
+
+const routeToImages = async (ctx: Context) => {
   try {
     const image = await Deno.readFile(`./app/images/${ctx.params.file}`);
     Ok(ctx, image, 'image/png');
@@ -1548,7 +1550,10 @@ router.get('/images/:file([\\w]+\\.png)', async (ctx) => {
     logger.error(err);
     Err(ctx, Status.NotFound);
   }
-});
+};
+
+router.get('/images/:file([\\w]+\\.png)', routeToImages);
+router.get('/images/:file([\\w]+\\.jpg)', routeToImages);
 
 router.get('/favicon.ico', (ctx) => (ctx.response.status = Status.NotFound));
 router.post('/tokens/:access_token_id(\\d+)', useSession, routeToApp);
@@ -1595,11 +1600,12 @@ app.addEventListener('error', (ev) => {
 
 app.use(oakCors());
 app.use(async (ctx, next) => {
+  const method = ctx.request.method;
   const url = ctx.request.url;
   const ua = ctx.request.headers.get('user-agent')?.replace(/[\n\r]/g, '') ??
     '';
   const ip = ctx.request.headers.get('x-real-ip') ?? ctx.request.ip;
-  logger.info(`${url} : ${ip} : ${ua}`);
+  logger.info(`${method} ${url} : ${ip} : ${ua}`);
   await next();
 });
 

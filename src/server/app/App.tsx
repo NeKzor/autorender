@@ -5,6 +5,7 @@
  */
 
 import * as React from 'https://esm.sh/react@18.2.0';
+import { tw } from 'https://esm.sh/twind@0.16.16';
 import { AppDispatchContext, AppState, AppStateContext, reducer } from './AppState.ts';
 import { RouteMeta } from './Routes.ts';
 import Navbar from './components/Navbar.tsx';
@@ -40,7 +41,6 @@ const getCSP = (nonce: string) => {
 
 type HeadProps = {
   initialState: AppState;
-  nonce: string;
   children?: React.ReactNode;
 };
 
@@ -49,7 +49,7 @@ type BodyProps = {
   children?: React.ReactNode;
 };
 
-export const Head = ({ initialState, nonce }: HeadProps) => {
+export const Head = ({ initialState }: HeadProps) => {
   const [state] = React.useReducer(reducer, initialState);
   const { meta, domain } = state;
   const title = meta.title !== undefined ? `${meta.title} | ${domain}` : domain;
@@ -61,7 +61,7 @@ export const Head = ({ initialState, nonce }: HeadProps) => {
         name='viewport'
         content='minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no'
       />
-      <meta http-equiv='Content-Security-Policy' content={getCSP(nonce)} />
+      <meta http-equiv='Content-Security-Policy' content={getCSP(state.nonce)} />
       <meta name='theme-color' content='#f44336' />
       {metaNames
         .filter((name) => meta[name] !== undefined && meta[name] !== null)
@@ -89,9 +89,13 @@ export const Body = ({ initialState, children }: BodyProps) => {
   return (
     <AppStateContext.Provider value={state}>
       <AppDispatchContext.Provider value={dispatch}>
-        <Navbar />
-        {children}
-        <Footer />
+        <div className={tw`flex flex-col h-screen`}>
+          <Navbar />
+          <div className={tw`mt-24 m-4 grow`}>
+            {children}
+          </div>
+          <Footer />
+        </div>
         <script
           src='https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.0/flowbite.min.js'
           integrity='sha384-SXh3DHBSUxvOFk7+R9qN3hv+DtgPJz4vQwOArU6zxWGnvtR1sy+XmzKUkNh2qWST'

@@ -31,6 +31,7 @@ setup({
   },
   sheet,
   darkMode: 'media',
+  mode: 'silent',
 });
 
 export const index = (
@@ -38,13 +39,12 @@ export const index = (
   context: StaticHandlerContext,
   initialState: AppState,
 ) => {
-  const nonce = crypto.randomUUID();
+  const nonce = initialState.nonce;
 
   sheet.reset();
 
   const head = renderToString(
-    <Head initialState={initialState} nonce={nonce}>
-    </Head>,
+    <Head initialState={initialState} />,
   );
 
   const body = renderToString(
@@ -60,25 +60,34 @@ export const index = (
 
   const styleTag = getStyleTag(sheet, { nonce });
 
-  const scriptTag = Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true'
-    ? `<script nonce="${nonce}">
-(() => {
-  let ws, to, iv = null;
-  const hotReload = () => {
-  ws?.close();
-  ws = new WebSocket(location.origin.replace('http', 'ws') + '/connect/__hot_reload');
-  ws.onopen = () => iv = setInterval(() => ws.send('reload?'), 500);
-  ws.onmessage = (event) => event.data === 'yes' && location.reload();
-  ws.onclose = () => clearInterval(iv) || clearTimeout(to) || (to = setTimeout(() => hotReload(), 500));
-};
-hotReload();
-})();
-</script>`
-    : '';
+  const scriptTag = `<script type="module" nonce="${nonce}">
+${
+    Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true'
+      ? `(() => {
+    let ws, to, iv = null;
+    const hotReload = () => {
+    ws?.close();
+    ws = new WebSocket(location.origin.replace('http', 'ws') + '/connect/__hot_reload');
+    ws.onopen = () => iv = setInterval(() => ws.send('reload?'), 500);
+    ws.onmessage = (event) => event.data === 'yes' && location.reload();
+    ws.onclose = () => clearInterval(iv) || clearTimeout(to) || (to = setTimeout(() => hotReload(), 500));
+  };
+  hotReload();
+  })();`
+      : ''
+  }
+if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
+  await fetch(\`/api/v1\${location.pathname}/views\`, { method: 'POST' });
+}
 
-  const darkModeTag = `<script nonce="${nonce}">
+const notFoundGoBack = document.querySelector('#not-found-go-back');
+if (notFoundGoBack) {
+  notFoundGoBack.addEventListener('click', () => {
+    history.back();
+  });
+}
+
 const isDarkMode = localStorage.getItem('color-theme') === 'dark';
-
 const dark = document.getElementById('theme-toggle-dark-icon');
 const light = document.getElementById('theme-toggle-light-icon');
 
@@ -92,30 +101,31 @@ if (isDarkMode ||
 }
 
 const toggle = document.getElementById('theme-toggle');
-
-toggle.addEventListener('click', function() {
-    dark.classList.toggle('hidden');
-    light.classList.toggle('hidden');
-
-    if (localStorage.getItem('color-theme')) {
-        if (localStorage.getItem('color-theme') === 'light') {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('color-theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('color-theme', 'light');
-        }
-    } else {
-        if (document.documentElement.classList.contains('dark')) {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('color-theme', 'light');
-        } else {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('color-theme', 'dark');
-        }
-    }
-});
+if (toggle) {
+  toggle.addEventListener('click', () => {
+      dark.classList.toggle('hidden');
+      light.classList.toggle('hidden');
+  
+      if (localStorage.getItem('color-theme')) {
+          if (localStorage.getItem('color-theme') === 'light') {
+              document.documentElement.classList.add('dark');
+              localStorage.setItem('color-theme', 'dark');
+          } else {
+              document.documentElement.classList.remove('dark');
+              localStorage.setItem('color-theme', 'light');
+          }
+      } else {
+          if (document.documentElement.classList.contains('dark')) {
+              document.documentElement.classList.remove('dark');
+              localStorage.setItem('color-theme', 'light');
+          } else {
+              document.documentElement.classList.add('dark');
+              localStorage.setItem('color-theme', 'dark');
+          }
+      }
+  });
+}
 </script>`;
 
-  return `<html lang='en' dir='ltr'><head>${head}${styleTag}</head><body class="dark:bg-gray-700 dark:text-white">${body}</body>${scriptTag}${darkModeTag}</html>`;
+  return `<html lang='en' dir='ltr'><head>${head}${styleTag}</head><body class="dark:bg-gray-700 dark:text-white">${body}</body>${scriptTag}</html>`;
 };

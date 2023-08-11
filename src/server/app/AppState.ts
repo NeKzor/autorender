@@ -12,6 +12,7 @@ export interface AppState {
   user: User | null;
   meta: RouteMeta;
   domain: string;
+  nonce: string;
   discordAuthorizeLink: string;
 }
 

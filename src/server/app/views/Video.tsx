@@ -123,7 +123,7 @@ export const VideoView = () => {
     <>
       {!data?.video_id && <div>video not found :(</div>}
       {data && (
-        <div className={tw`mt-24 m-4`}>
+        <div>
           {isQueueRoute
             ? (
               <div>

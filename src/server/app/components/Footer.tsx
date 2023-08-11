@@ -46,7 +46,7 @@ const Footer = () => {
             </li>
           </ul>
         </div>
-        <hr className={tw`my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" `} />
+        <hr className={tw`my-6 border-gray-200 sm:mx-auto dark:border-gray-700`} />
         <span className={tw`block text-sm text-gray-500 sm:text-center dark:text-gray-400`}>
           © 2023{' '}
           <a href='https://github.com/NeKzor' className={tw`hover:underline`}>

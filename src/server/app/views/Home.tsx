@@ -161,7 +161,7 @@ export const Home = () => {
     <>
       {data !== null && (
         <>
-          <div className={tw`mt-24 m-4`}>
+          <div>
             <div className={tw`grid grid-cols sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4`}>
               {data.latestVideos.map((video) => {
                 return (
