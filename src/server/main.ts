@@ -22,7 +22,6 @@ import {
 } from 'https://deno.land/x/oak@v12.2.0/mod.ts';
 import { ResponseBody, ResponseBodyFunction } from 'https://deno.land/x/oak@v12.2.0/response.ts';
 import { CookieStore, Session } from 'https://deno.land/x/oak_sessions@v4.1.4/mod.ts';
-import { MapStore, RateLimiter } from 'https://deno.land/x/oak_rate_limit@v0.1.1/mod.ts';
 import { oakCors } from 'https://deno.land/x/cors@v1.2.2/mod.ts';
 import { logger } from './logger.ts';
 import { index } from './app/index.tsx';
@@ -59,6 +58,7 @@ import {
   Storage,
   validateShareId,
 } from './utils.ts';
+import { rateLimits } from './rate_limits.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -108,12 +108,6 @@ const _requiresAuth: Middleware<AppState> = (ctx) => {
     return Err(ctx, Status.Unauthorized);
   }
 };
-
-const useRateLimiter = await RateLimiter({
-  store: new MapStore(),
-  windowMs: 1000,
-  max: 10,
-});
 
 let discordBot: WebSocket | null = null;
 
@@ -593,9 +587,8 @@ apiV1
       }
     }
   })
-  // Get video views and increment.
-  // deno-lint-ignore no-explicit-any
-  .post('/videos/:share_id/views', useRateLimiter as any, async (ctx) => {
+  // Get current video views and increment.
+  .post('/videos/:share_id/views', rateLimits.views, async (ctx) => {
     if (!validateShareId(ctx.params.share_id!)) {
       return Err(ctx, Status.BadRequest);
     }
@@ -1179,8 +1172,7 @@ router.get('/connect/client', async (ctx) => {
   };
 });
 
-// deno-lint-ignore no-explicit-any
-router.get('/login/discord/authorize', useRateLimiter as any, useSession, async (ctx) => {
+router.get('/login/discord/authorize', rateLimits.authorize, useSession, async (ctx) => {
   const code = ctx.request.url.searchParams.get('code');
   if (!code) {
     //return Err(ctx, Status.BadRequest);
@@ -1588,7 +1580,9 @@ type AppState = {
   session: Session & { get(key: 'user'): User | undefined };
 };
 
-const app = new Application<AppState>();
+const app = new Application<AppState>({
+  proxy: true,
+});
 
 app.addEventListener('error', (ev) => {
   try {
@@ -1602,9 +1596,8 @@ app.use(oakCors());
 app.use(async (ctx, next) => {
   const method = ctx.request.method;
   const url = ctx.request.url;
-  const ua = ctx.request.headers.get('user-agent')?.replace(/[\n\r]/g, '') ??
-    '';
-  const ip = ctx.request.headers.get('x-real-ip') ?? ctx.request.ip;
+  const ua = ctx.request.headers.get('user-agent')?.replace(/[\n\r]/g, '') ?? '';
+  const ip = ctx.request.ip;
   logger.info(`${method} ${url} : ${ip} : ${ua}`);
   await next();
 });
