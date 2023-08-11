@@ -114,7 +114,7 @@ const Navbar = () => {
                 >
                   <img
                     className={tw`w-8 h-8 rounded-full`}
-                    src='https://cdn.discordapp.com/avatars/84272932246810624/18d7eb4dae2526721feba5fca0ed8cef.webp?size=128'
+                    src={`https://cdn.discordapp.com/avatars/${state.user.discord_id}/${state.user.discord_avatar}.png`}
                     alt='user_avatar'
                   />
                 </button>
@@ -123,9 +123,9 @@ const Navbar = () => {
                   id='user-dropdown'
                 >
                   <div className={tw`px-4 py-3`}>
-                    <span className={tw`block text-sm text-gray-900 dark:text-white`}>{state?.user?.username}</span>
+                    <span className={tw`block text-sm text-gray-900 dark:text-white`}>{state.user.username}</span>
                     <span className={tw`block text-sm  text-gray-500 truncate dark:text-gray-400`}>
-                      @{state?.user?.username}
+                      @{state.user.username}
                     </span>
                   </div>
                   <ul className={tw`py-2`} aria-labelledby='user-menu-button'>
