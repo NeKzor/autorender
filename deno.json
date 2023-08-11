@@ -20,7 +20,7 @@
     "build": "docker compose build",
     "up": "docker compose up",
     "down": "docker compose down",
-    "db": "docker exec -ti autorender-db mariadb",
+    "db": "docker exec -ti autorender-db bash -c 'printf [client]\\\\nuser=${MARIADB_USER}\\\\npassword=${MARIADB_PASSWORD}\\\\ndatabase=${MARIADB_DATABASE} > /etc/my.cnf' && docker exec -ti autorender-db mariadb",
     "db:debug": "docker exec -ti autorender-db bash",
     "db:restart": "docker container restart autorender-db",
     "db:stop": "docker container stop autorender-db",

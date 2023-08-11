@@ -17,7 +17,6 @@ Render Portal 2 demos on-demand with: `/render demo <file>`
   - [User Setup](#user-setup)
   - [Storage](#storage)
   - [Install & Run Client](#install--run-client)
-  - [Debugging Database](#debugging-database)
   - [Testing](#testing)
   - [Tasks](#tasks)
 - [Production](#production)
@@ -192,16 +191,6 @@ In [production](#production) the client code will be compiled into a single exec
 
 [logged in account]: #user-setup
 
-### Debugging Database
-
-A [my.cnf file] can be created to connect to the database without having to re-enter the credentials all the time:
-
-`docker exec -ti autorender-db bash -c 'printf [client]\\nuser=${MARIADB_USER}\\npassword=${MARIADB_PASSWORD}\\ndatabase=${MARIADB_DATABASE} > /etc/my.cnf'`
-
-Then connect to the database with: `deno task db`
-
-[my.cnf file]: https://mariadb.com/kb/en/configuring-mariadb-with-option-files
-
 ### Testing
 
 There are several demo files in `src/server/tests/demos` which can be used for testing:
@@ -212,7 +201,7 @@ There are several demo files in `src/server/tests/demos` which can be used for t
 
 ### Tasks
 
-The project contains several tasks for convenience which can be executed with `deno task <name>`.
+The project contains convenient tasks which can be executed with `deno task <name>`.
 
 | Task                     | Description                                                    |
 | ------------------------ | -------------------------------------------------------------- |
