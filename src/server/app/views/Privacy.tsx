@@ -12,7 +12,7 @@ export const Privacy = () => {
     <div className={tw`flex items-center justify-center`}>
       <article className={tw`format lg:format-lg`}>
         <h1>Privacy Notice</h1>
-        <p>Last Update: Aug 6, 2023</p>
+        <p>Last Update: Aug 11, 2023</p>
         <br />
         <b>Cookies</b>
         <ul>
@@ -25,7 +25,7 @@ export const Privacy = () => {
         <b>Stored Data</b>
         <ul>
           <li>
-            We store username and ID from your Discord account.
+            We store username, ID, avatar, banner and accent color from your Discord account.
           </li>
           <li>
             We store information about which server and which channel a render request came from.
