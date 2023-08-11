@@ -1,7 +1,7 @@
 {
   "tasks": {
-    "dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,storage --allow-write=log,storage --allow-run=ffprobe --allow-net --watch main.ts",
-    "prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,storage --allow-write=log,storage --allow-run=ffprobe --allow-net main.ts",
+    "dev": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,storage,app/images --allow-write=log,storage --allow-run=ffprobe --allow-net --watch main.ts",
+    "prod": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,log,storage,app/images --allow-write=log,storage --allow-run=ffprobe --allow-net main.ts",
     "test": "deno test --allow-net --allow-read --allow-env",
     "stale": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=autorender.database:3307 tasks/stale.ts",
     "perm": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=autorender.database:3307 tasks/perm.ts",

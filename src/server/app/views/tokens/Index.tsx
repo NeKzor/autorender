@@ -5,7 +5,6 @@
  */
 
 import * as React from 'https://esm.sh/react@18.2.0';
-import Footer from '../../components/Footer.tsx';
 import { DataLoader, json, PageMeta, unauthorized, useLoaderData } from '../../Routes.ts';
 import { AccessToken } from '../../../../shared/models.ts';
 
@@ -49,7 +48,6 @@ export const Tokens = () => {
       <a href='/tokens/create'>
         <button>Create New</button>
       </a>
-      <Footer />
     </>
   );
 };

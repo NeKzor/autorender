@@ -5,7 +5,6 @@
  */
 
 import * as React from 'https://esm.sh/react@18.2.0';
-import Footer from '../components/Footer.tsx';
 import { DataLoader, json, PageMeta, useLoaderData } from '../Routes.ts';
 import { PendingStatus, User, Video } from '../../../shared/models.ts';
 
@@ -92,7 +91,6 @@ export const Profile = () => {
           </ul>
         </>
       )}
-      <Footer />
     </>
   );
 };

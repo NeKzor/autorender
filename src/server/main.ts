@@ -1540,6 +1540,15 @@ router.get('/storage/files/quickhud.zip', async (ctx) => {
 router.get('/storage/files/portal2_benchmark.dem', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('portal2_benchmark.dem')), 'application/octet-stream');
 });
+router.get('/images/:file([\\w]+\\.png)', async (ctx) => {
+  try {
+    const image = await Deno.readFile(`./app/images/${ctx.params.file}`);
+    Ok(ctx, image, 'image/png');
+  } catch (err) {
+    logger.error(err);
+    Err(ctx, Status.NotFound);
+  }
+});
 
 router.get('/favicon.ico', (ctx) => (ctx.response.status = Status.NotFound));
 router.post('/tokens/:access_token_id(\\d+)', useSession, routeToApp);

@@ -7,7 +7,6 @@
 import * as React from 'https://esm.sh/react@18.2.0';
 import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 import * as _bcrypt_worker from 'https://deno.land/x/bcrypt@v0.4.1/src/worker.ts';
-import Footer from '../../components/Footer.tsx';
 import {
   ActionLoader,
   badRequest,
@@ -199,7 +198,6 @@ export const Token = () => {
       <a href='/tokens'>
         <button>{token.access_token_id ? 'Back' : 'Cancel'}</button>
       </a>
-      <Footer />
     </>
   );
 };

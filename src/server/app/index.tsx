@@ -23,8 +23,14 @@ setup({
     fontFamily: {
       sans: ['Roboto', 'sans-serif'],
     },
+    colors: {
+      discord: {
+        DEFAULT: '#5865F2',
+      },
+    },
   },
   sheet,
+  darkMode: 'media',
 });
 
 export const index = (
@@ -70,5 +76,46 @@ hotReload();
 </script>`
     : '';
 
-  return `<html lang='en' dir='ltr'><head>${head}${styleTag}</head><body>${body}</body>${scriptTag}</html>`;
+  const darkModeTag = `<script nonce="${nonce}">
+const isDarkMode = localStorage.getItem('color-theme') === 'dark';
+
+const dark = document.getElementById('theme-toggle-dark-icon');
+const light = document.getElementById('theme-toggle-light-icon');
+
+if (isDarkMode ||
+  (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  light.classList.remove('hidden');
+  document.documentElement.classList.add('dark');
+} else {
+  dark.classList.remove('hidden');
+  document.documentElement.classList.remove('dark')
+}
+
+const toggle = document.getElementById('theme-toggle');
+
+toggle.addEventListener('click', function() {
+    dark.classList.toggle('hidden');
+    light.classList.toggle('hidden');
+
+    if (localStorage.getItem('color-theme')) {
+        if (localStorage.getItem('color-theme') === 'light') {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+        }
+    } else {
+        if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+        }
+    }
+});
+</script>`;
+
+  return `<html lang='en' dir='ltr'><head>${head}${styleTag}</head><body class="dark:bg-gray-700 dark:text-white">${body}</body>${scriptTag}${darkModeTag}</html>`;
 };

@@ -20,7 +20,6 @@ import { createStaticHandler } from 'https://esm.sh/react-router-dom@6.11.2/serv
 
 import * as Home from './views/Home.tsx';
 import * as NotFound from './views/NotFound.tsx';
-import * as About from './views/About.tsx';
 import * as Token from './views/tokens/Token.tsx';
 import * as Tokens from './views/tokens/Index.tsx';
 import * as Privacy from './views/Privacy.tsx';
@@ -172,13 +171,6 @@ export const routes: Route<RequestContext>[] = [
     Component: Privacy.Privacy,
     meta: () => ({
       title: 'Privacy',
-    }),
-  },
-  {
-    path: '/about',
-    Component: About.About,
-    meta: () => ({
-      title: 'About',
     }),
   },
   {
