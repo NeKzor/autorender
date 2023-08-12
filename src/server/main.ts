@@ -55,6 +55,9 @@ import {
   getStorageFilePath,
   getVideoDownloadFilename,
   getVideoFilePath,
+  getVideoPreviewPath,
+  getVideoThumbnailPath,
+  getVideoThumbnailSmallPath,
   Storage,
   validateShareId,
 } from './utils.ts';
@@ -481,9 +484,6 @@ apiV1
         videoUrl = `${AUTORENDER_PUBLIC_URI}/storage/videos/${video.share_id}`;
       }
 
-      // TODO: Determine video length, create video preview and
-      //       small/large thumbnails in a different thread.
-
       const { affectedRows } = await db.execute(
         `update videos
             set pending = ?
@@ -576,14 +576,6 @@ apiV1
         logger.error('Set video as finished for', video.video_id, { affectedRows });
       } catch (err) {
         logger.error(err);
-      }
-    } finally {
-      if (B2_ENABLED) {
-        try {
-          Deno.remove(filePath);
-        } catch (err) {
-          logger.error('Failed to remove video file', filePath, ':', err);
-        }
       }
     }
   })
@@ -1460,6 +1452,7 @@ router.get('/storage/demos/:share_id([0-9A-Za-z_-]{11})/:fixed(fixed)?', async (
 
     const demo = await Deno.readFile(getFilePath(video.video_id));
 
+    // TODO: Fix this
     const filename = requestedFixedDemo
       ? video.file_name.toLowerCase().endsWith('.dem')
         ? `${video.file_name.slice(0, -4)}_fixed.dem`
@@ -1535,6 +1528,61 @@ router.get('/storage/demos/:video_id/:fixed(fixed)?', async (ctx) => {
     }
   }
 });
+router.get('/storage/previews/:share_id', async (ctx) => {
+  const { share_id } = ctx.params;
+
+  if (!validateShareId(share_id)) {
+    return Err(ctx, Status.BadRequest);
+  }
+
+  try {
+    const path = getVideoPreviewPath({ share_id });
+    const preview = await Deno.readFile(path);
+
+    ctx.response.headers.set(
+      'Content-Disposition',
+      `filename="${encodeURIComponent(basename(path))}"`,
+    );
+
+    ctx.response.headers.set('Cache-Control', 'public, max-age=300');
+
+    Ok(ctx, preview, 'image/webp');
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      return Err(ctx, Status.NotFound);
+    } else {
+      logger.error(err);
+    }
+  }
+});
+router.get('/storage/thumbnails/:share_id/:small(small)?', async (ctx) => {
+  const share_id = ctx.params.share_id!;
+  const small = ctx.params.small !== undefined;
+
+  if (!validateShareId(share_id)) {
+    return Err(ctx, Status.BadRequest);
+  }
+
+  try {
+    const path = (small ? getVideoThumbnailSmallPath : getVideoThumbnailPath)({ share_id });
+    const preview = await Deno.readFile(path);
+
+    ctx.response.headers.set(
+      'Content-Disposition',
+      `filename="${encodeURIComponent(basename(path))}"`,
+    );
+
+    ctx.response.headers.set('Cache-Control', 'public, max-age=300');
+
+    Ok(ctx, preview, 'image/webp');
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      return Err(ctx, Status.NotFound);
+    } else {
+      logger.error(err);
+    }
+  }
+});
 router.get('/storage/files/autorender.cfg', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('autorender.cfg')), 'text/plain');
 });
@@ -1548,6 +1596,9 @@ router.get('/storage/files/portal2_benchmark.dem', async (ctx) => {
 const routeToImages = async (ctx: Context, file: string) => {
   try {
     const image = await Deno.readFile(`./app/images/${file}`);
+
+    ctx.response.headers.set('Cache-Control', 'public, max-age=300');
+
     Ok(ctx, image, 'image/png');
   } catch (err) {
     logger.error(err);

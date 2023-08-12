@@ -155,6 +155,7 @@ export interface Video {
   video_preview_url: string;
   thumbnail_url_small: string;
   thumbnail_url_large: string;
+  processed: number;
   views: number;
   visibility: VisibilityState;
   deleted_by: number;

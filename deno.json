@@ -17,6 +17,7 @@
     "stale": "deno task --cwd src/server stale",
     "perm": "deno task --cwd src/server perm",
     "board": "deno task --cwd src/server board",
+    "processing": "deno task --cwd src/server processing",
     "build": "docker compose build",
     "up": "docker compose up",
     "down": "docker compose down",

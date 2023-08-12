@@ -95,7 +95,7 @@ CREATE TABLE videos (
     video_preview_url VARCHAR(1024),
     thumbnail_url_small VARCHAR(1024),
     thumbnail_url_large VARCHAR(1024),
-    thumb_url VARCHAR(1024),
+    processed INT DEFAULT 0,
     views INT NOT NULL DEFAULT 0,
     visibility INT NOT NULL DEFAULT 0,
     deleted_by BIGINT,

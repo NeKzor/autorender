@@ -13,7 +13,7 @@ import { tw } from 'https://esm.sh/twind@0.16.16';
 type LatestVideo =
   & Pick<
     Video,
-    'share_id' | 'title' | 'created_at' | 'views' | 'requested_by_id'
+    'share_id' | 'title' | 'created_at' | 'views' | 'requested_by_id' | 'video_preview_url' | 'thumbnail_url_small'
   >
   & {
     requested_by_username: string | null;
@@ -54,11 +54,13 @@ export const meta: PageMeta<undefined> = () => {
 
 export const loader: DataLoader = async ({ context }) => {
   const latestVideos = await context.db.query<LatestVideo>(
-    `select videos.title
+    `select videos.share_id
+          , videos.title
           , videos.created_at
           , videos.views
-          , share_id
-          , requested_by_id
+          , videos.requested_by_id
+          , videos.video_preview_url
+          , videos.thumbnail_url_small
           , requester.username as requested_by_username
           , requester.discord_avatar_url as requested_by_discord_avatar_url
        from videos
@@ -162,26 +164,45 @@ export const Home = () => {
       {data !== null && (
         <>
           <div>
-            <div className={tw`grid grid-cols sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4`}>
+            <div
+              className={tw`grid grid-cols sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4`}
+            >
               {data.latestVideos.map((video) => {
                 return (
                   <div
-                    className={tw`p-4 border border-gray-200 rounded shadow md:p-6 bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700`}
+                    className={tw`p-4 border border-gray-200 rounded shadow bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700`}
                   >
                     <a href={`/videos/${video.share_id}`}>
                       <div
-                        className={tw`flex items-center justify-center h-48 mb-4 bg-gray-300 rounded dark:bg-gray-700 animate-pulse`}
+                        className={tw`relative flex items-center justify-center h-48 mb-4 bg-gray-300 rounded dark:bg-gray-700`}
                       >
-                        <svg
-                          className={tw`w-10 h-10 text-gray-200 dark:text-gray-600`}
-                          aria-hidden='true'
-                          xmlns='http://www.w3.org/2000/svg'
-                          fill='currentColor'
-                          viewBox='0 0 16 20'
-                        >
-                          <path d='M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z' />
-                          <path d='M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z' />
-                        </svg>
+                        {video.thumbnail_url_small
+                          ? (
+                            <>
+                              <img
+                                className={tw`transition-transform duration-300 transform object-cover w-full h-full rounded-[12px]`}
+                                src={video.thumbnail_url_small}
+                              />
+                              {video.video_preview_url && (
+                                <img
+                                  className={tw`absolute top-0 left-0 opacity-0 transition-opacity duration-300 transform hover:opacity-100 object-cover w-full h-full rounded-[12px]`}
+                                  src={video.video_preview_url}
+                                />
+                              )}
+                            </>
+                          )
+                          : (
+                            <svg
+                              className={tw`w-10 h-10 text-gray-200 dark:text-gray-600`}
+                              aria-hidden='true'
+                              xmlns='http://www.w3.org/2000/svg'
+                              fill='currentColor'
+                              viewBox='0 0 16 20'
+                            >
+                              <path d='M14.066 0H7v5a2 2 0 0 1-2 2H0v11a1.97 1.97 0 0 0 1.934 2h12.132A1.97 1.97 0 0 0 16 18V2a1.97 1.97 0 0 0-1.934-2ZM10.5 6a1.5 1.5 0 1 1 0 2.999A1.5 1.5 0 0 1 10.5 6Zm2.221 10.515a1 1 0 0 1-.858.485h-8a1 1 0 0 1-.9-1.43L5.6 10.039a.978.978 0 0 1 .936-.57 1 1 0 0 1 .9.632l1.181 2.981.541-1a.945.945 0 0 1 .883-.522 1 1 0 0 1 .879.529l1.832 3.438a1 1 0 0 1-.031.988Z' />
+                              <path d='M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.98 2.98 0 0 0 .13 5H5Z' />
+                            </svg>
+                          )}
                       </div>
                       <div className={tw`flex items-center space-x-3`}>
                         <div>
@@ -204,9 +225,9 @@ export const Home = () => {
                               </svg>
                             )}
                         </div>
-                        <div>
-                          <div className={tw`h-2 mb-3 text-sm font-bold`}>
-                            {video.title}
+                        <div className={tw`flex-shrink items-center`}>
+                          <div className={tw`text-sm font-bold`}>
+                            <p className={tw`truncate`}>{video.title}</p>
                           </div>
                           <div className={tw`h-2 mb-3 text-sm`}>
                             {video.views} views | {toAgo(video.created_at)}
