@@ -139,6 +139,7 @@ createCommand({
                             placeholder: 'Please enter your new render commands',
                             maxLength: 1024,
                             required: true,
+                            value: preset.options,
                           },
                         ],
                       },
