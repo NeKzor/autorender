@@ -174,7 +174,9 @@ export const Home = () => {
                   >
                     <a href={`/videos/${video.share_id}`}>
                       <div
-                        className={tw`relative flex items-center justify-center h-48 mb-4 bg-gray-300 rounded dark:bg-gray-700`}
+                        className={tw`relative flex items-center justify-center h-48 mb-4${
+                          video.thumbnail_url_small ? '' : ' bg-gray-300 dark:bg-gray-700 rounded-[12px]'
+                        }`}
                       >
                         {video.thumbnail_url_small
                           ? (
