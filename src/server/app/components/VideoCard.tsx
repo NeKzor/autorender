@@ -116,7 +116,7 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
         </div>
         <div className={tw`flex items-center space-x-3`}>
           <div>
-            {video.requested_by_id
+            {video.requested_by_discord_avatar_url
               ? (
                 <img
                   className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
