@@ -92,7 +92,7 @@ export type GameMods =
 
 export const gameModsWhichSupportWorkshop: GameMods[] = [
   'portal2',
-  'aperturetag',
+  ...(isWindows ? ['aperturetag'] : []) as GameMods[],
   'TWTM',
   // 'p2ce',
   'portalreloaded',
@@ -100,7 +100,7 @@ export const gameModsWhichSupportWorkshop: GameMods[] = [
 
 export const supportedGameMods: GameMods[] = [
   'portal2',
-  'aperturetag',
+  ...(isWindows ? ['aperturetag'] : []) as GameMods[],
   'TWTM',
   'portal_stories',
   // 'p2ce',
@@ -117,7 +117,7 @@ export interface GameConfig {
   sourcemod: boolean;
 }
 
-const supportedGames: Record<string, Partial<GameConfig>> = {
+export const supportedGames: Record<string, Partial<GameConfig>> = {
   'Portal 2': {
     mod: 'portal2',
   },
@@ -150,7 +150,7 @@ const supportedGames: Record<string, Partial<GameConfig>> = {
   },
 };
 
-export const getGameName = (game: GameConfig) => {
+export const getGameName = (game: Pick<GameConfig, 'mod'>) => {
   const [name] = Object.entries(supportedGames).find(([_, { mod }]) => mod === game.mod) ?? [];
   return name;
 };
@@ -363,6 +363,20 @@ export const getConfigOnly = async () => {
   return config;
 };
 
+export const createGameConfig = (steamCommon: string) => (mod: string) => {
+  const supportedGame = supportedGames[mod as keyof typeof supportedGames]!;
+  const gamesDir = supportedGame.sourcemod ? join(dirname(steamCommon), 'sourcemods') : steamCommon;
+
+  return {
+    exe: isWindows ? 'portal2.exe' : 'portal2.sh',
+    proc: isWindows ? 'portal2.exe' : 'portal2_linux',
+    cfg: 'autorender.cfg',
+    sourcemod: false,
+    ...supportedGame,
+    dir: join(gamesDir, mod),
+  } as Config['games']['0'];
+};
+
 const createConfig = async () => {
   const options = getOptionsOnly();
 
@@ -522,22 +536,7 @@ const createConfig = async () => {
       version: '',
     },
     'games': [
-      ...setup.game_mod!.map((game) => {
-        const supportedGame = supportedGames[game as keyof typeof supportedGames]!;
-        const steamCommon = setup.steam_common!;
-        const gamesDir = supportedGame.sourcemod ? join(dirname(steamCommon), 'sourcemods') : steamCommon;
-
-        console.log(gamesDir);
-
-        return {
-          exe: isWindows ? 'portal2.exe' : 'portal2.sh',
-          proc: isWindows ? 'portal2.exe' : 'portal2_linux',
-          cfg: 'autorender.cfg',
-          sourcemod: false,
-          ...supportedGame,
-          dir: join(gamesDir, game),
-        } as Config['games']['0'];
-      }),
+      ...setup.game_mod!.map(createGameConfig(setup.steam_common!)),
     ],
   };
 
@@ -578,6 +577,7 @@ const createConfig = async () => {
 export const downloadSourceAutoRecord = async (
   config: Config | null,
   options: Options,
+  addedGames?: GameConfig[],
 ) => {
   if (!config) {
     console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
@@ -652,7 +652,7 @@ export const downloadSourceAutoRecord = async (
 
     const data = await binary.getData!(new Uint8ArrayWriter());
 
-    for (const game of config.games) {
+    for (const game of addedGames ?? config.games) {
       if (game.sourcemod) {
         continue;
       }
@@ -697,6 +697,7 @@ export const downloadSourceAutoRecord = async (
 export const downloadAutorenderConfig = async (
   config: Config | null,
   options: Options,
+  addedGames?: GameConfig[],
 ) => {
   if (!config) {
     console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
@@ -720,7 +721,7 @@ export const downloadAutorenderConfig = async (
 
   const data = new Uint8Array(await res.arrayBuffer());
 
-  for (const game of config.games) {
+  for (const game of addedGames ?? config.games) {
     const file = realGameModFolder(game, 'cfg', 'autorender.cfg');
 
     try {
@@ -751,6 +752,7 @@ export const downloadAutorenderConfig = async (
 export const downloadQuickhud = async (
   config: Config | null,
   options: Options,
+  addedGames?: GameConfig[],
 ) => {
   if (!config) {
     console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
@@ -794,7 +796,7 @@ export const downloadQuickhud = async (
     zip = new ZipReader(new BlobReader(quickhud), { useWebWorkers: false });
     const entries = await zip.getEntries();
 
-    for (const game of config.games) {
+    for (const game of addedGames ?? config.games) {
       for (const entry of entries) {
         const data = await entry.getData!(new Uint8ArrayWriter());
         const folder = realGameModFolder(game, 'crosshair');

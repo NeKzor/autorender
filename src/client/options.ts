@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { join } from 'https://deno.land/std@0.192.0/path/mod.ts';
+import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
 import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 import { Cell, Table } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/table/mod.ts';
@@ -12,6 +12,7 @@ import { logger } from './logger.ts';
 import {
   Config,
   configExplanation,
+  createGameConfig,
   downloadAutorenderConfig,
   downloadQuickhud,
   downloadSourceAutoRecord,
@@ -19,13 +20,15 @@ import {
   getConfigOnly,
   getGameName,
   parseAndValidateConfig,
+  supportedGames,
 } from './config.ts';
 import { AutorenderVersion, UserAgent } from './version.ts';
 import { YAMLError } from 'https://deno.land/std@0.193.0/yaml/_error.ts';
-import { Confirm } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/confirm.ts';
-import { Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/select.ts';
+import { Checkbox, Confirm, Input, prompt, Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/mod.ts';
 import * as yaml from 'https://deno.land/std@0.193.0/yaml/mod.ts';
 import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
+
+const isWindows = Deno.build.os === 'windows';
 
 export interface Options {
   devMode: boolean;
@@ -48,9 +51,10 @@ export const getOptions = async () => {
       .option('-q, --quickhud', 'Download latest quickhud files.')
       .option('-b, --benchmark', 'Run a benchmark render for finding the correct scale-timeout value.')
       .option('-l, --launch', 'Test if a game can be launched.')
+      .option('-g, --add-game', 'Add a new game.')
       .option('-e, --explain', 'Explain all config options.')
       .option('-a, --validate', 'Validate if the config file is correct.')
-      .action(async ({ verbose, check, dev, sar, cfg, quickhud, benchmark, launch, explain, validate }) => {
+      .action(async ({ verbose, check, dev, sar, cfg, quickhud, benchmark, launch, addGame, explain, validate }) => {
         const options = {
           devMode: !!dev,
           verboseMode: !!verbose,
@@ -82,6 +86,11 @@ export const getOptions = async () => {
 
         if (launch) {
           await launchGame(await getConfigOnly(), options);
+          Deno.exit(0);
+        }
+
+        if (addGame) {
+          await addNewGame(await getConfigOnly(), options);
           Deno.exit(0);
         }
       })
@@ -597,6 +606,149 @@ const launchGame = async (
 
     const { code } = await gameProcess.output();
     console.log(colors.white('Game exited'), { code });
+  } catch (err) {
+    options?.verboseMode === false && console.error(err);
+  }
+};
+
+const addNewGame = async (
+  config: Config | null,
+  options: Options,
+) => {
+  if (!config) {
+    console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
+    Deno.exit(1);
+  }
+
+  try {
+    const availableGames = Object.entries(supportedGames)
+      .filter(([_, game]) => !config.games.some(({ mod }) => mod === game.mod))
+      .map(([name]) => name);
+
+    if (!availableGames.length) {
+      console.log(colors.white(`You already support all available games.`));
+      Deno.exit(1);
+    }
+
+    const setup = await prompt([
+      {
+        name: 'game_mod',
+        type: Checkbox,
+        message: '🎮️ Which games should be added? Select a game with spacebar.',
+        options: availableGames,
+        minOptions: 1,
+        confirmSubmit: false,
+      },
+      {
+        name: 'steam_common',
+        message: '📂️ Please enter your Steam\'s common directory path where all games are installed.',
+        type: Input,
+        suggestions: [
+          isWindows
+            ? 'C:\\Program Files (x86)\\Steam\\steamapps\\common'
+            : join('/home/', Deno.env.get('USER') ?? 'user', '/.steam/steam/steamapps/common'),
+        ],
+        after: async ({ steam_common, game_mod }, next) => {
+          if (steam_common) {
+            try {
+              const { state } = await Deno.permissions.request({
+                name: 'read',
+                path: steam_common,
+              });
+
+              if (state !== 'granted') {
+                console.log(colors.red('❌️ Access denied for Steam\'s common folder.'));
+                Deno.exit(1);
+              }
+
+              const stat = await Deno.stat(steam_common);
+              if (stat.isDirectory) {
+                let errored = false;
+
+                for (const game of game_mod ?? []) {
+                  const supportedGame = supportedGames[game as keyof typeof supportedGames]!;
+                  const gamesDir = supportedGame.sourcemod ? join(dirname(steam_common), 'sourcemods') : steam_common;
+
+                  if (supportedGame.sourcemod) {
+                    const { state } = await Deno.permissions.request({
+                      name: 'read',
+                      path: gamesDir,
+                    });
+
+                    if (state !== 'granted') {
+                      console.log(colors.red('❌️ Access denied for Steam\'s sourcemods folder.'));
+                      Deno.exit(1);
+                    }
+                  }
+
+                  try {
+                    await Deno.stat(join(gamesDir, game));
+                  } catch (err) {
+                    options.verboseMode && logger.error(err);
+
+                    console.error(colors.red(`❌️ ${game} is not installed.`));
+
+                    errored = true;
+                  }
+                }
+
+                if (errored) {
+                  Deno.exit(1);
+                }
+
+                return await next();
+              }
+            } catch (err) {
+              options.verboseMode && logger.error(err);
+            }
+          }
+
+          console.log(colors.red('Invalid directory.'));
+          await next('steam_common');
+        },
+      },
+    ]);
+
+    const newGames = setup.game_mod!.map(createGameConfig(setup.steam_common!));
+
+    if (newGames.some((game) => !game.sourcemod)) {
+      try {
+        await downloadSourceAutoRecord(config, options, newGames);
+      } catch (err) {
+        options.verboseMode && console.error(err);
+        console.log(colors.red(`❌️ Failed to install SourceAutoRecord`));
+        Deno.exit(1);
+      }
+    }
+
+    try {
+      await downloadAutorenderConfig(config, options, newGames);
+    } catch (err) {
+      options.verboseMode && console.error(err);
+      console.log(colors.red(`❌️ Failed to install autorender.cfg`));
+      Deno.exit(1);
+    }
+
+    try {
+      await downloadQuickhud(config, options, newGames);
+    } catch (err) {
+      options.verboseMode && console.error(err);
+      console.log(colors.red(`❌️ Failed to install quickhud`));
+      Deno.exit(1);
+    }
+
+    try {
+      config.games.push(...newGames);
+
+      // deno-lint-ignore no-explicit-any
+      const autorenderYaml = yaml.stringify(config as any);
+      const configFile = join(Deno.env.get('PWD') ?? '', 'autorender.yaml');
+      await Deno.writeTextFile(configFile, autorenderYaml);
+
+      console.log(colors.green(`🛠️  Saved config file ${configFile}`));
+    } catch (err) {
+      options?.verboseMode === false && console.error(err);
+    }
   } catch (err) {
     options?.verboseMode === false && console.error(err);
   }
