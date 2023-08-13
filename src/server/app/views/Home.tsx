@@ -227,9 +227,9 @@ export const Home = () => {
                               </svg>
                             )}
                         </div>
-                        <div className={tw`flex-shrink items-center`}>
+                        <div className={tw`flex-shrink items-center truncate`}>
                           <div className={tw`text-sm font-bold`}>
-                            <p className={tw`truncate`}>{video.title}</p>
+                            {video.title}
                           </div>
                           <div className={tw`h-2 mb-3 text-sm`}>
                             {video.views} views | {toAgo(video.created_at)}
