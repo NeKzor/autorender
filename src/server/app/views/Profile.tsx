@@ -5,12 +5,27 @@
  */
 
 import * as React from 'https://esm.sh/react@18.2.0';
+import { tw } from 'https://esm.sh/twind@0.16.16';
 import { DataLoader, json, PageMeta, useLoaderData } from '../Routes.ts';
 import { PendingStatus, User, Video } from '../../../shared/models.ts';
+import { VideoCard } from '../components/VideoCard.tsx';
+
+type JoinedVideo = Video & {
+  requested_by_username: string | null;
+  requested_by_discord_avatar_url: string | null;
+};
 
 type Data = {
   user: User | undefined;
-  videos: Video[];
+  videos: JoinedVideo[];
+  stats: {
+    rendered_videos: number | undefined;
+    total_views: number | undefined;
+    provided_videos: number | undefined;
+    renderer_rank: number | undefined;
+    views_rank: number | undefined;
+    provider_rank: number | undefined;
+  };
 };
 
 export const meta: PageMeta<Data> = ({ data }) => {
@@ -21,31 +36,123 @@ export const meta: PageMeta<Data> = ({ data }) => {
 
 export const loader: DataLoader = async ({ params, context }) => {
   const [user] = await context.db.query<User>(
-    `select * from users where username = ?`,
+    `select *
+       from users
+      where username = ?`,
     [params.username],
   );
 
-  const videos = user
-    ? await context.db.query<Video>(
-      `select *
-              , BIN_TO_UUID(video_id) as video_id
-           from videos
-          where requested_by_id = ?
-            and deleted_at is null
-          order by created_at desc`,
-      [user.discord_id],
-    )
-    : [];
+  if (!user) {
+    return json<Data>({
+      user,
+      videos: [],
+      stats: {},
+    });
+  }
 
-  return json<Data>({ user, videos });
+  // TODO: Uploaded and non-deleted videos are common enough to create a view for this.
+
+  const videos = await context.db.query<Video>(
+    `select *
+          , BIN_TO_UUID(video_id) as video_id
+          , requester.username as requested_by_username
+          , requester.discord_avatar_url as requested_by_discord_avatar_url
+       from videos
+       left join users requester
+            on requester.discord_id = videos.requested_by_id
+      where requested_by_id = ?
+        and video_url is not null
+        and deleted_at is null
+   order by videos.created_at desc
+      limit 16`,
+    [user.discord_id],
+  );
+
+  const [totalViewsStat] = await context.db.query<{ rendered_videos: number; total_views: number }>(
+    `select count(1) as rendered_videos
+          , sum(views) total_views
+       from videos
+      where requested_by_id = ?
+        and deleted_at is null`,
+    [user.discord_id],
+  );
+
+  const [providedVideosStat] = await context.db.query<{ provided_videos: number }>(
+    `select count(1) as provided_videos
+       from videos
+      where rendered_by = ?
+        and video_url is not null
+        and deleted_at is null`,
+    [user.user_id],
+  );
+
+  // TODO: Also create ranking views these statistics.
+
+  const [rendererRankStat] = await context.db.query<{ renderer_rank: number }>(
+    `select rank() over (order by count(1)) renderer_rank
+       from (
+        select *
+          from videos
+         where videos.video_url is not null
+           and videos.deleted_at is null
+       ) t
+   group by requested_by_id
+     having requested_by_id = ?`,
+    [user.discord_id],
+  );
+
+  const [viewsRankStat] = await context.db.query<{ views_rank: number }>(
+    `select rank() over (order by sum(views)) views_rank
+       from (
+        select *
+          from videos
+         where videos.video_url is not null
+           and videos.deleted_at is null
+       ) t
+   group by requested_by_id
+     having requested_by_id = ?`,
+    [user.discord_id],
+  );
+
+  const [providerRankStat] = await context.db.query<{ provider_rank: number }>(
+    `select rank() over (order by count(1)) provider_rank
+       from (
+        select *
+          from videos
+         where videos.video_url is not null
+           and videos.deleted_at is null
+       ) t
+   group by rendered_by
+     having rendered_by = ?`,
+    [user.user_id],
+  );
+
+  return json<Data>({
+    user,
+    videos,
+    stats: {
+      rendered_videos: totalViewsStat?.rendered_videos ?? 0,
+      total_views: totalViewsStat?.total_views ?? 0,
+      provided_videos: providedVideosStat?.provided_videos ?? 0,
+      renderer_rank: rendererRankStat?.renderer_rank ?? 0,
+      views_rank: viewsRankStat?.views_rank ?? 0,
+      provider_rank: providerRankStat?.provider_rank ?? 0,
+    },
+  });
+};
+
+const formatRank = (rank: number | undefined) => {
+  return rank ? `${rank}${['st', 'nd', 'rd'][((rank + 90) % 100 - 10) % 10 - 1] || 'th'}` : 'n/a';
+};
+
+const getProfileColor = (user: Exclude<Data['user'], undefined>) => {
+  return user.discord_accent_color !== null
+    ? `bg-[#${user.discord_accent_color.toString(16).padStart(6, '0')}]`
+    : 'dark:bg-gray-800';
 };
 
 export const Profile = () => {
-  const { user, videos } = useLoaderData<Data>();
-
-  const queuedVideos = videos.filter(
-    (video) => video.pending !== PendingStatus.FinishedRender,
-  );
+  const { user, videos, stats } = useLoaderData<Data>();
 
   const renderedVideos = videos.filter(
     (video) => video.pending === PendingStatus.FinishedRender,
@@ -53,42 +160,96 @@ export const Profile = () => {
 
   return (
     <>
-      <div>{user?.username ?? 'profile not found :('}</div>
+      <div>{!user ?? 'Profile not found :('}</div>
       {user && (
         <>
-          {queuedVideos.length > 0 && (
-            <>
-              <div>
-                Queued {queuedVideos.length} video
-                {queuedVideos.length === 1 ? '' : 's'}
+          <div className={tw`flex items-center justify-center`}>
+            <div
+              className={tw`w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700`}
+            >
+              <div
+                className={tw`max-w ${getProfileColor(user)} rounded-t-lg rounded-t-lg shadow dark:border-gray-700`}
+              >
+                <div className={tw`flex flex-col items-center`}>
+                  <img
+                    className={tw`w-24 h-24 mt-3 mb-3 rounded-full shadow-lg`}
+                    src={user.discord_avatar_url}
+                    alt='Bonnie image'
+                  />
+                  <div
+                    className={tw`pl-2 pr-2 bg-white dark:bg-gray-900 mb-3 border border-gray-200 rounded-full shadow dark:border-gray-700`}
+                  >
+                    <div className={tw`flex flex-col items-center p-2`}>
+                      <h5 className={tw`text-xl font-medium text-gray-900 dark:text-white`}>
+                        {user.username}
+                      </h5>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <ul>
-                {queuedVideos.map((video) => {
-                  return (
-                    <li>
-                      <a href={`/queue/${video.share_id}`}>{video.title}</a> |{' '}
-                      {new Date(video.created_at).toLocaleDateString()}
-                    </li>
-                  );
-                })}
-              </ul>
-              <br />
-            </>
-          )}
-          <div>
-            Rendered {renderedVideos.length} video
-            {renderedVideos.length === 1 ? '' : 's'}
+              <div className={tw`border-gray-200 dark:border-gray-600`}>
+                <div className={tw`bg-white rounded-lg dark:bg-gray-900`}>
+                  <dl
+                    className={tw`grid max-w-screen-xl grid-cols-2 gap-8 mx-auto text-gray-900 sm:grid-cols-3 xl:grid-cols-6 dark:text-white sm:p-8`}
+                  >
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {stats.rendered_videos}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                        Rendered Videos
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {stats.total_views}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                        Total Views
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {stats.provided_videos}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                        Provided Videos
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {formatRank(stats.renderer_rank)}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                        Renderer Rank
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {formatRank(stats.views_rank)}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                        Views Rank
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {formatRank(stats.provider_rank)}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                        Provider Rank
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
           </div>
-          <ul>
-            {renderedVideos.map((video) => {
-              return (
-                <li>
-                  <a href={`/videos/${video.share_id}`}>{video.title}</a> |{' '}
-                  {new Date(video.created_at).toLocaleDateString()}
-                </li>
-              );
-            })}
-          </ul>
+          <div
+            className={tw`grid mt-4 grid-cols sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4`}
+          >
+            {renderedVideos.map((video) => <VideoCard video={video} />)}
+          </div>
         </>
       )}
     </>
