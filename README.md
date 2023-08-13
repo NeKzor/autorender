@@ -30,7 +30,6 @@ Render Portal 2 demos on-demand with: `/render demo <file>`
 
 - Render videos on-demand!
 - Support for workshop maps, powered by [sdp] and mirror
-- Render files directly in the web platform (TODO)
 - Runs in a secure runtime with [Deno]
 - Written in 100% TypeScript
 - Hosted inside Docker containers
@@ -203,36 +202,37 @@ There are several demo files in `src/server/tests/demos` which can be used for t
 
 The project contains convenient tasks which can be executed with `deno task <name>`.
 
-| Task                     | Description                                                    |
-| ------------------------ | -------------------------------------------------------------- |
-| `client`                 | Starts the client.                                             |
-| `client:test`            | Runs all client tests.                                         |
-| `client:compile:linux`   | Compiles client code for Linux.                                |
-| `client:compile:windows` | Compiles client code for Windows.                              |
-| `server:test`            | Runs all server tests.                                         |
-| `server:debug`           | Connects to the server container.                              |
-| `server:restart`         | Restarts the server container.                                 |
-| `server:stop`            | Stops the server container.                                    |
-| `bot:debug`              | Connects to the server container.                              |
-| `bot:restart`            | Restarts the bot container.                                    |
-| `bot:stop`               | Restarts the bot container.                                    |
-| `proxy:debug`            | Connects to the bot container.                                 |
-| `proxy:restart`          | Restarts the bot container.                                    |
-| `proxy:stop`             | Restarts the bot container.                                    |
-| `stale`                  | Automatically clears render queue.                             |
-| `perm`                   | Resets permissions of developer account.                       |
-| `board`                  | Automatically checks for videos to render on board.portal2.sr. |
-| `build`                  | Builds server image.                                           |
-| `build:prod`             | Builds server image in prod environment.                       |
-| `up`                     | Starts all containers.                                         |
-| `up:prod`                | Starts all containers in prod environment.                     |
-| `down`                   | Removes all containers.                                        |
-| `down:prod`              | Removes all containers in prod environment.                    |
-| `db`                     | Connect to the database.                                       |
-| `db:debug`               | Connect to the database container.                             |
-| `db:stop`                | Stop the database container.                                   |
-| `db:restart`             | Restart the database container.                                |
-| `setup`                  | Run the setup process.                                         |
+| Task                     | Description                                                         |
+| ------------------------ | ------------------------------------------------------------------- |
+| `client`                 | Starts the client.                                                  |
+| `client:test`            | Runs all client tests.                                              |
+| `client:compile:linux`   | Compiles client code for Linux.                                     |
+| `client:compile:windows` | Compiles client code for Windows.                                   |
+| `server:test`            | Runs all server tests.                                              |
+| `server:debug`           | Connects to the server container.                                   |
+| `server:restart`         | Restarts the server container.                                      |
+| `server:stop`            | Stops the server container.                                         |
+| `bot:debug`              | Connects to the server container.                                   |
+| `bot:restart`            | Restarts the bot container.                                         |
+| `bot:stop`               | Restarts the bot container.                                         |
+| `proxy:debug`            | Connects to the bot container.                                      |
+| `proxy:restart`          | Restarts the bot container.                                         |
+| `proxy:stop`             | Restarts the bot container.                                         |
+| `stale`                  | Automatically clears render queue.                                  |
+| `perm`                   | Resets permissions of developer account.                            |
+| `board`                  | Automatically checks for videos to render on board.portal2.sr.      |
+| `processing`             | Automatically generate thumbnails and previews for uploaded videos. |
+| `build`                  | Builds server image.                                                |
+| `build:prod`             | Builds server image in prod environment.                            |
+| `up`                     | Starts all containers.                                              |
+| `up:prod`                | Starts all containers in prod environment.                          |
+| `down`                   | Removes all containers.                                             |
+| `down:prod`              | Removes all containers in prod environment.                         |
+| `db`                     | Connect to the database.                                            |
+| `db:debug`               | Connect to the database container.                                  |
+| `db:stop`                | Stop the database container.                                        |
+| `db:restart`             | Restart the database container.                                     |
+| `setup`                  | Run the setup process.                                              |
 
 ## Production
 
@@ -353,7 +353,7 @@ server {
 - ~~Advanced render options e.g. sar_ihud~~
 - Support more games
   - ~~Common Portal 2 mods~~
-  - Sourcemods
+  - ~~Sourcemods~~
 - ~~Bot improvements~~
   - ~~Edit original interaction message or create a followup message~~
   - ~~Improve `/bot info`~~
@@ -364,7 +364,7 @@ server {
     - Users
     - Audit logs
     - Demo upload
-  - Generate video preview + thumbnails
+  - ~~Generate video preview + thumbnails~~
   - Unlisted/private videos
   - Implement various data related functions
     - Delete video button
