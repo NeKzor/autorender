@@ -78,6 +78,20 @@ ${
   }
 if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
   await fetch(\`/api/v1\${location.pathname}/views\`, { method: 'POST' });
+
+  const video = document.querySelector('video');
+  if (video) {
+    const videoVolume = parseFloat(localStorage.getItem('video-volume'));
+    if (!isNaN(videoVolume)) {
+      video.volume = videoVolume;
+    }
+
+    video.addEventListener('volumechange', (event) => {
+      if (event.target) {
+        localStorage.setItem('video-volume', event.target.volume.toString());
+      }
+    });
+  }
 }
 
 const notFoundGoBack = document.querySelector('#not-found-go-back');
