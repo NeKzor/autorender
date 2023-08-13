@@ -300,6 +300,8 @@ export class BackblazeClient {
       ) {
         await this.internalAuthorizeAccount();
 
+        headers.set('Authorization', this.authorization!.authorizationToken);
+
         res = await fetchResponse();
 
         if (!res.ok) {
