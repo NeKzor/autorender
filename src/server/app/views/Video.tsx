@@ -143,7 +143,7 @@ export const VideoView = () => {
                 {data.video_url && (
                   <div className={tw`flex items-center justify-center`}>
                     <div>
-                      <video className={tw`max-h-[720px] max-w-full`} controls>
+                      <video className={tw`max-h-[720px] max-w-full`} controls autoPlay>
                         <source src={data.video_url} itemType='video/mp4'></source>
                       </video>
                       <br />
