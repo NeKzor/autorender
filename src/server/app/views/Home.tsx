@@ -15,7 +15,7 @@ type LatestVideo =
     Video,
     | 'share_id'
     | 'title'
-    | 'created_at'
+    | 'rendered_at'
     | 'views'
     | 'requested_by_id'
     | 'video_preview_url'
@@ -63,7 +63,7 @@ export const loader: DataLoader = async ({ context }) => {
   const latestVideos = await context.db.query<LatestVideo>(
     `select videos.share_id
           , videos.title
-          , videos.created_at
+          , videos.rendered_at
           , videos.views
           , videos.requested_by_id
           , videos.video_preview_url
@@ -74,11 +74,9 @@ export const loader: DataLoader = async ({ context }) => {
        from videos
        left join users requester
             on requester.discord_id = videos.requested_by_id
-      where pending = ?
-        and video_url is not null
-   order by created_at desc
+      where video_url is not null
+   order by rendered_at desc
       limit 16`,
-    [PendingStatus.FinishedRender],
   );
 
   // const mostViewedVideos = await context.db.query<LatestVideo>(
@@ -265,7 +263,7 @@ export const Home = () => {
                             {video.title}
                           </div>
                           <div className={tw`h-2 mb-3 text-sm`}>
-                            {video.views} views | {toAgo(video.created_at)}
+                            {video.views} views | {toAgo(video.rendered_at)}
                           </div>
                         </div>
                       </div>
