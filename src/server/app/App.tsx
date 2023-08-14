@@ -79,6 +79,12 @@ export const Head = ({ initialState }: HeadProps) => {
         integrity='sha384-SU26Q8fNMYupAr9UoLFL3sKttAwvXrmP7SdUWaw146+7I1kWXTlg5gA6X1Z70FKS'
         crossOrigin='anonymous'
       />
+      <script
+        src='https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.0/flowbite.min.js'
+        integrity='sha384-SXh3DHBSUxvOFk7+R9qN3hv+DtgPJz4vQwOArU6zxWGnvtR1sy+XmzKUkNh2qWST'
+        crossOrigin='anonymous'
+        defer
+      />
     </>
   );
 };
@@ -96,12 +102,6 @@ export const Body = ({ initialState, children }: BodyProps) => {
           </div>
           <Footer />
         </div>
-        <script
-          src='https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.0/flowbite.min.js'
-          integrity='sha384-SXh3DHBSUxvOFk7+R9qN3hv+DtgPJz4vQwOArU6zxWGnvtR1sy+XmzKUkNh2qWST'
-          crossOrigin='anonymous'
-        >
-        </script>
       </AppDispatchContext.Provider>
     </AppStateContext.Provider>
   );

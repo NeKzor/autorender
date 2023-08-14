@@ -1595,7 +1595,7 @@ router.get('/storage/files/portal2_benchmark.dem', async (ctx) => {
 
 const routeToImages = async (ctx: Context, file: string) => {
   try {
-    const image = await Deno.readFile(`./app/images/${file}`);
+    const image = await Deno.readFile(`./app/assets/images/${file}`);
 
     ctx.response.headers.set('Cache-Control', 'public, max-age=300');
 
@@ -1606,8 +1606,20 @@ const routeToImages = async (ctx: Context, file: string) => {
   }
 };
 
-router.get('/images/:file([\\w]+\\.png)', (ctx) => routeToImages(ctx, ctx.params.file!));
-router.get('/images/:file([\\w]+\\.jpg)', (ctx) => routeToImages(ctx, ctx.params.file!));
+router.get('/assets/images/:file([\\w]+\\.png)', async (ctx) => await routeToImages(ctx, ctx.params.file!));
+router.get('/assets/images/:file([\\w]+\\.jpg)', async (ctx) => await routeToImages(ctx, ctx.params.file!));
+router.get('/assets/js/:file([\\w]+\\.js)', async (ctx) => {
+  try {
+    const js = await Deno.readFile(`./app/assets/js/${ctx.params.file}`);
+    Ok(ctx, js, 'text/javascript');
+  } catch (err) {
+    logger.error(err);
+    Err(ctx, Status.NotFound);
+  }
+});
+router.get('/assets/(.*)', (ctx) => {
+  Err(ctx, Status.NotFound, 'Asset not found :(');
+});
 
 router.get('/favicon.ico', (ctx) => (ctx.response.status = Status.NotFound));
 router.post('/tokens/:access_token_id(\\d+)', useSession, routeToApp);

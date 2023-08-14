@@ -60,86 +60,17 @@ export const index = (
 
   const styleTag = getStyleTag(sheet, { nonce });
 
-  const scriptTag = `<script type="module" nonce="${nonce}">
-${
-    Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true'
-      ? `(() => {
-    let ws, to, iv = null;
-    const hotReload = () => {
-    ws?.close();
-    ws = new WebSocket(location.origin.replace('http', 'ws') + '/connect/__hot_reload');
-    ws.onopen = () => iv = setInterval(() => ws.send('reload?'), 500);
-    ws.onmessage = (event) => event.data === 'yes' && location.reload();
-    ws.onclose = () => clearInterval(iv) || clearTimeout(to) || (to = setTimeout(() => hotReload(), 500));
-  };
-  hotReload();
-  })();`
-      : ''
-  }
-if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
-  await fetch(\`/api/v1\${location.pathname}/views\`, { method: 'POST' });
+  const themeScriptTag =
+    `<script nonce="${nonce}">localStorage.getItem('color-theme')==='dark'&&document.documentElement.classList.add('dark')</script>`;
 
-  const video = document.querySelector('video');
-  if (video) {
-    const videoVolume = parseFloat(localStorage.getItem('video-volume'));
-    if (!isNaN(videoVolume)) {
-      video.volume = videoVolume;
-    }
+  const moduleScriptTag = `<script nonce="${nonce}" src="/assets/js/module.js" type="module"></script>`;
 
-    video.addEventListener('volumechange', (event) => {
-      if (event.target) {
-        localStorage.setItem('video-volume', event.target.volume.toString());
-      }
-    });
-  }
-}
+  const hotReloadScriptTag = Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true'
+    ? `<script nonce="${nonce}" src="/assets/js/hot_reload.js" type="module"></script>`
+    : '';
 
-const notFoundGoBack = document.querySelector('#not-found-go-back');
-if (notFoundGoBack) {
-  notFoundGoBack.addEventListener('click', () => {
-    history.back();
-  });
-}
+  const headTag = `<head>${head}${styleTag}${themeScriptTag}${moduleScriptTag}${hotReloadScriptTag}</head>`;
+  const bodyTag = `<body class="dark:bg-gray-700 dark:text-white">${body}</body>`;
 
-const isDarkMode = localStorage.getItem('color-theme') === 'dark';
-const dark = document.getElementById('theme-toggle-dark-icon');
-const light = document.getElementById('theme-toggle-light-icon');
-
-if (isDarkMode ||
-  (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-  light.classList.remove('hidden');
-  document.documentElement.classList.add('dark');
-} else {
-  dark.classList.remove('hidden');
-  document.documentElement.classList.remove('dark')
-}
-
-const toggle = document.getElementById('theme-toggle');
-if (toggle) {
-  toggle.addEventListener('click', () => {
-      dark.classList.toggle('hidden');
-      light.classList.toggle('hidden');
-  
-      if (localStorage.getItem('color-theme')) {
-          if (localStorage.getItem('color-theme') === 'light') {
-              document.documentElement.classList.add('dark');
-              localStorage.setItem('color-theme', 'dark');
-          } else {
-              document.documentElement.classList.remove('dark');
-              localStorage.setItem('color-theme', 'light');
-          }
-      } else {
-          if (document.documentElement.classList.contains('dark')) {
-              document.documentElement.classList.remove('dark');
-              localStorage.setItem('color-theme', 'light');
-          } else {
-              document.documentElement.classList.add('dark');
-              localStorage.setItem('color-theme', 'dark');
-          }
-      }
-  });
-}
-</script>`;
-
-  return `<html lang='en' dir='ltr'><head>${head}${styleTag}</head><body class="dark:bg-gray-700 dark:text-white">${body}</body>${scriptTag}</html>`;
+  return `<html lang='en' dir='ltr'>${headTag}${bodyTag}</html>`;
 };
