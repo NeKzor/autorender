@@ -11,19 +11,24 @@ export const Privacy = () => {
   return (
     <div className={tw`flex items-center justify-center`}>
       <article className={tw`format lg:format-lg`}>
-        <h1>Privacy Notice</h1>
-        <p>Last Update: Aug 11, 2023</p>
-        <br />
-        <b>Cookies</b>
-        <ul>
+        <h2 className={tw`text-4xl font-extrabold dark:text-white`}>
+          Privacy Notice
+        </h2>
+        <p className={tw`my-4`}>Last Update: Aug 11, 2023</p>
+        <h6 className={tw`my-1 font-extrabold`}>
+          Cookies
+        </h6>
+        <ul className={tw`space-y-1 list-disc list-inside`}>
           <li>We only use two "session" cookies.</li>
           <li>
             These cookies are used to identify you with your created user account.
           </li>
         </ul>
         <br />
-        <b>Stored Data</b>
-        <ul>
+        <h6 className={tw`my-1 font-extrabold`}>
+          Stored Data
+        </h6>
+        <ul className={tw`space-y-1 list-disc list-inside`}>
           <li>
             We store username, ID, avatar, banner and accent color from your Discord account.
           </li>
@@ -48,8 +53,10 @@ export const Privacy = () => {
           <li>These logs are needed to protect and improve our service.</li>
         </ul>
         <br />
-        <b>Third Party</b>
-        <ul>
+        <h6 className={tw`my-1 font-extrabold`}>
+          Third Party
+        </h6>
+        <ul className={tw`space-y-1 list-disc list-inside`}>
           <li>
             Our render clients are responsible to convert your demo file into a video.
           </li>
