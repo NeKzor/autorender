@@ -10,10 +10,15 @@
   "npm": {
     "specifiers": {
       "@discordeno/bot": "@discordeno/bot@19.0.0-next.2d0f76e",
+      "@discordeno/bot@19.0.0-next.2d0f76e": "@discordeno/bot@19.0.0-next.2d0f76e",
       "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.2d0f76e",
+      "@discordeno/gateway@19.0.0-next.2d0f76e": "@discordeno/gateway@19.0.0-next.2d0f76e",
       "@discordeno/rest": "@discordeno/rest@19.0.0-next.2d0f76e",
+      "@discordeno/rest@19.0.0-next.2d0f76e": "@discordeno/rest@19.0.0-next.2d0f76e",
       "@discordeno/types": "@discordeno/types@19.0.0-next.2d0f76e",
+      "@discordeno/types@19.0.0-next.2d0f76e": "@discordeno/types@19.0.0-next.2d0f76e",
       "@discordeno/utils": "@discordeno/utils@19.0.0-next.2d0f76e",
+      "@discordeno/utils@19.0.0-next.2d0f76e": "@discordeno/utils@19.0.0-next.2d0f76e",
       "@nekz/sdp": "@nekz/sdp@0.4.0"
     },
     "packages": {
