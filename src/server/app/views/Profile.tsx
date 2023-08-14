@@ -89,41 +89,50 @@ export const loader: DataLoader = async ({ params, context }) => {
   // TODO: Also create ranking views these statistics.
 
   const [rendererRankStat] = await context.db.query<{ renderer_rank: number }>(
-    `select rank() over (order by count(1)) renderer_rank
-       from (
-        select *
-          from videos
-         where videos.video_url is not null
-           and videos.deleted_at is null
-       ) t
-   group by requested_by_id
-     having requested_by_id = ?`,
+    `select renderer_rank from (
+      select requested_by_id
+           , rank() over (order by count(1) desc) renderer_rank
+        from (
+          select *
+            from videos
+          where videos.video_url is not null
+            and videos.deleted_at is null
+        ) t1
+      group by requested_by_id
+    ) t2
+    where requested_by_id = ?`,
     [user.discord_id],
   );
 
   const [viewsRankStat] = await context.db.query<{ views_rank: number }>(
-    `select rank() over (order by sum(views)) views_rank
-       from (
-        select *
-          from videos
-         where videos.video_url is not null
-           and videos.deleted_at is null
-       ) t
-   group by requested_by_id
-     having requested_by_id = ?`,
+    `select views_rank from (
+      select requested_by_id
+           , rank() over (order by sum(views) desc) views_rank
+        from (
+          select *
+            from videos
+          where videos.video_url is not null
+            and videos.deleted_at is null
+        ) t1
+      group by requested_by_id
+    ) t2
+    where requested_by_id = ?`,
     [user.discord_id],
   );
 
   const [providerRankStat] = await context.db.query<{ provider_rank: number }>(
-    `select rank() over (order by count(1)) provider_rank
-       from (
-        select *
-          from videos
-         where videos.video_url is not null
-           and videos.deleted_at is null
-       ) t
-   group by rendered_by
-     having rendered_by = ?`,
+    `select provider_rank from (
+      select rendered_by
+           , rank() over (order by count(1) desc) provider_rank
+        from (
+          select *
+            from videos
+          where videos.video_url is not null
+            and videos.deleted_at is null
+        ) t1
+      group by rendered_by
+    ) t2
+    where rendered_by = ?`,
     [user.user_id],
   );
 
