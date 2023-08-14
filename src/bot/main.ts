@@ -69,7 +69,7 @@ worker.addEventListener('message', async (message) => {
 
         const interaction = Queue.getAndDelete(data.share_id);
         if (interaction) {
-          await bot.helpers.sendFollowupMessage(interaction.token, { content });
+          await bot.helpers.editOriginalInteractionResponse(interaction.token, { content });
         } else {
           if (data.requested_in_guild_id && data.requested_in_channel_id) {
             await bot.helpers.sendMessage(data.requested_in_channel_id, { content });
@@ -85,7 +85,7 @@ worker.addEventListener('message', async (message) => {
 
         const interaction = Queue.getAndDelete(data.share_id);
         if (interaction) {
-          await bot.helpers.sendFollowupMessage(interaction.token, { content });
+          await bot.helpers.editOriginalInteractionResponse(interaction.token, { content });
         } else {
           if (data.requested_in_guild_id && data.requested_in_channel_id) {
             await bot.helpers.sendMessage(data.requested_in_channel_id, { content });
