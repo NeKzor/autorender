@@ -6,7 +6,7 @@
     "stale": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=./ --allow-net=autorender.database:3307 tasks/stale.ts",
     "perm": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=./ --allow-net=autorender.database:3307 tasks/perm.ts",
     "board": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=./ --allow-write=storage/demos --allow-net=autorender.database:3307,board.portal2.sr,board.nekz.me tasks/board.ts",
-    "processing": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=./ --allow-write=storage/previews,storage/thumbnails --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/processing.ts"
+    "processing": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=./ --allow-write=storage/previews,storage/thumbnails,storage/videos --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/processing.ts"
   },
   "fmt": {
     "useTabs": false,
