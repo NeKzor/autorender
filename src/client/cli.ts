@@ -53,7 +53,7 @@ const cli = new Command()
     .description('Add a new game.')
     .action(async () => await addNewGame(await getConfigOnly(), options!))
   .command('explain')
-    .description('Explain all commands.')
+    .description('Explain all config values in autorender.yaml.')
     .action(() => runExplain());
 
 export const parseArgs = async () => {
