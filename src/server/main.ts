@@ -44,7 +44,7 @@ import * as _bcrypt_worker from 'https://deno.land/x/bcrypt@v0.4.1/src/worker.ts
 import { Buffer } from 'https://deno.land/std@0.190.0/io/buffer.ts';
 import { AppState as ReactAppState } from './app/AppState.ts';
 import { db } from './db.ts';
-import { createStaticRouter } from 'https://esm.sh/react-router-dom@6.11.2/server';
+import { createStaticRouter } from 'https://esm.sh/v131/react-router-dom@6.11.2/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
 import { getDemoInfo, supportedGameDirs } from './demo.ts';
 import { basename } from 'https://deno.land/std@0.190.0/path/mod.ts';

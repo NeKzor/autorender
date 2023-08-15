@@ -4,15 +4,15 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from 'https://esm.sh/react@18.2.0';
-import { renderToString } from 'https://esm.sh/react-dom@18.2.0/server';
+import * as React from 'https://esm.sh/v131/react@18.2.0';
+import { renderToString } from 'https://esm.sh/v131/react-dom@18.2.0/server';
 import {
   createStaticRouter,
   StaticHandlerContext,
   StaticRouterProvider,
-} from 'https://esm.sh/react-router-dom@6.11.2/server';
-import { setup } from 'https://esm.sh/twind@0.16.16';
-import { getStyleTag, virtualSheet } from 'https://esm.sh/twind@0.16.16/sheets';
+} from 'https://esm.sh/v131/react-router-dom@6.11.2/server';
+import { setup } from 'https://esm.sh/v131/twind@0.16.16';
+import { getStyleTag, virtualSheet } from 'https://esm.sh/v131/twind@0.16.16/sheets';
 import { Body, Head } from './App.tsx';
 import { AppState } from './AppState.ts';
 

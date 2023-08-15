@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from 'https://esm.sh/react@18.2.0';
-import { tw } from 'https://esm.sh/twind@0.16.16';
+import * as React from 'https://esm.sh/v131/react@18.2.0';
+import { tw } from 'https://esm.sh/v131/twind@0.16.16';
 import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
 import * as _bcrypt_worker from 'https://deno.land/x/bcrypt@v0.4.1/src/worker.ts';
 import {

@@ -9,14 +9,14 @@ import {
   redirect as routerRedirect,
   RouteObject,
   useLoaderData as routerUseLoaderData,
-} from 'https://esm.sh/react-router-dom@6.11.2';
+} from 'https://esm.sh/v131/react-router-dom@6.11.2';
 import {
   ActionFunction as RemixActionFunction,
   LoaderFunction as RemixLoaderFunction,
   Params,
 } from 'https://esm.sh/v124/@remix-run/router@1.6.2';
 import { Request as OakRequest, Status, STATUS_TEXT } from 'https://deno.land/x/oak@v12.2.0/mod.ts';
-import { createStaticHandler } from 'https://esm.sh/react-router-dom@6.11.2/server';
+import { createStaticHandler } from 'https://esm.sh/v131/react-router-dom@6.11.2/server';
 
 import * as Home from './views/Home.tsx';
 import * as NotFound from './views/NotFound.tsx';

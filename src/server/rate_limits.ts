@@ -5,7 +5,11 @@
  */
 
 import { RouterMiddleware, Status, STATUS_TEXT } from 'https://deno.land/x/oak@v12.2.0/mod.ts';
-import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRes } from 'https://esm.sh/rate-limiter-flexible@2.4.2';
+import {
+  RateLimiterAbstract,
+  RateLimiterMemory,
+  RateLimiterRes,
+} from 'https://esm.sh/v131/rate-limiter-flexible@2.4.2';
 import { AppState } from './app/AppState.ts';
 
 const buckets = {
