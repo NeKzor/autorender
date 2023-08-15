@@ -6,7 +6,7 @@
  * This defines the protocol between the server and the client.
  */
 
-import { Video } from '../shared/models.ts';
+import { Video } from '~/shared/models.ts';
 
 export type VideoPayload = Pick<
   Video,

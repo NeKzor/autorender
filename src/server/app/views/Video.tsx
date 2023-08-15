@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from 'https://esm.sh/v131/react@18.2.0';
-import { useLocation } from 'https://esm.sh/v131/react-router-dom@6.11.2';
-import { tw } from 'https://esm.sh/v131/twind@0.16.16';
+import * as React from 'react';
+import { useLocation } from 'react-router-dom';
+import { tw } from 'twind';
 import { DataLoader, json, notFound, PageMeta, redirect, useLoaderData } from '../Routes.ts';
-import { FixedDemoStatus, PendingStatus, Video } from '../../../shared/models.ts';
+import { FixedDemoStatus, PendingStatus, Video } from '~/shared/models.ts';
 import { DemoMetadata, SarDataTimestamp } from '../../demo.ts';
 
 type JoinedVideo = Video & {

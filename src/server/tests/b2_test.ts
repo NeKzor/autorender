@@ -1,4 +1,4 @@
-import 'https://deno.land/std@0.177.0/dotenv/load.ts';
+import 'dotenv/load.ts';
 
 import { BackblazeClient } from '../b2.ts';
 import { getVideoDownloadFilename } from '../utils.ts';

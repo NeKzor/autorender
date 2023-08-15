@@ -9,20 +9,13 @@
  *    - Serving the web platform (`app/`)
  */
 
-import 'https://deno.land/std@0.177.0/dotenv/load.ts';
-import * as uuid from 'https://deno.land/std@0.192.0/uuid/mod.ts';
-import {
-  Application,
-  Context,
-  CookiesSetDeleteOptions,
-  Middleware,
-  Router,
-  Status,
-  STATUS_TEXT,
-} from 'https://deno.land/x/oak@v12.2.0/mod.ts';
-import { ResponseBody, ResponseBodyFunction } from 'https://deno.land/x/oak@v12.2.0/response.ts';
-import { CookieStore, Session } from 'https://deno.land/x/oak_sessions@v4.1.4/mod.ts';
-import { oakCors } from 'https://deno.land/x/cors@v1.2.2/mod.ts';
+import 'dotenv/load.ts';
+import * as uuid from 'uuid/mod.ts';
+import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status, STATUS_TEXT } from 'oak/mod.ts';
+import { ResponseBody, ResponseBodyFunction } from 'oak/response.ts';
+import Session from 'oak_sessions/src/Session.ts';
+import CookieStore from 'oak_sessions/src/stores/CookieStore.ts';
+import { oakCors } from 'cors/mod.ts';
 import { logger } from './logger.ts';
 import { index } from './app/index.tsx';
 import { BackblazeClient } from './b2.ts';
@@ -38,16 +31,16 @@ import {
   User,
   UserPermissions,
   Video,
-} from '../shared/models.ts';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
-import * as _bcrypt_worker from 'https://deno.land/x/bcrypt@v0.4.1/src/worker.ts';
-import { Buffer } from 'https://deno.land/std@0.190.0/io/buffer.ts';
+} from '~/shared/models.ts';
+import * as bcrypt from 'bcrypt/mod.ts';
+import * as _bcrypt_worker from 'bcrypt/src/worker.ts';
+import { Buffer } from 'io/buffer.ts';
 import { AppState as ReactAppState } from './app/AppState.ts';
 import { db } from './db.ts';
-import { createStaticRouter } from 'https://esm.sh/v131/react-router-dom@6.11.2/server';
+import { createStaticRouter } from 'react-router-dom/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
 import { getDemoInfo, supportedGameDirs } from './demo.ts';
-import { basename } from 'https://deno.land/std@0.190.0/path/mod.ts';
+import { basename } from 'path/mod.ts';
 import {
   generateShareId,
   getDemoFilePath,

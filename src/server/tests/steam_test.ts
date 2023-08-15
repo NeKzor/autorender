@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { assert, assertEquals } from 'https://deno.land/std@0.177.0/testing/asserts.ts';
+import { assert, assertEquals } from 'testing/asserts.ts';
 import { SourceDemoParser } from 'npm:@nekz/sdp';
 import { SteamId } from '../steam.ts';
 import { getPlayerInfo } from '../demo.ts';

@@ -4,12 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { RouterMiddleware, Status, STATUS_TEXT } from 'https://deno.land/x/oak@v12.2.0/mod.ts';
-import {
-  RateLimiterAbstract,
-  RateLimiterMemory,
-  RateLimiterRes,
-} from 'https://esm.sh/v131/rate-limiter-flexible@2.4.2';
+import { RouterMiddleware, Status, STATUS_TEXT } from 'oak/mod.ts';
+import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
 import { AppState } from './app/AppState.ts';
 
 const buckets = {

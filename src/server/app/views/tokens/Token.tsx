@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from 'https://esm.sh/v131/react@18.2.0';
-import { tw } from 'https://esm.sh/v131/twind@0.16.16';
-import * as bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts';
-import * as _bcrypt_worker from 'https://deno.land/x/bcrypt@v0.4.1/src/worker.ts';
+import * as React from 'react';
+import { tw } from 'twind';
+import * as bcrypt from 'bcrypt/mod.ts';
+import * as _bcrypt_worker from 'bcrypt/src/worker.ts';
 import {
   ActionLoader,
   badRequest,
@@ -19,7 +19,7 @@ import {
   unauthorized,
   useLoaderData,
 } from '../../Routes.ts';
-import { AccessPermission, AccessToken, UserPermissions } from '../../../../shared/models.ts';
+import { AccessPermission, AccessToken, UserPermissions } from '~/shared/models.ts';
 
 type Data = Partial<AccessToken> | null;
 

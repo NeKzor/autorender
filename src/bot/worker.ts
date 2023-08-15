@@ -10,7 +10,7 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
-import { delay } from 'https://deno.land/std@0.190.0/async/delay.ts';
+import { delay } from 'async/delay.ts';
 
 const AUTORENDER_CONNECT_URI = Deno.env.get('AUTORENDER_CONNECT_URI')!;
 const AUTORENDER_PROTOCOL = Deno.env.get('AUTORENDER_PROTOCOL')!;

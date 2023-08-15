@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
+import { Command } from 'cliffy/command/mod.ts';
 import { downloadAutorenderConfig, downloadQuickhud, downloadSourceAutoRecord, getConfigOnly } from './config.ts';
 import { AutorenderVersion } from './constants.ts';
 import { addNewGame, launchGame, runBenchmark, runCheck, runExplain } from './commands.ts';

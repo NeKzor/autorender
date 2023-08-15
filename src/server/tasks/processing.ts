@@ -10,9 +10,9 @@
  *  - Delete local video file
  */
 
-import 'https://deno.land/std@0.177.0/dotenv/load.ts';
+import 'dotenv/load.ts';
 import { db } from '../db.ts';
-import { PendingStatus, Video } from '../../shared/models.ts';
+import { PendingStatus, Video } from '~/shared/models.ts';
 import { logger } from '../logger.ts';
 import { getVideoFilePath, getVideoPreviewPath, getVideoThumbnailPath, getVideoThumbnailSmallPath } from '../utils.ts';
 

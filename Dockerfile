@@ -2,6 +2,8 @@
 
 FROM denoland/deno:alpine-1.35.3 AS bot
 
+ADD src/import_map.json .
+
 WORKDIR /shared
 ADD src/shared .
 
@@ -22,6 +24,8 @@ ARG DENO_TASK_ENTRYPOINT
 RUN apk update
 RUN apk upgrade
 RUN apk add --no-cache ffmpeg
+
+ADD src/import_map.json .
 
 WORKDIR /shared
 ADD src/shared .

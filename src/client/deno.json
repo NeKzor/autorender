@@ -13,5 +13,6 @@
   },
   "compilerOptions": {
     "noUncheckedIndexedAccess": true
-  }
+  },
+  "importMap": "../import_map.json"
 }

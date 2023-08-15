@@ -9,7 +9,7 @@
 
 /// <reference lib="deno.unstable" />
 
-import 'https://deno.land/std@0.190.0/dotenv/load.ts';
+import 'dotenv/load.ts';
 
 import { logger } from './utils/logger.ts';
 import { escapeMaskedLink, getPublicUrl, updateCommands } from './utils/helpers.ts';

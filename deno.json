@@ -45,5 +45,6 @@
   },
   "compilerOptions": {
     "noUncheckedIndexedAccess": true
-  }
+  },
+  "importMap": "./src/import_map.json"
 }

@@ -1,0 +1,50 @@
+{
+  "imports": {
+    "~/shared/": "./shared/",
+    "async/": "https://deno.land/std@0.198.0/async/",
+    "dotenv/": "https://deno.land/std@0.198.0/dotenv/",
+    "fmt/": "https://deno.land/std@0.198.0/fmt/",
+    "io/": "https://deno.land/std@0.198.0/io/",
+    "path/": "https://deno.land/std@0.198.0/path/",
+    "streams/": "https://deno.land/std@0.198.0/streams/",
+    "testing/": "https://deno.land/std@0.198.0/testing/",
+    "uuid/": "https://deno.land/std@0.198.0/uuid/",
+    "yaml/": "https://deno.land/std@0.198.0/yaml/",
+    "bcrypt/": "https://deno.land/x/bcrypt@v0.4.1/",
+    "bcrypt/src/": "https://deno.land/x/bcrypt@v0.4.1/src/",
+    "cliffy/ansi/": "https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/",
+    "cliffy/command/": "https://deno.land/x/cliffy@v1.0.0-rc.2/command/",
+    "cliffy/prompt/": "https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/",
+    "cliffy/table/": "https://deno.land/x/cliffy@v1.0.0-rc.2/table/",
+    "cors/": "https://deno.land/x/cors@v1.2.2/",
+    "logger/": "https://deno.land/x/logger@v1.1.2/",
+    "mysql/": "https://deno.land/x/mysql@v2.11.0/",
+    "oak_sessions/": "https://deno.land/x/oak_sessions@v4.1.4/",
+    "oak/": "https://deno.land/x/oak@v12.2.0/",
+    "progress/": "https://deno.land/x/progress@v1.3.8/",
+    "zipjs/": "https://deno.land/x/zipjs@v2.7.20/",
+    "@js-temporal/polyfill": "https://esm.sh/v131/*@js-temporal/polyfill@0.4.4",
+    "@remix-run/router": "https://esm.sh/v131/@remix-run/router@1.6.2",
+    "rate-limiter-flexible": "https://esm.sh/v131/rate-limiter-flexible@2.4.2",
+    "react-dom/server": "https://esm.sh/v131/*react-dom@18.2.0/server",
+    "react-router-dom": "https://esm.sh/v131/*react-router-dom@6.11.2",
+    "react-router-dom/": "https://esm.sh/v131/*react-router-dom@6.11.2/",
+    "react": "https://esm.sh/v131/react@18.2.0",
+    "react/": "https://esm.sh/v131/react@18.2.0/",
+    "twind": "https://esm.sh/v131/*twind@0.16.16",
+    "twind/": "https://esm.sh/v131/*twind@0.16.16/"
+  },
+  "scopes": {
+    "https://esm.sh/v131/": {
+      "@remix-run/router": "https://esm.sh/v131/@remix-run/router@1.6.2",
+      "csstype": "https://esm.sh/v131/csstype@3.1.2",
+      "htmlparser2": "https://esm.sh/v131/htmlparser2@6.1.0",
+      "jsbi": "https://esm.sh/v131/jsbi@4.3.0",
+      "loose-envify": "https://esm.sh/v131/loose-envify@1.4.0",
+      "react-router": "https://esm.sh/v131/react-router@6.11.2",
+      "scheduler": "https://esm.sh/v131/scheduler@0.23.0",
+      "style-vendorizer": "https://esm.sh/v131/style-vendorizer@2.2.3",
+      "tslib": "https://esm.sh/v131/tslib@2.6.1"
+    }
+  }
+}

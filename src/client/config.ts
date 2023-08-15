@@ -4,17 +4,17 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as yaml from 'https://deno.land/std@0.193.0/yaml/mod.ts';
-import { Checkbox, Input, prompt, Secret, Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/mod.ts';
-import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
-import { bgCyan } from 'https://deno.land/std@0.192.0/fmt/colors.ts';
-import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
-import { BlobReader, Uint8ArrayWriter, ZipReader } from 'https://deno.land/x/zipjs@v2.7.20/index.js';
-import ProgressBar from 'https://deno.land/x/progress@v1.3.8/mod.ts';
+import * as yaml from 'yaml/mod.ts';
+import { Checkbox, Input, prompt, Secret, Select } from 'cliffy/prompt/mod.ts';
+import { colors } from 'cliffy/ansi/colors.ts';
+import { bgCyan } from 'fmt/colors.ts';
+import { dirname, join } from 'path/mod.ts';
+import { BlobReader, Uint8ArrayWriter, ZipReader } from 'zipjs/index.js';
+import ProgressBar from 'progress/mod.ts';
 import { logger } from './logger.ts';
-import { writeAll } from 'https://deno.land/std@0.189.0/streams/write_all.ts';
+import { writeAll } from 'streams/write_all.ts';
 import { AutorenderBaseApi, AutorenderConnectUri, UserAgent } from './constants.ts';
-import { RenderQuality } from '../shared/models.ts';
+import { RenderQuality } from '~/shared/models.ts';
 import { gameFolder, getBinary, realGameModFolder } from './utils.ts';
 import { getOptions, Options } from './cli.ts';
 import { getRelease } from './github.ts';

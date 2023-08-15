@@ -6,7 +6,7 @@
 
 import { Messages, NetMessages, ScoreboardTempUpdate, SourceDemo, SourceDemoParser, StringTables } from 'npm:@nekz/sdp';
 import { logger } from './logger.ts';
-import { basename, dirname, join } from 'https://deno.land/std@0.190.0/path/mod.ts';
+import { basename, dirname, join } from 'path/mod.ts';
 import { readSarData, SarDataType } from './sar.ts';
 import { SteamId } from './steam.ts';
 

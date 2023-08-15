@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
+import { dirname, join } from 'path/mod.ts';
 import { GameConfig } from './config.ts';
 import { UserAgent } from './constants.ts';
 

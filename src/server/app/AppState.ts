@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from 'https://esm.sh/v131/react@18.2.0';
-import { User } from '../../shared/models.ts';
+import * as React from 'react';
+import { User } from '~/shared/models.ts';
 import { RouteMeta } from './Routes.ts';
 
 export interface AppState {

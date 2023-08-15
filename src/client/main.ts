@@ -7,7 +7,7 @@
  * file will be send back to the server once it finished rendering.
  */
 
-import { dirname, join } from 'https://deno.land/std@0.190.0/path/mod.ts';
+import { dirname, join } from 'path/mod.ts';
 import { logger } from './logger.ts';
 import {
   AutorenderDataType,
@@ -17,7 +17,7 @@ import {
   AutorenderSendMessages,
   VideoPayload,
 } from './protocol.ts';
-import { RenderQuality } from '../shared/models.ts';
+import { RenderQuality } from '~/shared/models.ts';
 import { ClientState, ClientStatus } from './state.ts';
 import { UploadWorkerDataType } from './upload.ts';
 import { GameConfig, getConfig } from './config.ts';

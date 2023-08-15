@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
-import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
-import { Input, Secret, Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/mod.ts';
+import { Command } from 'cliffy/command/mod.ts';
+import { colors } from 'cliffy/ansi/colors.ts';
+import { Input, Secret, Select } from 'cliffy/prompt/mod.ts';
 
 type Environment = 'dev' | 'prod';
 

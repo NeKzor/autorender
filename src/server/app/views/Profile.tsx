@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from 'https://esm.sh/v131/react@18.2.0';
-import { tw } from 'https://esm.sh/v131/twind@0.16.16';
+import * as React from 'react';
+import { tw } from 'twind';
 import { DataLoader, json, PageMeta, useLoaderData } from '../Routes.ts';
-import { PendingStatus, User, Video } from '../../../shared/models.ts';
+import { PendingStatus, User, Video } from '~/shared/models.ts';
 import { VideoCard } from '../components/VideoCard.tsx';
 
 type JoinedVideo = Video & {

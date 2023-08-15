@@ -9,14 +9,14 @@ import {
   redirect as routerRedirect,
   RouteObject,
   useLoaderData as routerUseLoaderData,
-} from 'https://esm.sh/v131/react-router-dom@6.11.2';
+} from 'react-router-dom';
 import {
   ActionFunction as RemixActionFunction,
   LoaderFunction as RemixLoaderFunction,
   Params,
-} from 'https://esm.sh/v124/@remix-run/router@1.6.2';
-import { Request as OakRequest, Status, STATUS_TEXT } from 'https://deno.land/x/oak@v12.2.0/mod.ts';
-import { createStaticHandler } from 'https://esm.sh/v131/react-router-dom@6.11.2/server';
+} from '@remix-run/router';
+import { Request as OakRequest, Status, STATUS_TEXT } from 'oak/mod.ts';
+import { createStaticHandler } from 'react-router-dom/server';
 
 import * as Home from './views/Home.tsx';
 import * as NotFound from './views/NotFound.tsx';
@@ -26,7 +26,7 @@ import * as Privacy from './views/Privacy.tsx';
 import * as ProfileView from './views/Profile.tsx';
 import * as VideoView from './views/Video.tsx';
 import { Database } from '../db.ts';
-import { User } from '../../shared/models.ts';
+import { User } from '~/shared/models.ts';
 
 const throwStatus = (status: Status) => {
   throw new Response(null, { status: status, statusText: STATUS_TEXT[status] });

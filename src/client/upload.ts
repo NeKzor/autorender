@@ -11,7 +11,7 @@
 
 import { logger } from './logger.ts';
 import { ClientState } from './state.ts';
-import { Video } from '../shared/models.ts';
+import { Video } from '~/shared/models.ts';
 import { Config } from './config.ts';
 import { VideoPayload } from './protocol.ts';
 import { UserAgent } from './constants.ts';

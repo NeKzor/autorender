@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Client, ClientConfig, ExecuteResult as MysqlExecuteResult } from 'https://deno.land/x/mysql@v2.11.0/mod.ts';
+import { Client, ClientConfig, ExecuteResult as MysqlExecuteResult } from 'mysql/mod.ts';
 
 // This adds more ergonomic signatures with type-safety for SQL queries.
 export type ExecuteResult<T> = Omit<MysqlExecuteResult, 'rows'> & {

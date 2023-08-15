@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
-import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
-import { Cell, Table } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/table/mod.ts';
+import { dirname, join } from 'path/mod.ts';
+import { colors } from 'cliffy/ansi/colors.ts';
+import { Cell, Table } from 'cliffy/table/mod.ts';
 import { logger } from './logger.ts';
 import {
   Config,
@@ -22,9 +22,9 @@ import {
   supportedGames,
 } from './config.ts';
 import { AutorenderVersion, UserAgent } from './constants.ts';
-import { YAMLError } from 'https://deno.land/std@0.193.0/yaml/_error.ts';
-import { Checkbox, Confirm, Input, prompt, Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/mod.ts';
-import * as yaml from 'https://deno.land/std@0.193.0/yaml/mod.ts';
+import { YAMLError } from 'yaml/_error.ts';
+import { Checkbox, Confirm, Input, prompt, Select } from 'cliffy/prompt/mod.ts';
+import * as yaml from 'yaml/mod.ts';
 import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
 import { Options } from './cli.ts';
 import { getRelease } from './github.ts';

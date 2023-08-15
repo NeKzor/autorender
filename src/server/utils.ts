@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { join } from 'https://deno.land/std@0.190.0/path/mod.ts';
-import { Video } from '../shared/models.ts';
+import { join } from 'path/mod.ts';
+import { Video } from '~/shared/models.ts';
 
 export const Storage = {
   Demos: Deno.realPathSync(Deno.env.get('AUTORENDER_DEMOS_FOLDER')!),

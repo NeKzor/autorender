@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Video } from '../../shared/models.ts';
+import { Video } from '~/shared/models.ts';
 import {
   ApplicationCommandOption,
   ApplicationCommandOptionChoice,

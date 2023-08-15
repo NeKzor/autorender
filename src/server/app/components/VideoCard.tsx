@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from 'https://esm.sh/v131/react@18.2.0';
-import { Temporal } from 'https://esm.sh/v131/@js-temporal/polyfill@0.4.4';
-import { Video } from '../../../shared/models.ts';
-import { tw } from 'https://esm.sh/v131/twind@0.16.16';
+import * as React from 'react';
+import { tw } from 'twind';
+import { Temporal } from '@js-temporal/polyfill';
+import { Video } from '~/shared/models.ts';
 
 type VideoCardData =
   & Pick<

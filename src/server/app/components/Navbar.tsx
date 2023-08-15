@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as React from 'https://esm.sh/v131/react@18.2.0';
-import { tw } from 'https://esm.sh/v131/twind@0.16.16';
+import * as React from 'react';
+import { tw } from 'twind';
 import { AppStateContext } from '../AppState.ts';
-import { UserPermissions } from '../../../shared/models.ts';
+import { UserPermissions } from '~/shared/models.ts';
 
 const Navbar = () => {
   const state = React.useContext(AppStateContext);

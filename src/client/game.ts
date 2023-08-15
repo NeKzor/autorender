@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { dirname } from 'https://deno.land/std@0.192.0/path/mod.ts';
+import { dirname } from 'path/mod.ts';
 import { Config, gameModsWhichSupportWorkshop } from './config.ts';
 import { logger } from './logger.ts';
-import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
+import { colors } from 'cliffy/ansi/colors.ts';
 import { realGameModFolder } from './utils.ts';
 
 /**
