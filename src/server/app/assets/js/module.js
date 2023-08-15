@@ -110,7 +110,7 @@ if (
   navSearchInput.addEventListener('keydown', search.input);
   navBackButton.addEventListener('click', () => search.close({ force: true }));
   navSearchInputClearButton.addEventListener('click', () => search.clear());
-  document.addEventListener('keydown', search.shortcut());
+  document.addEventListener('keydown', search.shortcut);
 }
 
 const darkButton = document.getElementById('theme-toggle-dark-icon');
