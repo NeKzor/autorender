@@ -1331,6 +1331,7 @@ const routeToApp = async (ctx: Context) => {
 
   const initialState: ReactAppState = {
     user,
+    url,
     meta,
     domain: SERVER_DOMAIN,
     nonce: btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))),

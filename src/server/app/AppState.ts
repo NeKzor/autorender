@@ -10,6 +10,7 @@ import { RouteMeta } from './Routes.ts';
 
 export interface AppState {
   user: User | null;
+  url: URL;
   meta: RouteMeta;
   domain: string;
   nonce: string;
