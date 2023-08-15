@@ -178,6 +178,9 @@ For development it is recommended to enable `HOT_RELOAD=true`.
 By default all demos and videos are stored locally. Video upload to the b2 cloud storage is optional. However, it is
 recommended to use local storage during development since every request to b2 will count towards the daily API cap.
 
+When using b2, a video will be deleted once they have been processed by `deno task processing`. This task is responsible
+for generating thumbnails and previews. These files are not uploaded but are stored locally.
+
 ### Install & Run Client
 
 - Generate a new token in the platform (make sure the permissions have been set for the [logged in account])
@@ -251,7 +254,7 @@ Difference between `dev` and `prod`:
 
 Client code will be compiled and shipped in a single executable:
 
-- `deno task client --all --release` outputs the executables to `src/client/bin`
+- `deno task compile --all --release` outputs the executables to `src/client/bin`
 
 When deploying make sure that clients have checked the following:
 
