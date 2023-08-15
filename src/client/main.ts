@@ -21,11 +21,11 @@ import { RenderQuality } from '../shared/models.ts';
 import { ClientState, ClientStatus } from './state.ts';
 import { UploadWorkerDataType } from './upload.ts';
 import { GameConfig, getConfig } from './config.ts';
-import { getOptions } from './options.ts';
 import { WorkerDataType } from './worker.ts';
-import { UserAgent } from './version.ts';
+import { UserAgent } from './constants.ts';
 import { createFolders } from './game.ts';
 import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
+import { parseArgs } from './cli.ts';
 
 addEventListener('error', (ev) => {
   console.dir({ error: ev.error }, { depth: 16 });
@@ -35,7 +35,7 @@ addEventListener('unhandledrejection', (ev) => {
   console.dir({ unhandledrejection: ev.reason }, { depth: 16 });
 });
 
-const _options = await getOptions();
+const _args = await parseArgs();
 const config = await getConfig();
 
 // TODO: Upstream sar_on_renderer feature

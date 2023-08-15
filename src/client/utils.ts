@@ -6,6 +6,7 @@
 
 import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
 import { GameConfig } from './config.ts';
+import { UserAgent } from './constants.ts';
 
 /**
  * Join paths with the game folder.
@@ -34,4 +35,60 @@ export const gameModFolder = (game: GameConfig, ...paths: string[]) => {
   return game.sourcemod
     ? join(dirname(dirname(game.dir)), 'common', 'Portal 2', 'portal2', ...paths)
     : join(game.dir, game.mod, ...paths);
+};
+
+/**
+ * Downloads a binary file.
+ */
+export const getBinary = async (
+  url: string,
+  options: {
+    onStart?: () => void;
+    onProgress?: (event: { loaded: number; total: number }) => void;
+    onEnd?: () => void;
+  },
+) => {
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': UserAgent,
+    },
+  });
+
+  let loaded = 0;
+  const total = Number(res.headers.get('Content-Length')) || 0;
+
+  const { onStart, onProgress, onEnd } = options;
+
+  return await new Response(
+    new ReadableStream({
+      async start(controller) {
+        onStart && onStart();
+
+        const reader = res.body!.getReader();
+
+        onProgress && onProgress({ loaded, total });
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            controller.close();
+            onEnd && onEnd();
+            return;
+          }
+
+          if (onProgress) {
+            loaded += value.byteLength;
+            onProgress({ loaded, total });
+          }
+
+          controller.enqueue(value);
+        }
+      },
+    }),
+    {
+      headers: res.headers,
+      status: res.status,
+      statusText: res.statusText,
+    },
+  ).blob();
 };

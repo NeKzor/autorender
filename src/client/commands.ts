@@ -5,7 +5,6 @@
  */
 
 import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
-import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 import { Cell, Table } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/table/mod.ts';
 import { logger } from './logger.ts';
@@ -22,147 +21,17 @@ import {
   parseAndValidateConfig,
   supportedGames,
 } from './config.ts';
-import { AutorenderVersion, UserAgent } from './version.ts';
+import { AutorenderVersion, UserAgent } from './constants.ts';
 import { YAMLError } from 'https://deno.land/std@0.193.0/yaml/_error.ts';
 import { Checkbox, Confirm, Input, prompt, Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/mod.ts';
 import * as yaml from 'https://deno.land/std@0.193.0/yaml/mod.ts';
 import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
+import { Options } from './cli.ts';
+import { getRelease } from './github.ts';
 
 const isWindows = Deno.build.os === 'windows';
 
-export interface Options {
-  devMode: boolean;
-  verboseMode: boolean;
-}
-
-let options: Options | null = null;
-
-export const getOptions = async () => {
-  if (!options) {
-    const { options: { verbose, dev } } = await new Command()
-      .name('autorender')
-      .version(AutorenderVersion)
-      .description('Command line app for connecting to autorender.nekz.me')
-      .option('-c, --check', 'Health check of the app.')
-      .option('-v, --verbose', 'Turn on verbose logging.')
-      .option('-d, --dev', 'Switch into developer mode.')
-      .option('-s, --sar', 'Download latest SourceAutoRecord version.')
-      .option('-C, --cfg', 'Download latest autorender.cfg file.')
-      .option('-q, --quickhud', 'Download latest quickhud files.')
-      .option('-b, --benchmark', 'Run a benchmark render for finding the correct scale-timeout value.')
-      .option('-l, --launch', 'Test if a game can be launched.')
-      .option('-g, --add-game', 'Add a new game.')
-      .option('-e, --explain', 'Explain all config options.')
-      .option('-a, --validate', 'Validate if the config file is correct.')
-      .action(async ({ verbose, check, dev, sar, cfg, quickhud, benchmark, launch, addGame, explain, validate }) => {
-        const options = {
-          devMode: !!dev,
-          verboseMode: !!verbose,
-        };
-
-        check && await runCheck(options);
-        explain && runExplain();
-        validate && await runValidate(options);
-
-        if (sar) {
-          await downloadSourceAutoRecord(await getConfigOnly(), options);
-          Deno.exit(0);
-        }
-
-        if (cfg) {
-          await downloadAutorenderConfig(await getConfigOnly(), options);
-          Deno.exit(0);
-        }
-
-        if (quickhud) {
-          await downloadQuickhud(await getConfigOnly(), options);
-          Deno.exit(0);
-        }
-
-        if (benchmark) {
-          await runBenchmark(await getConfigOnly(), options);
-          Deno.exit(0);
-        }
-
-        if (launch) {
-          await launchGame(await getConfigOnly(), options);
-          Deno.exit(0);
-        }
-
-        if (addGame) {
-          await addNewGame(await getConfigOnly(), options);
-          Deno.exit(0);
-        }
-      })
-      .parse(Deno.args);
-
-    options = {
-      devMode: !!dev,
-      verboseMode: !!verbose,
-    };
-  }
-
-  return options;
-};
-
-export const getOptionsOnly = () => {
-  return options!;
-};
-
-export const getBinary = async (
-  url: string,
-  options: {
-    onStart?: () => void;
-    onProgress?: (event: { loaded: number; total: number }) => void;
-    onEnd?: () => void;
-  },
-) => {
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': UserAgent,
-    },
-  });
-
-  let loaded = 0;
-  const total = Number(res.headers.get('Content-Length')) || 0;
-
-  const { onStart, onProgress, onEnd } = options;
-
-  return await new Response(
-    new ReadableStream({
-      async start(controller) {
-        onStart && onStart();
-
-        const reader = res.body!.getReader();
-
-        onProgress && onProgress({ loaded, total });
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            controller.close();
-            onEnd && onEnd();
-            return;
-          }
-
-          if (onProgress) {
-            loaded += value.byteLength;
-            onProgress({ loaded, total });
-          }
-
-          controller.enqueue(value);
-        }
-      },
-    }),
-    {
-      headers: res.headers,
-      status: res.status,
-      statusText: res.statusText,
-    },
-  ).blob();
-};
-
-const runCheck = async (options: Options) => {
+export const runCheck = async (options: Options) => {
   const { verboseMode } = options;
 
   try {
@@ -306,7 +175,7 @@ const runCheck = async (options: Options) => {
   }
 };
 
-const runExplain = () => {
+export const runExplain = () => {
   const entries = Object.entries(configExplanation);
 
   const explanation = new Table(
@@ -335,7 +204,7 @@ const runExplain = () => {
   Deno.exit(0);
 };
 
-const runValidate = async ({ verboseMode }: Options) => {
+export const runValidate = async ({ verboseMode }: Options) => {
   try {
     await parseAndValidateConfig();
 
@@ -354,7 +223,7 @@ const runValidate = async ({ verboseMode }: Options) => {
   }
 };
 
-const runBenchmark = async (
+export const runBenchmark = async (
   config: Config | null,
   options: Options,
 ) => {
@@ -370,6 +239,17 @@ const runBenchmark = async (
   }
 
   let autoexecFile = '';
+
+  const cleanupAutoexec = async () => {
+    if (autoexecFile) {
+      try {
+        await Deno.remove(autoexecFile);
+      } catch (err) {
+        options.verboseMode && console.error(err);
+        console.log(colors.red(`Failed to remove temporary autoexec ${autoexecFile}`));
+      }
+    }
+  };
 
   try {
     const { state: readAccess } = await Deno.permissions.request({
@@ -532,27 +412,27 @@ const runBenchmark = async (
 
           console.log(colors.green(`🛠️  Saved config file ${configFile}`));
         } catch (err) {
-          options?.verboseMode === false && console.error(err);
+          options.verboseMode && console.error(err);
+          Deno.exit(1);
         }
       }
     } catch (err) {
       console.log(colors.red('Failed to find rendered video'));
-      options?.verboseMode === false && console.error(err);
+      options.verboseMode && console.error(err);
+      Deno.exit(1);
     }
   } catch (err) {
-    options?.verboseMode === false && console.error(err);
-  } finally {
-    if (autoexecFile) {
-      try {
-        await Deno.remove(autoexecFile);
-      } catch (err) {
-        console.log(colors.red(`Failed to remove temporary autoexec ${autoexecFile}`), err);
-      }
-    }
+    options.verboseMode && console.error(err);
+    console.log(colors.red('Error'));
+    await cleanupAutoexec();
+    Deno.exit(1);
   }
+
+  await cleanupAutoexec();
+  Deno.exit(0);
 };
 
-const launchGame = async (
+export const launchGame = async (
   config: Config | null,
   options: Options,
 ) => {
@@ -607,11 +487,15 @@ const launchGame = async (
     const { code } = await gameProcess.output();
     console.log(colors.white('Game exited'), { code });
   } catch (err) {
-    options?.verboseMode === false && console.error(err);
+    options.verboseMode && console.error(err);
+    console.log(colors.red('Error'));
+    Deno.exit(1);
   }
+
+  Deno.exit(0);
 };
 
-const addNewGame = async (
+export const addNewGame = async (
   config: Config | null,
   options: Options,
 ) => {
@@ -747,138 +631,15 @@ const addNewGame = async (
 
       console.log(colors.green(`🛠️  Saved config file ${configFile}`));
     } catch (err) {
-      options?.verboseMode === false && console.error(err);
+      options.verboseMode && console.error(err);
+      console.log(colors.red('Failed to save config file'));
+      Deno.exit(1);
     }
   } catch (err) {
-    options?.verboseMode === false && console.error(err);
+    options.verboseMode && console.error(err);
+    console.log(colors.red('Error'));
+    Deno.exit(1);
   }
-};
 
-export const getRelease = async (
-  url: string,
-  options?: { verboseMode?: Options['verboseMode'] },
-) => {
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': UserAgent,
-      },
-    });
-    if (!res.ok) {
-      throw new Error(`Failed to fetch ${url} : status ${res.status}`);
-    }
-    return await res.json() as GitHubRelease;
-  } catch (err) {
-    options?.verboseMode === false && logger.error(err);
-    return null;
-  }
+  Deno.exit(0);
 };
-
-interface GitHubRelease {
-  url: string;
-  assets_url: string;
-  upload_url: string;
-  html_url: string;
-  id: number;
-  author: {
-    login: string;
-    id: number;
-    node_id: string;
-    avatar_url: string;
-    gravatar_id: string;
-    url: string;
-    html_url: string;
-    followers_url: string;
-    following_url: string;
-    gists_url: string;
-    starred_url: string;
-    subscriptions_url: string;
-    organizations_url: string;
-    repos_url: string;
-    events_url: string;
-    received_events_url: string;
-    type: string;
-    site_admin: boolean;
-  };
-  node_id: string;
-  tag_name: string;
-  target_commitish: string;
-  name: string;
-  draft: boolean;
-  prerelease: boolean;
-  created_at: string;
-  published_at: string;
-  assets: [
-    {
-      url: string;
-      id: number;
-      node_id: string;
-      name: string;
-      label: null;
-      uploader: {
-        login: string;
-        id: number;
-        node_id: string;
-        avatar_url: string;
-        gravatar_id: string;
-        url: string;
-        html_url: string;
-        followers_url: string;
-        following_url: string;
-        gists_url: string;
-        starred_url: string;
-        subscriptions_url: string;
-        organizations_url: string;
-        repos_url: string;
-        events_url: string;
-        received_events_url: string;
-        type: string;
-        site_admin: boolean;
-      };
-      content_type: string;
-      state: string;
-      size: number;
-      download_count: number;
-      created_at: string;
-      updated_at: string;
-      browser_download_url: string;
-    },
-    {
-      url: string;
-      id: number;
-      node_id: string;
-      name: string;
-      label: null;
-      uploader: {
-        login: string;
-        id: number;
-        node_id: string;
-        avatar_url: string;
-        gravatar_id: string;
-        url: string;
-        html_url: string;
-        followers_url: string;
-        following_url: string;
-        gists_url: string;
-        starred_url: string;
-        subscriptions_url: string;
-        organizations_url: string;
-        repos_url: string;
-        events_url: string;
-        received_events_url: string;
-        type: string;
-        site_admin: boolean;
-      };
-      content_type: string;
-      state: string;
-      size: number;
-      download_count: number;
-      created_at: string;
-      updated_at: string;
-      browser_download_url: string;
-    },
-  ];
-  tarball_url: string;
-  zipball_url: string;
-  body: string;
-}

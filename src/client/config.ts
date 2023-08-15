@@ -9,14 +9,15 @@ import { Checkbox, Input, prompt, Secret, Select } from 'https://deno.land/x/cli
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 import { bgCyan } from 'https://deno.land/std@0.192.0/fmt/colors.ts';
 import { dirname, join } from 'https://deno.land/std@0.192.0/path/mod.ts';
-import { getBinary, getOptionsOnly, getRelease, Options } from './options.ts';
 import { BlobReader, Uint8ArrayWriter, ZipReader } from 'https://deno.land/x/zipjs@v2.7.20/index.js';
 import ProgressBar from 'https://deno.land/x/progress@v1.3.8/mod.ts';
 import { logger } from './logger.ts';
 import { writeAll } from 'https://deno.land/std@0.189.0/streams/write_all.ts';
-import { UserAgent } from './version.ts';
+import { AutorenderBaseApi, AutorenderConnectUri, UserAgent } from './constants.ts';
 import { RenderQuality } from '../shared/models.ts';
-import { gameFolder, realGameModFolder } from './utils.ts';
+import { gameFolder, getBinary, realGameModFolder } from './utils.ts';
+import { getOptions, Options } from './cli.ts';
+import { getRelease } from './github.ts';
 
 const isWindows = Deno.build.os === 'windows';
 
@@ -378,16 +379,16 @@ export const createGameConfig = (steamCommon: string) => (mod: string) => {
 };
 
 const createConfig = async () => {
-  const options = getOptionsOnly();
+  const options = getOptions()!;
 
   const [connectUri, baseApi] = options.devMode
     ? [
-      'wss://autorender.portal2.local/connect/client',
-      'https://autorender.portal2.local',
+      AutorenderConnectUri.dev,
+      AutorenderBaseApi.dev,
     ]
     : [
-      'wss://autorender.nekz.me/connect/client',
-      'https://autorender.nekz.me',
+      AutorenderConnectUri.prod,
+      AutorenderBaseApi.prod,
     ];
 
   console.log(colors.bold.white('Client setup for autorender!'));
@@ -578,7 +579,7 @@ export const downloadSourceAutoRecord = async (
   config: Config | null,
   options: Options,
   addedGames?: GameConfig[],
-) => {
+): Promise<true | never> => {
   if (!config) {
     console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
     Deno.exit(1);
@@ -589,10 +590,7 @@ export const downloadSourceAutoRecord = async (
     new TextEncoder().encode(colors.white('\r🗿️ Getting SourceAutoRecord')),
   );
 
-  const sarRelease = await getRelease(
-    'https://api.github.com/repos/NeKzor/sar/releases/latest',
-    options,
-  );
+  const sarRelease = await getRelease('https://api.github.com/repos/NeKzor/sar/releases/latest', options);
 
   config.sar.version = sarRelease?.tag_name ?? '';
 
@@ -691,6 +689,8 @@ export const downloadSourceAutoRecord = async (
   } finally {
     await zip?.close();
   }
+
+  return true;
 };
 
 // Download and install autorender.cfg
@@ -746,6 +746,8 @@ export const downloadAutorenderConfig = async (
       Deno.exit(1);
     }
   }
+
+  return true;
 };
 
 // Download and install quickhud.zip
@@ -839,4 +841,6 @@ export const downloadQuickhud = async (
   } finally {
     await zip?.close();
   }
+
+  return true;
 };

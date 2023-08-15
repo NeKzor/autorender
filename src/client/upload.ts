@@ -14,7 +14,7 @@ import { ClientState } from './state.ts';
 import { Video } from '../shared/models.ts';
 import { Config } from './config.ts';
 import { VideoPayload } from './protocol.ts';
-import { UserAgent } from './version.ts';
+import { UserAgent } from './constants.ts';
 import { realGameModFolder } from './utils.ts';
 
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
