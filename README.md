@@ -395,8 +395,8 @@ server {
     - Add file logging to bot
 - SAR wishlist
   - ~~Remove unnecessary watermark~~
-  - Sandbox commands like in 1.0
-  - IPC between client and game process
+  - ~~Sandbox commands like in 1.0~~ `sar_demo_blacklist_all` exists now, nice
+  - ~~IPC between client and game process~~ `-netconport` might be good enough
   - Detect if demo could be played
   - Do not lock mouse input inside the game during render
   - Encode button inputs per frame for
