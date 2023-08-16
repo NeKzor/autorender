@@ -240,7 +240,7 @@ export const runBenchmark = async (
 
   let autoexecFile = '';
 
-  const cleanupAutoexec = async () => {
+  const autoexecCleanup = async () => {
     if (autoexecFile) {
       try {
         await Deno.remove(autoexecFile);
@@ -424,11 +424,11 @@ export const runBenchmark = async (
   } catch (err) {
     options.verboseMode && console.error(err);
     console.log(colors.red('Error'));
-    await cleanupAutoexec();
+    await autoexecCleanup();
     Deno.exit(1);
   }
 
-  await cleanupAutoexec();
+  await autoexecCleanup();
   Deno.exit(0);
 };
 

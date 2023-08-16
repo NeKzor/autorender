@@ -254,6 +254,18 @@ Deno.addSignalListener('SIGINT', () => {
  * Server requests the start of a render after it got the confirmed videos.
  */
 const handleMessageStart = async (game: GameConfig) => {
+  let autoexecFile = '';
+
+  const autoexecCleanup = async () => {
+    if (autoexecFile) {
+      try {
+        await Deno.remove(autoexecFile);
+      } catch (err) {
+        logger.error(`Failed to remove temporary autoexec ${autoexecFile}`, err);
+      }
+    }
+  };
+
   try {
     if (!state.videos.length) {
       throw new Error('No videos available');
@@ -261,7 +273,9 @@ const handleMessageStart = async (game: GameConfig) => {
 
     state.status = ClientStatus.Rendering;
 
-    const command = await prepareGameLaunch(game);
+    const [autoexecFilePath, command] = await prepareGameLaunch(game);
+
+    autoexecFile = autoexecFilePath;
 
     logger.info('Spawning process...');
 
@@ -331,6 +345,8 @@ const handleMessageStart = async (game: GameConfig) => {
         gameProcess = null;
       }
     }
+
+    await autoexecCleanup();
 
     fetchNextVideos();
   }
@@ -547,7 +563,7 @@ const getAutoExecQuirks = (game: GameConfig) => {
 /**
  * Prepares autoexec.cfg to queue all demos.
  */
-const prepareGameLaunch = async (game: GameConfig) => {
+const prepareGameLaunch = async (game: GameConfig): Promise<[string, Deno.Command]> => {
   const getDemoName = ({ video_id }: VideoPayload) => {
     return join(config.autorender['folder-name'], video_id.toString());
   };
@@ -590,10 +606,9 @@ const prepareGameLaunch = async (game: GameConfig) => {
     `${renderOptions};playdemo ${getDemoName(firstVideo)}`,
   ];
 
-  await Deno.writeTextFile(
-    realGameModFolder(game, 'cfg', 'autoexec.cfg'),
-    autoexec.join('\n'),
-  );
+  const autoexecFile = realGameModFolder(game, 'cfg', 'autoexec.cfg');
+
+  await Deno.writeTextFile(autoexecFile, autoexec.join('\n'));
 
   const getCommand = (): [string, string] => {
     const command = gameFolder(game, game.exe);
@@ -626,5 +641,5 @@ const prepareGameLaunch = async (game: GameConfig) => {
 
   console.log({ command, args });
 
-  return new Deno.Command(command, { args });
+  return [autoexecFile, new Deno.Command(command, { args })];
 };
