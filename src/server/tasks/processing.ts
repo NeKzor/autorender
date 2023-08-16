@@ -150,10 +150,9 @@ const processVideos = async () => {
     `select BIN_TO_UUID(video_id) as video_id
           , share_id
        from videos
-      where (processed = 0
+      where processed = 0
         and pending = ?
-        and video_url is not null)
-        or share_id = 'gFbTuA4MFuM'`,
+        and video_url is not null`,
     [
       PendingStatus.FinishedRender,
     ],
