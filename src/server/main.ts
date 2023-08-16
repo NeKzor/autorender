@@ -1577,6 +1577,12 @@ router.get('/storage/thumbnails/:share_id/:small(small)?', async (ctx) => {
     }
   }
 });
+router.get('/security.txt', async (ctx) => {
+  Ok(ctx, await Deno.readFile(getStorageFilePath('security.txt')), 'text/plain');
+});
+router.get('/.well-known/security.txt', async (ctx) => {
+  Ok(ctx, await Deno.readFile(getStorageFilePath('security.txt')), 'text/plain');
+});
 router.get('/storage/files/autorender.cfg', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('autorender.cfg')), 'text/plain');
 });
