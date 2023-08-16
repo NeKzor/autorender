@@ -496,7 +496,7 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
  * Get window width and height.
  * NOTE: This will also be used for the custom crosshair.
  */
-const getGameResolution = (): [string, string] => {
+const getGameResolution = (): [number, number] => {
   // Quality for each video should be the same.
   // This is handled server-side.
   const { render_quality } = state.videos.at(0)!;
@@ -504,17 +504,17 @@ const getGameResolution = (): [string, string] => {
   switch (render_quality) {
     case RenderQuality.SD_480p:
       // NOTE: This is 16:10 for now...
-      return ['768', '480'];
+      return [768, 480];
     case RenderQuality.HD_720p:
-      return ['1280', '720'];
+      return [1280, 720];
     case RenderQuality.FHD_1080p:
-      return ['1920', '1080'];
+      return [1920, 1080];
     case RenderQuality.QHD_1440p:
-      return ['2560', '1440'];
+      return [2560, 1440];
     case RenderQuality.UHD_2160p:
-      return ['3840', '2160'];
+      return [3840, 2160];
     default:
-      return ['1280', '720'];
+      return [1280, 720];
   }
 };
 
@@ -583,6 +583,7 @@ const prepareGameLaunch = async (game: GameConfig) => {
     `exec ${game.cfg}`,
     ...getAutoExecQuirks(game),
     `sar_quickhud_set_texture crosshair/quickhud${height}-`,
+    `cl_crosshairgap ${height / 120}`,
     ...state.videos.slice(1).map(playdemo),
     ...(usesQueue ? ['sar_alias autorender_queue autorender_video_0'] : []),
     `${eventCommand} "${nextCommand}"`,
@@ -609,7 +610,7 @@ const prepareGameLaunch = async (game: GameConfig) => {
 
   const [command, argv0] = getCommand();
 
-  const args = [
+  const args: string[] = [
     argv0,
     '-game',
     game.mod === 'portalreloaded' ? 'portal2' : game.sourcemod ? `../../sourcemods/${game.mod}` : game.mod,
@@ -618,9 +619,9 @@ const prepareGameLaunch = async (game: GameConfig) => {
     //"-vulkan",
     '-windowed',
     '-w',
-    width,
+    width.toString(),
     '-h',
-    height,
+    height.toString(),
   ];
 
   console.log({ command, args });
