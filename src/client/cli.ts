@@ -25,7 +25,7 @@ const cli = new Command()
   .description('Command line app for rendering and uploading videos to autorender.nekz.me.')
   .globalOption('-v, --verbose', 'Turn on verbose error logging.')
   .globalOption('-d, --dev', 'Switch into developer mode.', { hidden: true })
-  .action(({ verbose, dev }) => {
+  .globalAction(({ verbose, dev }) => {
     options = {
       devMode: !!dev,
       verboseMode: !!verbose,
