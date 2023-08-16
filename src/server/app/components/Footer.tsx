@@ -32,7 +32,7 @@ const Footer = () => {
           </li>
           <li>
             <a
-              href='https://github.com/NeKzor/autorender/issues/new'
+              href='https://github.com/NeKzor/autorender/issues/new/choose'
               target='_blank'
               className={tw`mr-4 hover:underline md:mr-6 `}
             >
