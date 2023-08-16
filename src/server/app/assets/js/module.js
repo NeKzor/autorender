@@ -139,10 +139,10 @@ if (themeToggleButton) {
 // Videos
 
 if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
-  await fetch(`/api/v1${location.pathname}/views`, { method: 'POST' });
-
   const video = document.querySelector('video');
   if (video) {
+    await fetch(`/api/v1${location.pathname}/views`, { method: 'POST' });
+
     const videoVolume = parseFloat(localStorage.getItem('video-volume'));
     if (!isNaN(videoVolume)) {
       video.volume = videoVolume;
