@@ -183,7 +183,7 @@ export const Profile = () => {
                   <img
                     className={tw`w-24 h-24 mt-3 mb-3 rounded-full shadow-lg`}
                     src={user.discord_avatar_url}
-                    alt='Bonnie image'
+                    alt='avatar'
                   />
                   <div
                     className={tw`pl-2 pr-2 bg-white dark:bg-gray-900 mb-3 border border-gray-200 rounded-full shadow dark:border-gray-700`}
@@ -199,7 +199,7 @@ export const Profile = () => {
               <div className={tw`border-gray-200 dark:border-gray-600`}>
                 <div className={tw`bg-white rounded-lg dark:bg-gray-900`}>
                   <dl
-                    className={tw`grid max-w-screen-xl grid-cols-2 gap-8 mx-auto text-gray-900 sm:grid-cols-3 xl:grid-cols-6 dark:text-white sm:p-8`}
+                    className={tw`grid max-w-screen-xl grid-cols-2 gap-8 mx-auto text-gray-900 sm:grid-cols-3 xl:grid-cols-6 dark:text-white p-8`}
                   >
                     <div className={tw`flex flex-col items-center justify-center`}>
                       <dt className={tw`mb-2 text-3xl font-extrabold`}>
