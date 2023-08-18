@@ -60,7 +60,7 @@ const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
 const SERVER_SSL_CERT = Deno.env.get('SERVER_SSL_CERT')!;
 const SERVER_SSL_KEY = Deno.env.get('SERVER_SSL_KEY')!;
-// FIXME: Clients are not well prepared to handle multiple videos at once
+// NOTE: Clients should only handle one video per request.
 const MAX_VIDEOS_PER_REQUEST = 1;
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
 const AUTORENDER_V1 = 'autorender-v1';

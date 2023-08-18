@@ -32,7 +32,6 @@ ADD src/shared .
 WORKDIR /app
 ADD src/server .
 
-# TODO: use deps file
 RUN deno cache main.ts
 
 CMD deno task ${DENO_TASK_ENTRYPOINT}
