@@ -19,12 +19,12 @@ type Data = {
   user: User | undefined;
   videos: JoinedVideo[];
   stats: {
-    rendered_videos: number | undefined;
-    total_views: number | undefined;
-    provided_videos: number | undefined;
-    renderer_rank: number | undefined;
-    views_rank: number | undefined;
-    provider_rank: number | undefined;
+    rendered_videos: number;
+    total_views: number;
+    provided_videos: number;
+    renderer_rank: number;
+    views_rank: number;
+    provider_rank: number;
   };
 };
 
@@ -46,13 +46,20 @@ export const loader: DataLoader = async ({ params, context }) => {
     return json<Data>({
       user,
       videos: [],
-      stats: {},
+      stats: {
+        rendered_videos: 0,
+        total_views: 0,
+        provided_videos: 0,
+        renderer_rank: 0,
+        views_rank: 0,
+        provider_rank: 0,
+      },
     });
   }
 
   // TODO: Uploaded and non-deleted videos are common enough to create a view for this.
 
-  const videos = await context.db.query<Video>(
+  const videos = await context.db.query<JoinedVideo>(
     `select *
           , BIN_TO_UUID(video_id) as video_id
           , requester.username as requested_by_username
