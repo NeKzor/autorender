@@ -173,7 +173,7 @@ export const VideoView = () => {
                 Requested by: {data.requested_by_username
                   ? (
                     <a
-                      className={tw`font-medium text-blue-600 dark:text-blue-500 hover:underline`}
+                      className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
                       href={`/profile/${data.requested_by_username}`}
                     >
                       {data.requested_by_username}
@@ -194,7 +194,7 @@ export const VideoView = () => {
               Render node: {data.rendered_by_username !== null
                 ? (
                   <a
-                    className={tw`font-medium text-blue-600 dark:text-blue-500 hover:underline`}
+                    className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
                     href={`/profile/${data.rendered_by_username}`}
                   >
                     {data.render_node}@{data.rendered_by_username}
@@ -207,7 +207,7 @@ export const VideoView = () => {
               <div>
                 Board profile:{' '}
                 <a
-                  className={tw`font-medium text-blue-600 dark:text-blue-500 hover:underline`}
+                  className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
                   href={`https://board.portal2.sr/profile/${data.board_profile_number}`}
                   target='_blank'
                 >
@@ -219,7 +219,7 @@ export const VideoView = () => {
               <div>
                 Steam profile:{' '}
                 <a
-                  className={tw`font-medium text-blue-600 dark:text-blue-500 hover:underline`}
+                  className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
                   href={`https://steamcommunity.com/profiles/${data.demo_steam_id}`}
                   target='_blank'
                 >
