@@ -102,7 +102,7 @@ export const Home = () => {
     <>
       {data !== null && (
         <>
-          <div>
+          <div className={tw`flex justify-center`}>
             <div
               className={tw`grid grid-cols sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4`}
             >

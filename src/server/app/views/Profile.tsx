@@ -175,11 +175,11 @@ export const Profile = () => {
   );
 
   return (
-    <>
-      <div>{!user ?? 'Profile not found :('}</div>
-      {user && (
-        <>
-          <div className={tw`flex items-center justify-center`}>
+    <div className={tw`flex justify-center`}>
+      <div>
+        {!user && 'Profile not found'}
+        {user && (
+          <div>
             <div
               className={tw`w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700`}
             >
@@ -261,13 +261,13 @@ export const Profile = () => {
               </div>
             </div>
           </div>
-          <div
-            className={tw`grid mt-4 grid-cols sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4`}
-          >
-            {renderedVideos.map((video) => <VideoCard video={video} />)}
-          </div>
-        </>
-      )}
-    </>
+        )}
+        <div
+          className={tw`grid mt-4 grid-cols sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4`}
+        >
+          {renderedVideos.map((video) => <VideoCard video={video} />)}
+        </div>
+      </div>
+    </div>
   );
 };
