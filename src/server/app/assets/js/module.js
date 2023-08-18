@@ -20,7 +20,6 @@ const navSearchInputClearButton = document.getElementById('nav-search-input-clea
 const navItemsRight = document.getElementById('nav-items-right');
 const themeToggleButton = document.getElementById('theme-toggle-button');
 const userMenuButton = document.getElementById('user-menu-button');
-const userMenuDropDown = document.getElementById('user-menu-dropdown');
 const loginButton = document.getElementById('login-button');
 
 const search = {
@@ -48,8 +47,8 @@ if (
     navSearch.classList.remove('hidden');
     navBackButton.classList.remove('hidden');
     themeToggleButton.classList.add('hidden');
+    themeToggleButton.classList.remove('inline-flex');
     userMenuButton?.classList?.add('hidden');
-    userMenuDropDown?.classList?.add('hidden');
     loginButton?.classList?.add('hidden');
     options?.focus && navSearchInput.focus();
     navSearchInput.value?.length && navSearchInputClearButton.classList.remove('hidden');
@@ -71,8 +70,8 @@ if (
     navBackButton.classList.add('hidden');
     navSearch.classList.add('hidden');
     themeToggleButton.classList.remove('hidden');
+    themeToggleButton.classList.add('inline-flex');
     userMenuButton?.classList?.remove('hidden');
-    userMenuDropDown?.classList?.remove('hidden');
     loginButton?.classList?.remove('hidden');
   };
 
@@ -162,6 +161,31 @@ if (location.pathname.startsWith('/search') && location.search.length !== 0) {
   if (window.innerWidth <= minWidthBreakpoints.md && search.open) {
     search.open();
   }
+
+  const shareModal = document.getElementById('share-modal');
+  /** @type {HTMLInputElement} */
+  const shareModalInput = document.getElementById('share-modal-input');
+  const shareModalCloseButton = document.getElementById('share-modal-close-button');
+  const shareModalCopyButton = document.getElementById('share-modal-copy-button');
+  const shareButtons = document.querySelectorAll('.video-share-button');
+
+  shareButtons.forEach((shareButton) => {
+    shareButton.addEventListener('click', (ev) => {
+      shareModal.classList.remove('hidden');
+      shareModal.classList.add('flex');
+      shareModalInput.value = `${location.origin}/videos/${ev.target.id.slice(19)}`;
+    });
+  });
+
+  shareModalCloseButton.addEventListener('click', () => {
+    shareModal.classList.add('hidden');
+    shareModalInput.value = '';
+  });
+
+  shareModalCopyButton.addEventListener('click', () => {
+    shareModalInput.select();
+    navigator.clipboard.writeText(shareModalInput.value);
+  });
 }
 
 // Page Not Found

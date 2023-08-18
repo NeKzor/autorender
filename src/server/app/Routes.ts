@@ -19,6 +19,7 @@ import { Request as OakRequest, Status, STATUS_TEXT } from 'oak/mod.ts';
 import { createStaticHandler } from 'react-router-dom/server';
 
 import * as Home from './views/Home.tsx';
+import * as Search from './views/Search.tsx';
 import * as NotFound from './views/NotFound.tsx';
 import * as Token from './views/tokens/Token.tsx';
 import * as Tokens from './views/tokens/Index.tsx';
@@ -118,6 +119,12 @@ export const routes: Route<RequestContext>[] = [
     Component: Home.Home,
     meta: Home.meta,
     loader: Home.loader,
+  },
+  {
+    path: '/search',
+    Component: Search.Search,
+    meta: Search.meta,
+    loader: Search.loader,
   },
   {
     path: '/profile/:username',
