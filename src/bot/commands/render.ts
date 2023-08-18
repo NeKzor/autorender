@@ -4,25 +4,27 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Video } from '~/shared/models.ts';
 import {
   ApplicationCommandOption,
   ApplicationCommandOptionChoice,
+  ApplicationCommandOptionTypes,
+  ApplicationCommandTypes,
   Attachment,
   Bot,
   ButtonComponent,
   ButtonStyles,
+  Interaction,
   InteractionDataOption,
+  InteractionResponseTypes,
   InteractionTypes,
   Message,
   MessageComponentTypes,
-} from '../deps.ts';
-import { Interaction } from '../deps.ts';
-import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
+} from '@discordeno/bot';
 import { Presets } from '../services/presets.ts';
 import { Queue } from '../services/queue.ts';
 import { escapeMaskedLink, getPublicUrl } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';
+import { Video } from '~/shared/models.ts';
 
 const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;

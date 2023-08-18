@@ -373,7 +373,8 @@
   },
   "npm": {
     "specifiers": {
-      "@nekz/sdp": "@nekz/sdp@0.4.0"
+      "@nekz/sdp": "@nekz/sdp@0.4.0",
+      "@nekz/sdp@0.4.0": "@nekz/sdp@0.4.0"
     },
     "packages": {
       "@nekz/sdp@0.4.0": {

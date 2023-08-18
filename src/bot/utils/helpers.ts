@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { BitwisePermissionFlags, Bot, CreateApplicationCommand, Guild } from '../deps.ts';
+import { BitwisePermissionFlags, Bot, CreateApplicationCommand, Guild } from '@discordeno/bot';
 import { logger } from './logger.ts';
 import { commands } from '../commands/mod.ts';
 import { BotWithCache } from '../bot.ts';

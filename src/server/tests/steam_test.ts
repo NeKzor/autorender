@@ -5,7 +5,7 @@
  */
 
 import { assert, assertEquals } from 'testing/asserts.ts';
-import { SourceDemoParser } from 'npm:@nekz/sdp';
+import { SourceDemoParser } from '@nekz/sdp';
 import { SteamId } from '../steam.ts';
 import { getPlayerInfo } from '../demo.ts';
 

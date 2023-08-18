@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Bot, createBot, GatewayIntents, Guild } from './deps.ts';
+import { Bot, createBot, GatewayIntents, Guild } from '@discordeno/bot';
 import { events } from './events/mod.ts';
 
 export type BotWithCache = Bot & {

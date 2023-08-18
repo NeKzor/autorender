@@ -4,15 +4,18 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { ButtonStyles, Interaction, InteractionTypes, TextStyles } from '../deps.ts';
 import {
   ApplicationCommandOptionTypes,
   ApplicationCommandTypes,
   Bot,
+  ButtonStyles,
+  Interaction,
   InteractionResponseTypes,
+  InteractionTypes,
   MessageComponentTypes,
   MessageFlags,
-} from '../deps.ts';
+  TextStyles,
+} from '@discordeno/bot';
 import { Presets, RenderPreset } from '../services/presets.ts';
 import { escapeMarkdown } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';

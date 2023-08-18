@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Messages, NetMessages, ScoreboardTempUpdate, SourceDemo, SourceDemoParser, StringTables } from 'npm:@nekz/sdp';
+import { Messages, NetMessages, ScoreboardTempUpdate, SourceDemo, SourceDemoParser, StringTables } from '@nekz/sdp';
 import { logger } from './logger.ts';
 import { basename, dirname, join } from 'path/mod.ts';
 import { readSarData, SarDataType } from './sar.ts';

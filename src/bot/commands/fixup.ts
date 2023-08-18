@@ -4,10 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Bot } from '../deps.ts';
-import { Interaction } from '../deps.ts';
-import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
-import { Messages, SourceDemoParser } from 'npm:@nekz/sdp';
+import {
+  ApplicationCommandOptionTypes,
+  ApplicationCommandTypes,
+  Bot,
+  Interaction,
+  InteractionResponseTypes,
+} from '@discordeno/bot';
+import { Messages, SourceDemoParser } from '@nekz/sdp';
 import { createCommand } from './mod.ts';
 
 const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;

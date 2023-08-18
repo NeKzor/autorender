@@ -7,7 +7,7 @@
 import { events } from './mod.ts';
 import { logger } from '../utils/logger.ts';
 import { bot } from '../bot.ts';
-import { ActivityTypes } from '../deps.ts';
+import { ActivityTypes } from '@discordeno/bot';
 
 const log = logger({ name: 'Event: Ready' });
 

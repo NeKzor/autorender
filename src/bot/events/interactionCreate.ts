@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-import type { Guild } from '../deps.ts';
-import { bgBlack, bgYellow, black, green, InteractionTypes, red, white, yellow } from '../deps.ts';
+import type { Guild } from '@discordeno/bot';
+import { bgBlack, bgYellow, black, green, InteractionTypes, red, white, yellow } from '@discordeno/bot';
 import { events } from './mod.ts';
 import { logger } from '../utils/logger.ts';
 import { getGuildFromId } from '../utils/helpers.ts';

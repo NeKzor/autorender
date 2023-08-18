@@ -4,9 +4,14 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { ApplicationCommandOptionTypes, Bot, MessageFlags } from '../deps.ts';
-import { Interaction } from '../deps.ts';
-import { ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
+import {
+  ApplicationCommandOptionTypes,
+  ApplicationCommandTypes,
+  Bot,
+  Interaction,
+  InteractionResponseTypes,
+  MessageFlags,
+} from '@discordeno/bot';
 import { getPublicUrl } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';
 

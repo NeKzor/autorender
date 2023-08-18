@@ -4,12 +4,16 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Video } from '~/shared/models.ts';
-import { Bot } from '../deps.ts';
-import { Interaction } from '../deps.ts';
-import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '../deps.ts';
+import {
+  ApplicationCommandOptionTypes,
+  ApplicationCommandTypes,
+  Bot,
+  Interaction,
+  InteractionResponseTypes,
+} from '@discordeno/bot';
 import { escapeMaskedLink, getPublicUrl } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';
+import { Video } from '~/shared/models.ts';
 
 const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
 

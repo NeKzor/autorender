@@ -10,8 +10,7 @@ ADD src/shared .
 WORKDIR /app
 ADD src/bot .
 
-# TODO: use deps file
-RUN deno cache main.ts
+RUN deno cache main.ts bot.ts worker.ts
 
 CMD deno task ${DENO_TASK_ENTRYPOINT}
 

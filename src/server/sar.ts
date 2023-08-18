@@ -7,7 +7,7 @@
  * https://github.com/NeKzor/bot/blob/main/src/services/sar.ts
  */
 
-import { DemoMessages, SourceDemo, SourceDemoBuffer } from 'npm:@nekz/sdp';
+import { DemoMessages, SourceDemo, SourceDemoBuffer } from '@nekz/sdp';
 
 export class SarMessage {
   timescale?: number;
