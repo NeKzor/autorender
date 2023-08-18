@@ -66,7 +66,7 @@ export const index = (
     : '';
 
   const headTag = `<head>${head}${styleTag}${themeScriptTag}${moduleScriptTag}${hotReloadScriptTag}</head>`;
-  const bodyTag = `<body class="bg-gray-100 dark:bg-gray-700 dark:text-white">${body}</body>`;
+  const bodyTag = `<body class="bg-gray-100 dark:bg-gray-800 dark:text-white">${body}</body>`;
 
   return `<html lang='en' dir='ltr'>${headTag}${bodyTag}</html>`;
 };

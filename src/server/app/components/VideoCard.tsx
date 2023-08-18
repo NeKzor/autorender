@@ -74,7 +74,7 @@ const VideoLength = ({ videoLength }: { videoLength: number }) => {
 export const VideoCard = ({ video }: { video: VideoCardData }) => {
   return (
     <div
-      className={tw`p-4 border border-gray-200 rounded shadow bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700`}
+      className={tw`p-4 rounded shadow bg-white dark:bg-gray-900 dark:text-white`}
     >
       <a href={`/videos/${video.share_id}`}>
         <div
