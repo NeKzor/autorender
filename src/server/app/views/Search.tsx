@@ -62,7 +62,9 @@ export const Search = () => {
             className={tw`grid grid-cols gap-4`}
           >
             {videos.length === 0 && (
-              <span>
+              <span
+                className={tw`text-center`}
+              >
                 No videos found.
               </span>
             )}
@@ -74,9 +76,9 @@ export const Search = () => {
         id='share-modal'
         tabIndex={-1}
         aria-hidden='true'
-        className='flex fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full'
+        className='hidden flex fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full'
       >
-        <div className='relative w-full max-w-md max-h-full'>
+        <div className='relative w-full max-w-lg max-h-full'>
           <div className='relative bg-white rounded-lg shadow dark:bg-gray-700'>
             <button
               id='share-modal-close-button'
@@ -107,16 +109,38 @@ export const Search = () => {
                 </label>
                 <input
                   type='text'
-                  name='share_id'
                   id='share-modal-input'
                   className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white'
                   readOnly
                 />
+                <div className={tw`flex items-center mt-2`}>
+                  <div className={tw`flex items-center mr-4`}>
+                    <input
+                      id='share-modal-start-at-checkbox'
+                      type='checkbox'
+                      className={tw`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600`}
+                    />
+                    <label
+                      htmlFor='share-modal-start-at-checkbox'
+                      className={tw`ml-2 text-sm font-medium text-gray-900 dark:text-gray-300`}
+                    >
+                      Start at
+                    </label>
+                  </div>
+                  <div>
+                    <input
+                      type='text'
+                      id='share-modal-start-at-input'
+                      className={tw`w-[70px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white`}
+                      value='0:00'
+                      disabled
+                    />
+                  </div>
+                </div>
               </div>
               <button
                 id='share-modal-copy-button'
-                data-tooltip-target='share-modal-copy-tooltip'
-                data-tooltip-trigger='click'
+                data-tooltip-trigger='none'
                 className='w-full mt-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'
               >
                 Copy
@@ -124,7 +148,8 @@ export const Search = () => {
               <div
                 id='share-modal-copy-tooltip'
                 role='tooltip'
-                className={tw`absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700`}
+                tabIndex={-1}
+                className={tw`absolute z-10 inline-block px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-800`}
               >
                 Copied
                 <div className={tw`tooltip-arrow`} data-popper-arrow></div>

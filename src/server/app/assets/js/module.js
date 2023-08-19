@@ -164,6 +164,14 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
           video.classList.remove('hidden');
           videoLoadingStatus.classList.add('hidden');
 
+          const search = new URLSearchParams(location.search);
+          const param = search.get('t');
+          const time = parseInt(param, 10);
+
+          if (param === time.toString()) {
+            video.currentTime = time;
+          }
+
           fetch(`/api/v1${location.pathname}/views`, { method: 'POST' }).catch(console.error);
         })
         .catch(console.error);
@@ -184,12 +192,20 @@ if (location.pathname.startsWith('/search') && location.search.length !== 0) {
   const shareModalCloseButton = document.getElementById('share-modal-close-button');
   const shareModalCopyButton = document.getElementById('share-modal-copy-button');
   const shareButtons = document.querySelectorAll('.video-share-button');
+  /** @type {HTMLInputElement} */
+  const shareModalStartAtCheckbox = document.getElementById('share-modal-start-at-checkbox');
+  /** @type {HTMLInputElement} */
+  const shareModalStartAtInput = document.getElementById('share-modal-start-at-input');
+  const shareModalCopyTooltip = document.getElementById('share-modal-copy-tooltip');
 
   shareButtons.forEach((shareButton) => {
     shareButton.addEventListener('click', (ev) => {
       shareModal.classList.remove('hidden');
       shareModal.classList.add('flex');
       shareModalInput.value = `${location.origin}/videos/${ev.target.id.slice(19)}`;
+      shareModalStartAtCheckbox.checked = false;
+      shareModalStartAtInput.toggleAttribute('disabled', true);
+      shareModalStartAtInput.value = '0:00';
     });
   });
 
@@ -198,9 +214,96 @@ if (location.pathname.startsWith('/search') && location.search.length !== 0) {
     shareModalInput.value = '';
   });
 
+  class ButtonTooltip extends Tooltip {
+    _getTriggerEvents() {
+      return {
+        showEvents: ['click'],
+        hideEvents: [],
+      };
+    }
+  }
+
+  new ButtonTooltip(shareModalCopyTooltip, shareModalCopyButton, {
+    placement: 'top',
+    triggerType: 'none',
+  });
+
   shareModalCopyButton.addEventListener('click', () => {
     shareModalInput.select();
     navigator.clipboard.writeText(shareModalInput.value);
+  });
+
+  shareModalStartAtCheckbox.addEventListener('click', (ev) => {
+    shareModalStartAtInput.toggleAttribute('disabled', !ev.target.checked);
+
+    if (!ev.target.checked) {
+      const url = new URL(shareModalInput.value);
+      url.searchParams.delete('t');
+      shareModalInput.value = url.toString();
+    }
+  });
+
+  const fromTime = (value) => {
+    const str = value[0] === '0' && value.length === 2 ? value.substr(1) : value;
+    const valueInt = parseInt(str, 10);
+    return str === valueInt.toString() ? valueInt : NaN;
+  };
+
+  const isTime = (value, max) => !isNaN(value) && value >= 0 && value <= max;
+
+  shareModalStartAtInput.addEventListener('focusout', () => {
+    const value = shareModalStartAtInput.value;
+    const valueSplit = value.split(':');
+    let totalSeconds = 0;
+
+    switch (valueSplit.length) {
+      case 3: {
+        const [hours, minutes, seconds] = valueSplit.map(fromTime);
+        if (!isTime(hours, 99) || !isTime(minutes, 59) || !isTime(seconds, 59)) {
+          shareModalStartAtInput.value = '0:00';
+          break;
+        }
+        totalSeconds = (hours * 60 * 60) + (minutes * 60) + seconds;
+        shareModalStartAtInput.value = `${hours}:${minutes.toString().padStart(2, '0')}:${
+          seconds.toString().padStart(2, '0')
+        }`;
+        break;
+      }
+      case 2: {
+        const [minutes, seconds] = valueSplit.map(fromTime);
+        if (!isTime(minutes, 59) || !isTime(seconds, 59)) {
+          shareModalStartAtInput.value = '0:00';
+          break;
+        }
+        totalSeconds = (minutes * 60) + seconds;
+        shareModalStartAtInput.value = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        break;
+      }
+      case 1: {
+        totalSeconds = fromTime(value);
+        if (isNaN(totalSeconds) || totalSeconds <= 0) {
+          shareModalStartAtInput.value = '0:00';
+          break;
+        }
+
+        const seconds = totalSeconds >= 60 ? totalSeconds % 60 : totalSeconds;
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const minutes = totalMinutes >= 60 ? totalMinutes % 60 : totalMinutes;
+        const hours = Math.floor(totalMinutes / 60);
+        shareModalStartAtInput.value = hours
+          ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+          : `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        break;
+      }
+      default: {
+        shareModalStartAtInput.value = '0:00';
+        break;
+      }
+    }
+
+    const url = new URL(shareModalInput.value);
+    url.searchParams.set('t', totalSeconds);
+    shareModalInput.value = url.toString();
   });
 }
 
