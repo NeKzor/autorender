@@ -139,9 +139,9 @@ if (themeToggleButton) {
 
 if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
   const video = document.querySelector('video');
-  if (video) {
-    await fetch(`/api/v1${location.pathname}/views`, { method: 'POST' });
+  const videoLoadingStatus = document.getElementById('video-loading-status');
 
+  if (video && videoLoadingStatus) {
     const videoVolume = parseFloat(localStorage.getItem('video-volume'));
     if (!isNaN(videoVolume)) {
       video.volume = videoVolume;
@@ -152,6 +152,22 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
         localStorage.setItem('video-volume', event.target.volume.toString());
       }
     });
+
+    const source = video.querySelector('source');
+    if (source) {
+      await fetch(source.id.slice(7))
+        .then(async (res) => {
+          const blob = await res.blob();
+          video.src = URL.createObjectURL(blob);
+
+          video.removeChild(source);
+          video.classList.remove('hidden');
+          videoLoadingStatus.classList.add('hidden');
+
+          fetch(`/api/v1${location.pathname}/views`, { method: 'POST' }).catch(console.error);
+        })
+        .catch(console.error);
+    }
   }
 }
 

@@ -116,6 +116,7 @@ export const VideoView = () => {
   const metadata = getDemoMetadata(data);
 
   const hasVideo = data.video_url !== null;
+  const videoHeight = data.render_quality === RenderQuality.SD_480p ? '480' : '720';
 
   return (
     <>
@@ -136,26 +137,71 @@ export const VideoView = () => {
               </>
             )}
             {hasVideo && (
-              <video
-                className={tw`xl:h-[${data.render_quality === RenderQuality.SD_480p ? '480' : '720'}px]`}
-                controls
-                autoPlay
-              >
-                <source src={data.video_url} itemType='video/mp4'></source>
-              </video>
+              <>
+                <video
+                  className={tw`h-[56.25vw] xl:h-[${videoHeight}px] hidden`}
+                  controls
+                  autoPlay
+                >
+                  <source id={'source-' + data.video_url} itemType='video/mp4'></source>
+                </video>
+                <div
+                  id='video-loading-status'
+                  className={tw`flex items-center justify-center h-[56.25vw] xl:max-h-[${videoHeight}px] border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-700`}
+                >
+                  <div role='status'>
+                    <svg
+                      aria-hidden='true'
+                      className={tw`w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600`}
+                      viewBox='0 0 100 101'
+                      fill='none'
+                      xmlns='http://www.w3.org/2000/svg'
+                    >
+                      <path
+                        d='M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z'
+                        fill='currentColor'
+                      />
+                      <path
+                        d='M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z'
+                        fill='currentFill'
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </>
             )}
             <br />
             <div className={tw`relative text-[20px]`}>
               <div>
+                {hasVideo && <span className={tw`float-right ml-8`}>{data.views} views</span>}
                 <span className={tw`break-words`}>{data.title}</span>
               </div>
-              {hasVideo && (
-                <div className={tw`absolute right-0`}>
-                  <span className={tw`float-right`}>{data.views} views</span>
-                </div>
-              )}
             </div>
             <br />
+            {data.board_profile_number !== null && (
+              <div>
+                Player:{' '}
+                <a
+                  className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                  href={`https://board.portal2.sr/profile/${data.board_profile_number}`}
+                  target='_blank'
+                >
+                  {data.demo_player_name}
+                </a>
+              </div>
+            )}
+            {data.board_profile_number === null && data.demo_steam_id !== null && (
+              <div>
+                Player:{' '}
+                <a
+                  className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                  href={`https://steamcommunity.com/profiles/${data.demo_steam_id}`}
+                  target='_blank'
+                >
+                  {data.demo_player_name}
+                </a>
+              </div>
+            )}
             {data.demo_time_score !== null && <div>Time: {formatCmTime(data.demo_time_score)}</div>}
             {data.demo_portal_score !== null && <div>Portals: {data.demo_portal_score}</div>}
             {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
@@ -202,40 +248,15 @@ export const VideoView = () => {
                 )
                 : <>-</>}
             </div>
-            <br />
-            {data.board_profile_number !== null && (
-              <div>
-                Board profile:{' '}
-                <a
-                  className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                  href={`https://board.portal2.sr/profile/${data.board_profile_number}`}
-                  target='_blank'
-                >
-                  {data.demo_player_name}
-                </a>
-              </div>
-            )}
-            {data.demo_steam_id !== null && (
-              <div>
-                Steam profile:{' '}
-                <a
-                  className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                  href={`https://steamcommunity.com/profiles/${data.demo_steam_id}`}
-                  target='_blank'
-                >
-                  {data.demo_player_name}
-                </a>
-              </div>
-            )}
             {metadata.timestamp !== null && (
               <div className={tw`mt-4 mb-4`}>Timestamp: {formatTimestamp(metadata.timestamp)}</div>
             )}
             {(metadata.segments?.length ?? 0) > 0 && (
               <>
                 <div className={tw`relative overflow-x-auto`}>
-                  <table className={tw`w-full text-sm text-left text-gray-500 dark:text-gray-400`}>
+                  <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
                     <thead
-                      className={tw`text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-900 dark:text-gray-400`}
+                      className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
                     >
                       <tr>
                         <th scope='col' className={tw`px-6 py-3`}>
@@ -261,7 +282,7 @@ export const VideoView = () => {
                           .slice(0, index + 1)
                           .reduce((total, segment) => (total += segment.ticks), 0);
                         return (
-                          <tr className={tw`bg-white border-b dark:bg-gray-800 dark:border-gray-700`}>
+                          <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
                             <th
                               scope='row'
                               className={tw`px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white`}
