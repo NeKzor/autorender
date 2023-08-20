@@ -11,10 +11,25 @@ import { Video } from '~/shared/models.ts';
 import { VideoRow } from '../components/VideoRow.tsx';
 import ShareModal from '../components/ShareModal.tsx';
 
-type JoinedVideo = Video & {
-  requested_by_username: string | null;
-  requested_by_discord_avatar_url: string | null;
-};
+type JoinedVideo =
+  & Pick<
+    Video,
+    | 'share_id'
+    | 'title'
+    | 'comment'
+    | 'rendered_at'
+    | 'views'
+    | 'requested_by_id'
+    | 'requested_by_name'
+    | 'video_preview_url'
+    | 'thumbnail_url_small'
+    | 'thumbnail_url_large'
+    | 'video_length'
+  >
+  & {
+    requested_by_username: string | null;
+    requested_by_discord_avatar_url: string | null;
+  };
 
 type Data = {
   videos: JoinedVideo[];
@@ -32,9 +47,11 @@ export const loader: DataLoader = async ({ params, context }) => {
   const videos = await context.db.query<JoinedVideo>(
     `select share_id
           , title
+          , comment
           , rendered_at
           , views
           , requested_by_id
+          , requested_by_name
           , video_preview_url
           , thumbnail_url_small
           , thumbnail_url_large
