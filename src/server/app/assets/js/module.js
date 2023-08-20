@@ -139,6 +139,10 @@ if (themeToggleButton) {
 
 const initShareModal = () => {
   const shareModal = document.getElementById('share-modal');
+  if (!shareModal) {
+    return;
+  }
+
   /** @type {HTMLInputElement} */
   const shareModalInput = document.getElementById('share-modal-input');
   const shareModalCloseButton = document.getElementById('share-modal-close-button');

@@ -97,7 +97,7 @@ export const Search = () => {
           </div>
         </div>
       </div>
-      <ShareModal />
+      {videos.length > 0 && <ShareModal />}
     </>
   );
 };
