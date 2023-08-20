@@ -65,38 +65,6 @@ export const loader: DataLoader = async ({ context }) => {
   });
 };
 
-const toAgo = (date: string) => {
-  const now = Temporal.Now.instant();
-  const then = Temporal.Instant.from(date);
-  const ago = then.until(now);
-
-  const days = Math.floor(ago.seconds / 60 / 60 / 24);
-  if (days) {
-    return `${days} day${days === 1 ? '' : 's'} ago`;
-  }
-
-  const hours = Math.floor(ago.seconds / 60 / 60);
-  if (hours) {
-    return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-  }
-
-  const minutes = Math.floor(ago.seconds / 60);
-  if (minutes) {
-    return `${minutes} minutes${minutes === 1 ? '' : 's'} ago`;
-  }
-
-  return `${ago.seconds} second${ago.seconds === 1 ? '' : 's'} ago`;
-};
-
-const formatVideoLength = (videoLength: number) => {
-  const hours = Math.floor(videoLength / 60 / 60);
-  const minutes = Math.floor(videoLength / 60) % 60;
-  const seconds = videoLength % 60;
-  return `${hours ? `${hours}:` : ''}${hours ? minutes.toString().padStart(2, '0') : minutes}:${
-    seconds.toString().padStart(2, '0')
-  }`;
-};
-
 export const Home = () => {
   const data = useLoaderData<Data>();
 
