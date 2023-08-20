@@ -279,7 +279,7 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
 
     const source = video.querySelector('source');
     if (source) {
-      await fetch(source.id.slice(7))
+      fetch(source.id.slice(7))
         .then(async (res) => {
           const blob = await res.blob();
           video.src = URL.createObjectURL(blob);
