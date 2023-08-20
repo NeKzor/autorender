@@ -6,9 +6,9 @@
 
 import * as React from 'react';
 import { tw } from 'twind';
-import { Temporal } from '@js-temporal/polyfill';
 import { Video } from '~/shared/models.ts';
 import { VideoLength } from './VideoLength.tsx';
+import { toAgo } from '../utils.ts';
 
 type VideoRowData =
   & Pick<
@@ -27,33 +27,6 @@ type VideoRowData =
   & {
     requested_by_discord_avatar_url: string | null;
   };
-
-const toAgo = (date: string | null) => {
-  if (!date) {
-    return '';
-  }
-
-  const now = Temporal.Now.instant();
-  const then = Temporal.Instant.from(date);
-  const ago = then.until(now);
-
-  const days = Math.floor(ago.seconds / 60 / 60 / 24);
-  if (days) {
-    return `${days} day${days === 1 ? '' : 's'} ago`;
-  }
-
-  const hours = Math.floor(ago.seconds / 60 / 60);
-  if (hours) {
-    return `${hours} hour${hours === 1 ? '' : 's'} ago`;
-  }
-
-  const minutes = Math.floor(ago.seconds / 60);
-  if (minutes) {
-    return `${minutes} minutes${minutes === 1 ? '' : 's'} ago`;
-  }
-
-  return `${ago.seconds} second${ago.seconds === 1 ? '' : 's'} ago`;
-};
 
 export const VideoRow = ({ video }: { video: VideoRowData }) => {
   return (
