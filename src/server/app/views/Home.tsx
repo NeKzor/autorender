@@ -21,6 +21,7 @@ type LatestVideo =
     | 'requested_by_id'
     | 'video_preview_url'
     | 'thumbnail_url_small'
+    | 'thumbnail_url_large'
     | 'video_length'
   >
   & {
@@ -47,6 +48,7 @@ export const loader: DataLoader = async ({ context }) => {
           , videos.requested_by_id
           , videos.video_preview_url
           , videos.thumbnail_url_small
+          , videos.thumbnail_url_large
           , videos.video_length
           , requester.username as requested_by_username
           , requester.discord_avatar_url as requested_by_discord_avatar_url

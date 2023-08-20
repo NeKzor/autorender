@@ -19,6 +19,7 @@ type VideoCardData =
     | 'requested_by_id'
     | 'video_preview_url'
     | 'thumbnail_url_small'
+    | 'thumbnail_url_large'
     | 'video_length'
   >
   & {
@@ -79,15 +80,15 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
       <a href={`/videos/${video.share_id}`}>
         <div
           className={tw`relative flex items-center justify-center h-48 mb-4${
-            video.thumbnail_url_small ? '' : ' bg-gray-300 dark:bg-gray-700 rounded-[12px]'
+            video.thumbnail_url_large ? '' : ' bg-gray-300 dark:bg-gray-700 rounded-[12px]'
           }`}
         >
-          {video.thumbnail_url_small
+          {video.thumbnail_url_large
             ? (
               <>
                 <img
                   className={tw`transition-transform duration-300 transform object-cover w-full h-full rounded-[12px]`}
-                  src={video.thumbnail_url_small}
+                  src={video.thumbnail_url_large}
                 />
                 {video.video_length !== null && <VideoLength videoLength={video.video_length} />}
                 {video.video_preview_url && (

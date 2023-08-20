@@ -29,8 +29,15 @@ export const loader: DataLoader = async ({ params, context }) => {
   const query = context.url.searchParams.get('q');
 
   const videos = await context.db.query<JoinedVideo>(
-    `select *
-          , BIN_TO_UUID(video_id) as video_id
+    `select share_id
+          , title
+          , rendered_at
+          , views
+          , requested_by_id
+          , video_preview_url
+          , thumbnail_url_small
+          , thumbnail_url_large
+          , video_length
           , requester.username as requested_by_username
           , requester.discord_avatar_url as requested_by_discord_avatar_url
        from videos
