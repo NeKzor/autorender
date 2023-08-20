@@ -41,8 +41,14 @@ export const meta: PageMeta<Data> = ({ data }) => {
   };
 };
 
-export const loader: DataLoader = async ({ params, context }) => {
-  const query = context.url.searchParams.get('q');
+export const loader: DataLoader = async ({ context }) => {
+  const query = context.url.searchParams.get('q')?.trim() ?? '';
+
+  if (!query.length) {
+    return json<Data>({
+      videos: [],
+    });
+  }
 
   const videos = await context.db.query<JoinedVideo>(
     `select share_id
