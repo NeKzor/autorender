@@ -78,7 +78,7 @@ const Navbar = () => {
               className={tw`${searchValue ? ' ' : 'hidden'}absolute inset-y-0 right-0 flex items-center px-3`}
             >
               <svg
-                className='w-4 h-4 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                className={tw`w-4 h-4 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white`}
                 aria-hidden='true'
                 xmlns='http://www.w3.org/2000/svg'
                 fill='none'

@@ -76,7 +76,7 @@ const VideoLength = ({ videoLength }: { videoLength: number }) => {
 export const VideoRow = ({ video }: { video: VideoRowData }) => {
   return (
     <div
-      className={tw`w-full p-4 rounded shadow bg-white dark:bg-gray-900 dark:text-white`}
+      className={tw`w-full pl-4 pt-4 pb-4 pr-2 rounded shadow bg-white dark:bg-gray-900 dark:text-white`}
     >
       <div className={tw`rounded-xl shadow-sm overflow-hidden`}>
         <div className={tw`sm:flex`}>

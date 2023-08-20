@@ -308,8 +308,6 @@ export const VideoView = () => {
                     </tbody>
                   </table>
                 </div>
-                <ul>
-                </ul>
               </>
             )}
             <br />

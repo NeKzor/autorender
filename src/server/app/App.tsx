@@ -98,7 +98,7 @@ export const Body = ({ initialState, children }: BodyProps) => {
       <AppDispatchContext.Provider value={dispatch}>
         <div className={tw`flex flex-col h-screen`}>
           <Navbar />
-          <div className={tw`mt-24 m-4 grow`}>
+          <div className={tw`mt-[88px] m-4 grow`}>
             {children}
           </div>
           <Footer />

@@ -181,7 +181,7 @@ export const Profile = () => {
         {user && (
           <div>
             <div
-              className={tw`w-full bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-900 dark:border-gray-700`}
+              className={tw`w-full bg-white rounded-lg shadow dark:bg-gray-900`}
             >
               <div
                 className={tw`max-w ${getProfileColor(user)} rounded-t-lg rounded-t-lg shadow dark:border-gray-700`}
