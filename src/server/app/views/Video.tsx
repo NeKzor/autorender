@@ -9,6 +9,7 @@ import { tw } from 'twind';
 import { DataLoader, json, notFound, PageMeta, redirect, useLoaderData } from '../Routes.ts';
 import { FixedDemoStatus, PendingStatus, RenderQuality, Video } from '~/shared/models.ts';
 import { DemoMetadata, SarDataTimestamp } from '../../demo.ts';
+import ShareModal from '../components/ShareModal.tsx';
 
 type JoinedVideo = Video & {
   requested_by_username: string | null;
@@ -312,21 +313,53 @@ export const VideoView = () => {
               </>
             )}
             <br />
-            {data.demo_required_fix === FixedDemoStatus.Required && (
-              <>
-                <div>
-                  <a
-                    href={`/storage/demos/${data.share_id}/fixed`}
-                    target='_blank'
-                  >
-                    <button
-                      type='button'
-                      className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+            <div className={tw`flex gap-2`}>
+              {data.demo_required_fix === FixedDemoStatus.Required && (
+                <>
+                  <div>
+                    <a
+                      href={`/storage/demos/${data.share_id}/fixed`}
+                      target='_blank'
                     >
-                      Download Fixed Demo
-                    </button>
-                  </a>
-                </div>
+                      <button
+                        type='button'
+                        className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                      >
+                        Download Fixed Demo
+                      </button>
+                    </a>
+                  </div>
+                  <div>
+                    <a
+                      href={`/storage/demos/${data.share_id}`}
+                      target='_blank'
+                    >
+                      <button
+                        type='button'
+                        className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                      >
+                        <svg
+                          className={tw`w-4 h-4 text-gray-800 dark:text-white`}
+                          aria-hidden='true'
+                          xmlns='http://www.w3.org/2000/svg'
+                          fill='none'
+                          viewBox='0 0 20 19'
+                        >
+                          <path
+                            stroke='currentColor'
+                            stroke-linecap='round'
+                            stroke-linejoin='round'
+                            stroke-width='2'
+                            d='M15 15h.01M4 12H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-3M9.5 1v10.93m4-3.93-4 4-4-4'
+                          />
+                        </svg>
+                        Download Original Demo
+                      </button>
+                    </a>
+                  </div>
+                </>
+              )}
+              {data.demo_required_fix === FixedDemoStatus.NotRequired && (
                 <div>
                   <a
                     href={`/storage/demos/${data.share_id}`}
@@ -334,32 +367,59 @@ export const VideoView = () => {
                   >
                     <button
                       type='button'
-                      className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                      className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                     >
-                      Download Original Demo
+                      <svg
+                        className={tw`w-4 h-4 text-gray-800 dark:text-white`}
+                        aria-hidden='true'
+                        xmlns='http://www.w3.org/2000/svg'
+                        fill='none'
+                        viewBox='0 0 20 19'
+                      >
+                        <path
+                          stroke='currentColor'
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          stroke-width='2'
+                          d='M15 15h.01M4 12H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-3M9.5 1v10.93m4-3.93-4 4-4-4'
+                        />
+                      </svg>
+                      Download Demo
                     </button>
                   </a>
                 </div>
-              </>
-            )}
-            {data.demo_required_fix === FixedDemoStatus.NotRequired && (
+              )}
               <div>
-                <a
-                  href={`/storage/demos/${data.share_id}`}
-                  target='_blank'
+                <button
+                  data-modal-target='share-modal'
+                  data-modal-toggle='share-modal'
+                  id={`video-share-button-${data.share_id}`}
+                  type='button'
+                  className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                 >
-                  <button
-                    type='button'
-                    className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                  <svg
+                    className={tw`w-4 h-4 text-gray-800 dark:text-white`}
+                    aria-hidden='true'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 18 16'
                   >
-                    Download Demo
-                  </button>
-                </a>
+                    <path
+                      stroke='currentColor'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      stroke-width='2'
+                      d='M1.248 15C.22 11.77 2.275 4.232 9.466 4.232V2.079a1.025 1.025 0 0 1 1.644-.862l5.479 4.307a1.108 1.108 0 0 1 0 1.723l-5.48 4.307a1.026 1.026 0 0 1-1.643-.861V8.539C2.275 9.616 1.248 15 1.248 15Z'
+                    />
+                  </svg>
+                  Share Video
+                </button>
               </div>
-            )}
+            </div>
           </div>
         </div>
       }
+      <ShareModal />
     </>
   );
 };

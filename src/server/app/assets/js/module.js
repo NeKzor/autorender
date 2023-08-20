@@ -135,57 +135,9 @@ if (themeToggleButton) {
   });
 }
 
-// Videos
+// Share Modal
 
-if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
-  const video = document.querySelector('video');
-  const videoLoadingStatus = document.getElementById('video-loading-status');
-
-  if (video && videoLoadingStatus) {
-    const videoVolume = parseFloat(localStorage.getItem('video-volume'));
-    if (!isNaN(videoVolume)) {
-      video.volume = videoVolume;
-    }
-
-    video.addEventListener('volumechange', (event) => {
-      if (event.target) {
-        localStorage.setItem('video-volume', event.target.volume.toString());
-      }
-    });
-
-    const source = video.querySelector('source');
-    if (source) {
-      await fetch(source.id.slice(7))
-        .then(async (res) => {
-          const blob = await res.blob();
-          video.src = URL.createObjectURL(blob);
-
-          video.removeChild(source);
-          video.classList.remove('hidden');
-          videoLoadingStatus.classList.add('hidden');
-
-          const search = new URLSearchParams(location.search);
-          const param = search.get('t');
-          const time = parseInt(param, 10);
-
-          if (param === time.toString()) {
-            video.currentTime = time;
-          }
-
-          fetch(`/api/v1${location.pathname}/views`, { method: 'POST' }).catch(console.error);
-        })
-        .catch(console.error);
-    }
-  }
-}
-
-// Search
-
-if (location.pathname.startsWith('/search') && location.search.length !== 0) {
-  if (window.innerWidth <= minWidthBreakpoints.md && search.open) {
-    search.open();
-  }
-
+const initShareModal = () => {
   const shareModal = document.getElementById('share-modal');
   /** @type {HTMLInputElement} */
   const shareModalInput = document.getElementById('share-modal-input');
@@ -305,6 +257,62 @@ if (location.pathname.startsWith('/search') && location.search.length !== 0) {
     url.searchParams.set('t', totalSeconds);
     shareModalInput.value = url.toString();
   });
+};
+
+// Videos
+
+if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
+  const video = document.querySelector('video');
+  const videoLoadingStatus = document.getElementById('video-loading-status');
+
+  if (video && videoLoadingStatus) {
+    const videoVolume = parseFloat(localStorage.getItem('video-volume'));
+    if (!isNaN(videoVolume)) {
+      video.volume = videoVolume;
+    }
+
+    video.addEventListener('volumechange', (event) => {
+      if (event.target) {
+        localStorage.setItem('video-volume', event.target.volume.toString());
+      }
+    });
+
+    const source = video.querySelector('source');
+    if (source) {
+      await fetch(source.id.slice(7))
+        .then(async (res) => {
+          const blob = await res.blob();
+          video.src = URL.createObjectURL(blob);
+
+          video.removeChild(source);
+          video.classList.remove('hidden');
+          videoLoadingStatus.classList.add('hidden');
+
+          const search = new URLSearchParams(location.search);
+          const param = search.get('t');
+          const time = parseInt(param, 10);
+
+          if (param === time.toString()) {
+            video.currentTime = time;
+          }
+
+          fetch(`/api/v1${location.pathname}/views`, { method: 'POST' }).catch(console.error);
+        })
+        .catch(console.error);
+    }
+
+    initShareModal();
+  }
+}
+
+// Search
+
+if (location.pathname.startsWith('/search') && location.search.length !== 0) {
+  if (window.innerWidth <= minWidthBreakpoints.md && search.open) {
+    search.open();
+  }
+
+  initShareModal();
 }
 
 // Page Not Found
