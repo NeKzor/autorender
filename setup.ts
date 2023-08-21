@@ -215,10 +215,12 @@ const createLogs = async (_env: Environment) => {
 
 /**
  * Other mounted volumes:
+ *    docker/volumes/kv    -> database used by the bot
  *    docker/volumes/mysql -> database used by the server
  */
 const createVolumes = async (_env: Environment) => {
-  await tryMkdir('docker/logs/server');
+  await tryMkdir('docker/volumes/kv');
+  await tryMkdir('docker/volumes/mysql');
 
   console.log(colors.bold('[+]'), colors.white(`Created volumes in docker/volumes`));
 };
