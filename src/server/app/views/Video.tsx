@@ -179,27 +179,31 @@ export const VideoView = () => {
               </div>
             </div>
             <br />
-            {data.board_profile_number !== null && (
+            {data.demo_steam_id !== null && (
               <div>
                 Player:{' '}
                 <a
                   className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                  href={`https://board.portal2.sr/profile/${data.board_profile_number}`}
+                  href={data.board_changelog_id !== null
+                    ? `https://board.portal2.sr/profile/${data.demo_steam_id}`
+                    : `https://steamcommunity.com/profiles/${data.demo_steam_id}`}
                   target='_blank'
                 >
                   {data.demo_player_name}
                 </a>
               </div>
             )}
-            {data.board_profile_number === null && data.demo_steam_id !== null && (
+            {data.demo_partner_steam_id !== null && (
               <div>
-                Player:{' '}
+                Partner:{' '}
                 <a
                   className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                  href={`https://steamcommunity.com/profiles/${data.demo_steam_id}`}
+                  href={data.board_changelog_id !== null
+                    ? `https://board.portal2.sr/profile/${data.demo_partner_steam_id}`
+                    : `https://steamcommunity.com/profiles/${data.demo_partner_steam_id}`}
                   target='_blank'
                 >
-                  {data.demo_player_name}
+                  {data.demo_partner_player_name}
                 </a>
               </div>
             )}

@@ -139,6 +139,9 @@ export interface Video {
   demo_time_score: number;
   demo_player_name: string;
   demo_steam_id: string;
+  demo_partner_player_name: string;
+  demo_partner_steam_id: string;
+  demo_is_host: number;
   demo_metadata: string;
   board_changelog_id: number;
   board_profile_number: string;

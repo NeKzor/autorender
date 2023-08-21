@@ -283,6 +283,9 @@ apiV1
       demoInfo.timeScore,
       demoInfo.playerName,
       demoInfo.steamId,
+      demoInfo.partnerPlayerName,
+      demoInfo.partnerSteamId,
+      demoInfo.isHost,
       demoMetadata,
       PendingStatus.RequiresRender,
     ];
@@ -314,6 +317,9 @@ apiV1
           , demo_time_score
           , demo_player_name
           , demo_steam_id
+          , demo_partner_player_name
+          , demo_partner_steam_id
+          , demo_is_host
           , demo_metadata
           , pending
         ) values (UUID_TO_BIN(?), ${new Array(fields.length - 1).fill('?').join(',')})`,

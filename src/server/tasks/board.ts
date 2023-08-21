@@ -290,6 +290,9 @@ const checkChangelogUpdates = async () => {
         demoInfo.timeScore,
         demoInfo.playerName,
         demoInfo.steamId,
+        demoInfo.partnerPlayerName,
+        demoInfo.partnerSteamId,
+        demoInfo.isHost,
         demoMetadata,
         boardChangelogId,
         boardProfileNumber,
@@ -324,6 +327,9 @@ const checkChangelogUpdates = async () => {
             , demo_time_score
             , demo_player_name
             , demo_steam_id
+            , demo_partner_player_name
+            , demo_partner_steam_id
+            , demo_is_host
             , demo_metadata
             , board_changelog_id
             , board_profile_number

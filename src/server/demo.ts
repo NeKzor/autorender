@@ -323,38 +323,60 @@ const getChallengeModeData = (demo: SourceDemo): ChallengeModeData => {
 export interface PlayerInfoData {
   playerName: string | null;
   steamId: string | null;
+  partnerPlayerName: string | null;
+  partnerSteamId: string | null;
+  isHost: number | null;
 }
 
-// Get player's name + SteamID64.
+// Extract Steam name and ID64 from string table entry.
+const extractSteamData = (playerInfo?: StringTables.StringTableEntry): [string | null, string | null] => {
+  if (!playerInfo) {
+    return [null, null];
+  }
+
+  const guid = playerInfo.data?.guid;
+  if (guid === undefined) {
+    logger.error(`Found undefined player info GUID`);
+    return [null, null];
+  }
+
+  const steamId = SteamId.from(guid).toSteamId64();
+  if (steamId === null) {
+    logger.error(`Found invalid SteamID: ${guid}`);
+  }
+
+  return [
+    playerInfo.data?.name ?? null,
+    steamId?.toString() ?? null,
+  ];
+};
+
+// Get player names and IDs.
 export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
   try {
     const message = demo.findMessage(Messages.StringTable);
-
     const isHost = demo.serverName!.startsWith('localhost');
-    const entryIndex = isHost ? 'find' : 'findLast';
 
     for (const stringTable of message?.stringTables ?? []) {
       const entries = stringTable.entries ?? [];
-      const playerInfo = entries[entryIndex]((entry) => entry.data instanceof StringTables.PlayerInfo);
+      const playerInfos = entries.filter((entry) => entry.data instanceof StringTables.PlayerInfo);
 
-      if (!playerInfo) {
+      if (!playerInfos.length) {
         continue;
       }
 
-      const guid = playerInfo.data?.guid;
-      if (guid === undefined) {
-        break;
-      }
+      const host = playerInfos.at(isHost ? 0 : 1);
+      const partner = playerInfos.at(isHost ? 1 : 0);
 
-      const steamId = SteamId.from(guid).toSteamId64();
-      if (steamId === null) {
-        logger.error(`Found invalid SteamID: ${guid}`);
-        break;
-      }
+      const [playerName, steamId] = extractSteamData(host);
+      const [partnerPlayerName, partnerSteamId] = extractSteamData(partner);
 
       return {
-        playerName: playerInfo.data?.name ?? '',
-        steamId: steamId.toString(),
+        playerName,
+        steamId,
+        partnerPlayerName,
+        partnerSteamId,
+        isHost: isHost ? 1 : 0,
       };
     }
   } catch (err) {
@@ -364,5 +386,8 @@ export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
   return {
     playerName: null,
     steamId: null,
+    partnerPlayerName: null,
+    partnerSteamId: null,
+    isHost: null,
   };
 };
