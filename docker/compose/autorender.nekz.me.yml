@@ -33,6 +33,7 @@ services:
       DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
       - ./docker/logs/bot:/app/log/bot:rw
+      - ./docker/volumes/kv:/kv:rw
       - ./src/bot/.env:/app/.env:rw
   database:
     image: mariadb:latest

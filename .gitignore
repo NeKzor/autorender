@@ -3,6 +3,9 @@ docker/ssl/
 docker/logs/
 log/
 .autorender.yaml
+.kv
+.kv-shm
+.kv-wal
 autorender.yaml
 docker-compose.yml
 

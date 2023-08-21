@@ -4,4 +4,4 @@
  * SPDX-License-Identifier: MIT
  */
 
-export const db = await Deno.openKv();
+export const db = await Deno.openKv('/kv/.kv');
