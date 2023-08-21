@@ -414,35 +414,42 @@ createCommand({
           }
           case 'help': {
             try {
+              const supported = supportedCommands.map((command) => {
+                switch (command.argType) {
+                  case 'float':
+                  case 'integer': {
+                    let range = '';
+                    if (command.range) {
+                      const [min, max] = command.range;
+                      range = `:${min !== undefined ? min : ''}..${max !== undefined ? max : ''}`;
+                    }
+                    return `${command.name} [${command.argType}${range}]`;
+                  }
+                  case 'multiple': {
+                    return `${command.name} ...`;
+                  }
+                  case 'any':
+                  case 'string': {
+                    return `${command.name} [${command.argType}]`;
+                  }
+                }
+              });
+
+              const buffer = new TextEncoder().encode(supported.join('\n'));
+
               await bot.helpers.sendInteractionResponse(
                 interaction.id,
                 interaction.token,
                 {
                   type: InteractionResponseTypes.ChannelMessageWithSource,
                   data: {
-                    content: [
-                      `Supported options:`,
-                      ...supportedCommands.map((command) => {
-                        switch (command.argType) {
-                          case 'float':
-                          case 'integer': {
-                            let range = '';
-                            if (command.range) {
-                              const [min, max] = command.range;
-                              range = `:${min !== undefined ? min : ''}..${max !== undefined ? max : ''}`;
-                            }
-                            return `${escapeMarkdown(command.name)} <${command.argType}${range}>`;
-                          }
-                          case 'multiple': {
-                            return `${escapeMarkdown(command.name)} ...`;
-                          }
-                          case 'any':
-                          case 'string': {
-                            return `${escapeMarkdown(command.name)} <${command.argType}>`;
-                          }
-                        }
-                      }),
-                    ].join('\n'),
+                    content: 'The following commands are supported:',
+                    files: [
+                      {
+                        name: 'supported_preset_commands.txt',
+                        blob: new Blob([buffer]),
+                      },
+                    ],
                     flags: MessageFlags.Ephemeral,
                   },
                 },
@@ -472,15 +479,86 @@ type ConsoleCommand = {
 };
 
 const supportedCommands: ConsoleCommand[] = [
-  {
-    name: 'sar_ihud',
-    argType: 'integer',
-  },
-  {
-    name: 'mat_fullbright',
-    argType: 'integer',
-    range: [0, 1],
-  },
+  { name: 'mat_fullbright', argType: 'integer', range: [0, 1] },
+  { name: 'sar_force_fov', argType: 'integer', range: [45, 140] },
+  { name: 'sar_hud_angles', argType: 'integer' },
+  { name: 'sar_hud_avg', argType: 'integer' },
+  { name: 'sar_hud_bg', argType: 'integer' },
+  { name: 'sar_hud_cps', argType: 'integer' },
+  { name: 'sar_hud_demo', argType: 'integer' },
+  { name: 'sar_hud_duckstate', argType: 'integer' },
+  { name: 'sar_hud_ent_slot_serial', argType: 'integer' },
+  { name: 'sar_hud_eyeoffset', argType: 'integer' },
+  { name: 'sar_hud_font_color', argType: 'string' },
+  { name: 'sar_hud_font_index', argType: 'integer' },
+  { name: 'sar_hud_frame', argType: 'integer' },
+  { name: 'sar_hud_fps', argType: 'integer' },
+  { name: 'sar_hud_ghost_spec', argType: 'integer' },
+  { name: 'sar_hud_grounded', argType: 'integer' },
+  { name: 'sar_hud_groundframes', argType: 'integer' },
+  { name: 'sar_hud_groundspeed', argType: 'integer' },
+  { name: 'sar_hud_inspection', argType: 'integer' },
+  { name: 'sar_hud_jump', argType: 'integer' },
+  { name: 'sar_hud_jump_peak', argType: 'integer' },
+  { name: 'sar_hud_jumps', argType: 'integer' },
+  { name: 'sar_hud_last_frame', argType: 'integer' },
+  { name: 'sar_hud_last_session', argType: 'integer' },
+  { name: 'sar_hud_orange_only', argType: 'integer' },
+  { name: 'sar_hud_pause_timer', argType: 'integer' },
+  { name: 'sar_hud_portal_angles', argType: 'integer' },
+  { name: 'sar_hud_portal_angles_2', argType: 'integer' },
+  { name: 'sar_hud_portals', argType: 'integer' },
+  { name: 'sar_hud_position', argType: 'integer' },
+  { name: 'sar_hud_precision', argType: 'integer' },
+  { name: 'sar_hud_rainbow', argType: 'integer' },
+  { name: 'sar_hud_session', argType: 'integer' },
+  { name: 'sar_hud_spacing', argType: 'integer' },
+  { name: 'sar_hud_steps', argType: 'integer' },
+  { name: 'sar_hud_sum', argType: 'integer' },
+  { name: 'sar_hud_tastick', argType: 'integer' },
+  { name: 'sar_hud_tbeam', argType: 'integer' },
+  { name: 'sar_hud_tbeam_count', argType: 'integer' },
+  { name: 'sar_hud_timer', argType: 'integer' },
+  { name: 'sar_hud_trace', argType: 'integer' },
+  { name: 'sar_hud_velang', argType: 'integer' },
+  { name: 'sar_hud_velocity', argType: 'integer' },
+  { name: 'sar_hud_velocity_peak', argType: 'integer' },
+  { name: 'sar_hud_velocity_precision', argType: 'integer' },
+  { name: 'sar_hud_x', argType: 'integer' },
+  { name: 'sar_hud_y', argType: 'integer' },
+  { name: 'sar_ihud', argType: 'integer' },
+  { name: 'sar_ihud_analog_image_scale', argType: 'float', range: [0, 1] },
+  { name: 'sar_ihud_analog_view_deshake', argType: 'integer', range: [0, 1] },
+  { name: 'sar_ihud_grid_padding', argType: 'integer' },
+  { name: 'sar_ihud_grid_size', argType: 'integer' },
+  { name: 'sar_ihud_modify', argType: 'string' },
+  { name: 'sar_ihud_preset', argType: 'string' },
+  { name: 'sar_ihud_setpos', argType: 'string' },
+  { name: 'sar_ihud_x', argType: 'integer' },
+  { name: 'sar_ihud_y', argType: 'integer' },
+  { name: 'sar_lphud', argType: 'integer' },
+  { name: 'sar_lphud_font', argType: 'integer' },
+  { name: 'sar_lphud_set', argType: 'integer' },
+  { name: 'sar_lphud_setpos', argType: 'string' },
+  { name: 'sar_lphud_x', argType: 'integer' },
+  { name: 'sar_lphud_y', argType: 'integer' },
+  { name: 'sar_pip_align', argType: 'string' },
+  { name: 'sar_portalgun_hud', argType: 'integer' },
+  { name: 'sar_portalgun_hud_x', argType: 'integer' },
+  { name: 'sar_portalgun_hud_y', argType: 'integer' },
+  { name: 'sar_pp_hud', argType: 'integer' },
+  { name: 'sar_pp_hud_font', argType: 'integer' },
+  { name: 'sar_pp_hud_opacity', argType: 'integer', range: [0, 255] },
+  { name: 'sar_pp_hud_show_blue', argType: 'integer' },
+  { name: 'sar_pp_hud_show_orange', argType: 'integer' },
+  { name: 'sar_pp_hud_x', argType: 'integer' },
+  { name: 'sar_pp_hud_y', argType: 'integer' },
+  { name: 'sar_vphys_hud', argType: 'integer' },
+  { name: 'sar_vphys_hud_font', argType: 'integer' },
+  { name: 'sar_vphys_hud_precision', argType: 'integer' },
+  { name: 'sar_vphys_hud_show_hitboxes', argType: 'integer' },
+  { name: 'sar_vphys_hud_x', argType: 'integer' },
+  { name: 'sar_vphys_hud_y', argType: 'integer' },
 ];
 
 const validatePresetOptions = (options: string) => {
@@ -497,7 +575,7 @@ const validatePresetOptions = (options: string) => {
       continue;
     }
 
-    if (!/^[a-zA-Z0-9_ .]+$/g.test(command)) {
+    if (!/^[a-zA-Z0-9_ .= ]+$/g.test(command)) {
       errors.push(`Invalid character found: "${escapeMarkdown(command)}"`);
       continue;
     }
