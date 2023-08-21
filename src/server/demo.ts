@@ -330,9 +330,12 @@ export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
   try {
     const message = demo.findMessage(Messages.StringTable);
 
+    const isHost = demo.serverName!.startsWith('localhost');
+    const entryIndex = isHost ? 'find' : 'findLast';
+
     for (const stringTable of message?.stringTables ?? []) {
-      const playerInfo = (stringTable.entries ?? [])
-        .find((entry) => entry.data instanceof StringTables.PlayerInfo);
+      const entries = stringTable.entries ?? [];
+      const playerInfo = entries[entryIndex]((entry) => entry.data instanceof StringTables.PlayerInfo);
 
       if (!playerInfo) {
         continue;
