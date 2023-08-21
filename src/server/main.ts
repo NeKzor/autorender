@@ -1247,6 +1247,8 @@ router.get('/login/discord/authorize', rateLimits.authorize, useSession, async (
           , ?
           , ?
           , ?
+          , ?
+          , ?
         )`,
       [
         discordUser.discriminator !== '0'
