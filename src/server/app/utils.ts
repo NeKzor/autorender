@@ -27,7 +27,7 @@ export const toAgo = (date: string | null) => {
 
   const minutes = Math.floor(ago.seconds / 60);
   if (minutes) {
-    return `${minutes} minutes${minutes === 1 ? '' : 's'} ago`;
+    return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
   }
 
   return `${ago.seconds} second${ago.seconds === 1 ? '' : 's'} ago`;
