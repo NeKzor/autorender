@@ -746,7 +746,7 @@ router.get('/connect/bot', async (ctx) => {
 // Client connections.
 
 interface ClientState {
-  demosToSend: number; // TODO: I don't think this is ever needed.
+  accessTokenId: number;
 }
 
 const clients = new Map<string, ClientState>();
@@ -788,7 +788,7 @@ router.get('/connect/client', async (ctx) => {
     logger.info(`Client ${clientId} connected`);
 
     clients.set(clientId, {
-      demosToSend: MAX_VIDEOS_PER_REQUEST,
+      accessTokenId: accessToken.access_token_id,
     });
   };
 
@@ -1332,6 +1332,7 @@ const routeToApp = async (ctx: Context) => {
 
   const initialState: ReactAppState = {
     user,
+    clients: Array.from(clients.values(), (client) => client.accessTokenId),
     url,
     meta,
     domain: SERVER_DOMAIN,

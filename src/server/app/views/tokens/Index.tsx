@@ -8,8 +8,13 @@ import * as React from 'react';
 import { tw } from 'twind';
 import { DataLoader, json, PageMeta, unauthorized, useLoaderData } from '../../Routes.ts';
 import { AccessToken } from '~/shared/models.ts';
+import { AppStateContext } from '../../AppState.ts';
 
-type Data = AccessToken[];
+type AccessTokenJoin = AccessToken & {
+  render_count: number;
+};
+
+type Data = AccessTokenJoin[];
 
 export const meta: PageMeta<Data> = () => {
   return {
@@ -22,8 +27,16 @@ export const loader: DataLoader = async ({ context }) => {
     unauthorized();
   }
 
-  const tokens = await context.db.query<AccessToken>(
-    `select * from access_tokens where user_id = ? order by created_at`,
+  const tokens = await context.db.query<AccessTokenJoin>(
+    `select *
+          , (
+            select count(1)
+              from videos
+             where videos.rendered_by_token = access_tokens.access_token_id
+          ) as render_count
+       from access_tokens
+      where user_id = ?
+   order by created_at`,
     [context.user.user_id],
   );
 
@@ -31,6 +44,7 @@ export const loader: DataLoader = async ({ context }) => {
 };
 
 export const Tokens = () => {
+  const state = React.useContext(AppStateContext);
   const tokens = useLoaderData<Data>();
 
   return (
@@ -43,6 +57,12 @@ export const Tokens = () => {
             <tr>
               <th scope='col' className={tw`px-6 py-3`}>
                 Name
+              </th>
+              <th scope='col' className={tw`px-6 py-3`}>
+                Status
+              </th>
+              <th scope='col' className={tw`px-6 py-3`}>
+                Renders
               </th>
               <th scope='col' className={tw`px-6 py-3 min-w-[120px]`}>
                 Created at
@@ -61,6 +81,12 @@ export const Tokens = () => {
                   >
                     {token.token_name}
                   </th>
+                  <td className={tw`px-6 py-4`}>
+                    {state?.clients.includes(token.access_token_id) ? 'Connected' : 'Offline'}
+                  </td>
+                  <td className={tw`px-6 py-4`}>
+                    {token.render_count}
+                  </td>
                   <td className={tw`px-6 py-4`}>
                     {new Date(token.created_at).toLocaleDateString()}
                   </td>
