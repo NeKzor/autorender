@@ -167,63 +167,65 @@ export const Token = () => {
   }
 
   return (
-    <div>
-      <form action={`/tokens/${token.access_token_id ?? 'new'}`} method='post'>
-        <div className={tw`text-[20px] mb-4`}>
-          {token.access_token_id ? 'Update ' : 'Create '} Access Token
-        </div>
-        <div className={tw`mb-6`}>
-          <label htmlFor='token_name' className={tw`block mb-2 text-sm font-medium text-gray-900 dark:text-white`}>
-            Name
-          </label>
-          <input
-            id='token_name'
-            name='token_name'
-            type='text'
-            value={token.token_name}
-            className={tw`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
-            minLength={3}
-            maxLength={32}
-            required
-          />
-        </div>
-        {token.access_token_id && (
+    <div className={tw`sm:flex justify-center`}>
+      <div className={tw`md:w-[50%]`}>
+        <form action={`/tokens/${token.access_token_id ?? 'new'}`} method='post'>
+          <div className={tw`text-[20px] mb-4`}>
+            {token.access_token_id ? 'Update ' : 'Create '} Access Token
+          </div>
           <div className={tw`mb-6`}>
-            <label htmlFor='token_key' className={tw`block mb-2 text-sm font-medium text-gray-900 dark:text-white`}>
-              Access Key
+            <label htmlFor='token_name' className={tw`block mb-2 text-sm font-medium text-gray-900 dark:text-white`}>
+              Name
             </label>
             <input
-              id='token_key'
-              name='token_key'
+              id='token_name'
+              name='token_name'
               type='text'
-              value={token.token_key}
+              value={token.token_name}
               className={tw`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
-              readOnly
+              minLength={3}
+              maxLength={32}
+              required
             />
           </div>
-        )}
-        <button
-          className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
-        >
-          {token.access_token_id ? 'Update' : 'Create'}
-        </button>
-      </form>
-      {token.access_token_id && (
-        <form action={`/tokens/${token.access_token_id}/delete`} method='post'>
+          {token.access_token_id && (
+            <div className={tw`mb-6`}>
+              <label htmlFor='token_key' className={tw`block mb-2 text-sm font-medium text-gray-900 dark:text-white`}>
+                Access Key
+              </label>
+              <input
+                id='token_key'
+                name='token_key'
+                type='text'
+                value={token.token_key}
+                className={tw`bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+                readOnly
+              />
+            </div>
+          )}
           <button
-            className={`focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900`}
+            className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
           >
-            Delete
+            {token.access_token_id ? 'Update' : 'Create'}
           </button>
         </form>
-      )}
-      <a href='/tokens'>
-        <button
-          className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
-        >
-          {token.access_token_id ? 'Back' : 'Cancel'}
-        </button>
-      </a>
+        {token.access_token_id && (
+          <form action={`/tokens/${token.access_token_id}/delete`} method='post'>
+            <button
+              className={`focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900`}
+            >
+              Delete
+            </button>
+          </form>
+        )}
+        <a href='/tokens'>
+          <button
+            className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+          >
+            {token.access_token_id ? 'Back' : 'Cancel'}
+          </button>
+        </a>
+      </div>
     </div>
   );
 };
