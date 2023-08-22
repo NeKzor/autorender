@@ -11,11 +11,11 @@ export const Privacy = () => {
   return (
     <div className={tw`flex items-center justify-center`}>
       <article className={tw`format lg:format-lg`}>
-        <h2 className={tw`text-4xl font-extrabold dark:text-white`}>
+        <h2 className={tw`text-4xl dark:text-white`}>
           Privacy Notice
         </h2>
         <p className={tw`my-4`}>Last Update: Aug 11, 2023</p>
-        <h6 className={tw`my-1 font-extrabold`}>
+        <h6 className={tw`my-1`}>
           Cookies
         </h6>
         <ul className={tw`space-y-1 list-disc list-inside`}>
@@ -25,7 +25,7 @@ export const Privacy = () => {
           </li>
         </ul>
         <br />
-        <h6 className={tw`my-1 font-extrabold`}>
+        <h6 className={tw`my-1`}>
           Stored Data
         </h6>
         <ul className={tw`space-y-1 list-disc list-inside`}>
@@ -53,7 +53,7 @@ export const Privacy = () => {
           <li>These logs are needed to protect and improve our service.</li>
         </ul>
         <br />
-        <h6 className={tw`my-1 font-extrabold`}>
+        <h6 className={tw`my-1`}>
           Third Party
         </h6>
         <ul className={tw`space-y-1 list-disc list-inside`}>
