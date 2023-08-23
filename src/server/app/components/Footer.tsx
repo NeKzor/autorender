@@ -18,15 +18,15 @@ const Footer = () => {
           </a>
         </span>
         <ul
-          className={tw`flex flex-wrap items-center mb-6 text-sm font-medium text-gray-500 mb-0 dark:text-gray-400`}
+          className={tw`flex flex-wrap items-center mb-6 gap-6 text-sm font-medium text-gray-500 mb-0 dark:text-gray-400`}
         >
           <li>
-            <a href='https://discord.gg/p2sr' target='_blank' className={tw`mr-4 hover:underline md:mr-6 `}>
+            <a href='https://discord.gg/p2sr' target='_blank' className={tw`hover:underline`}>
               Discord
             </a>
           </li>
           <li>
-            <a href='/privacy' target='_blank' className={tw`mr-4 hover:underline md:mr-6`}>
+            <a href='/privacy' target='_blank' className={tw`hover:underline`}>
               Privacy Policy
             </a>
           </li>
@@ -34,7 +34,7 @@ const Footer = () => {
             <a
               href='https://github.com/NeKzor/autorender/issues/new/choose'
               target='_blank'
-              className={tw`mr-4 hover:underline md:mr-6 `}
+              className={tw`hover:underline`}
             >
               Report Issue
             </a>
@@ -42,6 +42,11 @@ const Footer = () => {
           <li>
             <a href='https://github.com/NeKzor/autorender' target='_blank' className={tw`hover:underline`}>
               Source Code
+            </a>
+          </li>
+          <li>
+            <a href='/status' className={tw`hover:underline`}>
+              Status
             </a>
           </li>
         </ul>

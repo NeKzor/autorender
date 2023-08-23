@@ -26,6 +26,7 @@ import * as Tokens from './views/tokens/Index.tsx';
 import * as Privacy from './views/Privacy.tsx';
 import * as ProfileView from './views/Profile.tsx';
 import * as VideoView from './views/Video.tsx';
+import * as StatusView from './views/Status.tsx';
 import { Database } from '../db.ts';
 import { User } from '~/shared/models.ts';
 
@@ -179,6 +180,12 @@ export const routes: Route<RequestContext>[] = [
     meta: () => ({
       title: 'Privacy',
     }),
+  },
+  {
+    path: '/status',
+    Component: StatusView.Status,
+    meta: StatusView.meta,
+    loader: StatusView.loader,
   },
   {
     path: '*',
