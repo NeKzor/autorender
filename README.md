@@ -313,15 +313,19 @@ server {
 
 ## Caveats
 
-- Deno's network permissions do not support wildcards for domains: [deno#6532]
-- Deno's permission system is insanely tedious to maintain: [deno#12763]
-- Deno's WebSockets are limited to [64 MiB] per frame which is good enough for demos but not large enough for videos:
-  [deno#15809]
-- Permissions for containers have to be managed manually for mounted volumes: [moby#2259]
-- MariaDB image does not leak memory but MySQL 8 does: [containerd#6707]
-- The autorender client installs a [patched version] of SourceAutoRecord to make it work on the latest version of
-  Portal 2
+- Deno
+  - LSP does not support a monorepo project setup: [vscode_deno#501]
+  - Network permissions do not support wildcards for domains: [deno#6532]
+  - Permission system is insanely tedious to maintain: [deno#12763]
+  - WebSockets are limited to [64 MiB] per frame which is good enough for demos but not large enough for videos:
+    [deno#15809]
+- Docker
+  - Permissions for containers have to be managed manually for mounted volumes: [moby#2259]
+  - MariaDB image does not leak memory but MySQL 8 does: [containerd#6707]
+- SourceAutoRecord
+  - The autorender client installs a [patched version] of SAR to make it work on the latest version of Portal 2
 
+[vscode_deno#501]: https://github.com/denoland/vscode_deno/issues/501
 [deno#6532]: https://github.com/denoland/deno/issues/6532
 [deno#12763]: https://github.com/denoland/deno/issues/12763
 [moby#2259]: https://github.com/moby/moby/issues/2259
@@ -354,45 +358,59 @@ server {
   - ~~Automatic render~~
   - Send URL to leaderboard
 - ~~Advanced render options e.g. sar_ihud~~
-- Support more games
+- ~~Support more games~~
   - ~~Common Portal 2 mods~~
   - ~~Sourcemods~~
 - ~~Bot improvements~~
   - ~~Edit original interaction message or create a followup message~~
   - ~~Improve `/bot info`~~
-- Design frontend platform
+- Frontend design
   - Pages
-    - Profiles
-    - Search
-    - Users
-    - Audit logs
+    - ~~Generate video preview + thumbnails~~
     - Demo upload
-  - ~~Generate video preview + thumbnails~~
-  - Unlisted/private videos
+      - Bulk render
+    - Profiles
+      - Settings
+        - Display name
+        - Notifications
+      - Filter
+    - Statistics
+      - Charts
+    - Search
+      - Profiles
+      - Filter
+    - Notifications
+    - Admin tools
+      - Users
+      - Audit logs
   - Implement various data related functions
     - Delete video button
     - Delete data button
     - Request data button
 - Misc
-  - Better testing
-    - Implement test render
-    - Allow multiple game instances
-    - Fake a game instance
-  - ~~Better dev setup~~
-    - ~~Docker~~
-    - ~~HTTPS~~
-    - ~~Cross-platform setup script~~
-    - Usage of deps.ts
-  - Better deployment
-    - Figure out a way to deploy to GPU instances (use DepotDownloader?)
-    - Remove Steam client
-  - Clean up some anti-patterns, code duplications etc.
+  - Improve code
     - Refactor routes
     - Refactor connections
   - Improve logging
     - Fix logging library or find a better one
     - Improve error logging
     - Add file logging to bot
+  - Improve testing
+    - Implement test render
+    - Allow multiple game instances
+    - Fake a game instance
+    - Enable tests in CI
+  - ~~Better dev setup~~
+    - ~~Docker~~
+    - ~~HTTPS~~
+    - ~~Cross-platform setup script~~
+    - ~~Usage of import map~~
+  - Improve documentation
+    - Document client setup
+    - Use static site generator
+  - Improve server deployment
+    - Build server image in CI for minimal setup
+    - Deploy from GitHub runner
 - SAR wishlist
   - ~~Remove unnecessary watermark~~
   - ~~Sandbox commands like in 1.0~~ `sar_demo_blacklist_all` exists now, nice
