@@ -479,6 +479,9 @@ type ConsoleCommand = {
 };
 
 const supportedCommands: ConsoleCommand[] = [
+  { name: 'mat_ambient_light_r', argType: 'float', range: [0, 1] },
+  { name: 'mat_ambient_light_g', argType: 'float', range: [0, 1] },
+  { name: 'mat_ambient_light_b', argType: 'float', range: [0, 1] },
   { name: 'mat_fullbright', argType: 'integer', range: [0, 1] },
   { name: 'sar_force_fov', argType: 'integer', range: [45, 140] },
   { name: 'sar_hud_angles', argType: 'integer' },
