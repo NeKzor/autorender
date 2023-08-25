@@ -14,14 +14,23 @@ type AccessTokenJoin = Pick<AccessToken, 'access_token_id' | 'token_name'> & {
   render_count: number;
 } & Pick<User, 'username'>;
 
-type VideoJoin = Pick<Video, 'share_id' | 'title' | 'created_at' | 'pending' | 'requested_by_name' | 'render_node'> & {
-  requested_by_username: string | null;
-  rendered_by_username: string | null;
-};
+type QueuedVideo =
+  & Pick<Video, 'share_id' | 'title' | 'created_at' | 'pending' | 'requested_by_name' | 'render_node'>
+  & {
+    requested_by_username: string | null;
+    rendered_by_username: string | null;
+  };
+
+type AutorenderVideo =
+  & Pick<Video, 'share_id' | 'title' | 'created_at' | 'pending' | 'render_node' | 'board_changelog_id'>
+  & {
+    rendered_by_username: string | null;
+  };
 
 type Data = {
   tokens: AccessTokenJoin[];
-  videos: VideoJoin[];
+  queuedVideos: QueuedVideo[];
+  failedAutorenderVideos: AutorenderVideo[];
 };
 
 export const meta: PageMeta<Data> = () => {
@@ -46,7 +55,7 @@ export const loader: DataLoader = async ({ context }) => {
    order by access_tokens.created_at`,
   );
 
-  const videos = await context.db.query<VideoJoin>(
+  const queuedVideos = await context.db.query<QueuedVideo>(
     `select videos.share_id
           , videos.title
           , videos.created_at
@@ -67,9 +76,33 @@ export const loader: DataLoader = async ({ context }) => {
     ],
   );
 
+  const failedAutorenderVideos = await context.db.query<AutorenderVideo>(
+    `select videos.share_id
+          , videos.title
+          , videos.created_at
+          , videos.pending
+          , videos.render_node
+          , videos.board_changelog_id
+          , renderer.username as rendered_by_username
+       from videos
+       left join users requester
+         on requester.discord_id = videos.requested_by_id
+  left join users renderer
+         on renderer.user_id = videos.rendered_by
+      where pending = ?
+        and video_url is null
+        and board_changelog_id is not null
+        and rendered_by_token is not null
+   order by videos.created_at`,
+    [
+      PendingStatus.FinishedRender,
+    ],
+  );
+
   return json<Data>({
     tokens,
-    videos,
+    queuedVideos,
+    failedAutorenderVideos,
   });
 };
 
@@ -92,7 +125,7 @@ const formatPendingStatus = (status: PendingStatus) => {
 
 export const Status = () => {
   const state = React.useContext(AppStateContext);
-  const { tokens, videos } = useLoaderData<Data>();
+  const { tokens, queuedVideos, failedAutorenderVideos } = useLoaderData<Data>();
 
   return (
     <div className={tw`sm:flex justify-center`}>
@@ -186,12 +219,12 @@ export const Status = () => {
         <h2 className={tw`text-2xl mt-12 mb-6`}>
           In Queue
         </h2>
-        {videos.length === 0 && (
+        {queuedVideos.length === 0 && (
           <div>
             There are currently no videos in queue.
           </div>
         )}
-        {videos.length !== 0 && (
+        {queuedVideos.length !== 0 && (
           <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
             <thead
               className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
@@ -215,7 +248,7 @@ export const Status = () => {
               </tr>
             </thead>
             <tbody>
-              {videos.map((video) => {
+              {queuedVideos.map((video) => {
                 return (
                   <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
                     <th
@@ -243,6 +276,85 @@ export const Status = () => {
                           </a>
                         )
                         : <>{video.requested_by_name}</>}
+                    </td>
+                    <td className={tw`px-6 py-4`}>
+                      {new Date(video.created_at).toLocaleDateString()}
+                    </td>
+                    <td className={tw`px-6 py-4`}>
+                      {video.rendered_by_username !== null
+                        ? (
+                          <a
+                            className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                            href={`/profile/${video.rendered_by_username}`}
+                          >
+                            {video.render_node}@{video.rendered_by_username}
+                          </a>
+                        )
+                        : <>-</>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+        <h2 className={tw`text-2xl mt-12 mb-6`}>
+          Failed Autorenders
+        </h2>
+        {failedAutorenderVideos.length === 0 && (
+          <div>
+            All autorender videos have been uploaded.
+          </div>
+        )}
+        {failedAutorenderVideos.length !== 0 && (
+          <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
+            <thead
+              className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
+            >
+              <tr>
+                <th scope='col' className={tw`px-6 py-3`}>
+                  Title
+                </th>
+                <th scope='col' className={tw`px-6 py-3`}>
+                  Status
+                </th>
+                <th scope='col' className={tw`px-6 py-3`}>
+                  Changelog ID
+                </th>
+                <th scope='col' className={tw`px-6 py-3`}>
+                  Requested at
+                </th>
+                <th scope='col' className={tw`px-6 py-3`}>
+                  Render node
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {failedAutorenderVideos.map((video) => {
+                return (
+                  <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
+                    <th
+                      scope='row'
+                      className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}
+                    >
+                      <a
+                        href={`/videos/${video.share_id}`}
+                        className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                      >
+                        {video.title}
+                      </a>
+                    </th>
+                    <td className={tw`px-6 py-4`}>
+                      {formatPendingStatus(video.pending)}
+                    </td>
+                    <td className={tw`px-6 py-4`}>
+                      <a
+                        className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                        href={`https://board.portal2.sr/changelog?id=${video.board_changelog_id}`}
+                        target='_blank'
+                      >
+                        {video.board_changelog_id}
+                      </a>
                     </td>
                     <td className={tw`px-6 py-4`}>
                       {new Date(video.created_at).toLocaleDateString()}
