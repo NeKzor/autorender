@@ -14,7 +14,7 @@ import ShareModal from '../components/ShareModal.tsx';
 type JoinedVideo = Video & {
   requested_by_username: string | null;
   rendered_by_username: string | null;
-} & Pick<MapModel, 'alias' | 'workshop_file_id'>;
+} & Pick<MapModel, 'alias' | 'best_time_id' | 'workshop_file_id'>;
 
 type Data = JoinedVideo | undefined;
 
@@ -43,6 +43,7 @@ export const loader: DataLoader = async ({ params, context }) => {
           , requester.username as requested_by_username
           , renderer.username as rendered_by_username
           , maps.alias
+          , maps.best_time_id
           , maps.workshop_file_id
        from videos
        left join users requester
@@ -209,21 +210,37 @@ export const VideoView = () => {
               </a>
             </div>
           )}
-          {data.demo_time_score !== null && <div>Time: {formatCmTime(data.demo_time_score)}</div>}
+          {data.demo_time_score !== null && (
+            <div>
+              Time: {data.board_changelog_id
+                ? (
+                  <a
+                    className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                    href={`https://board.portal2.sr/changelog?id=${data.board_changelog_id}`}
+                    target='_blank'
+                  >
+                    {formatCmTime(data.demo_time_score)}
+                  </a>
+                )
+                : <>{formatCmTime(data.demo_time_score)}</>}
+            </div>
+          )}
           {data.demo_portal_score !== null && <div>Portals: {data.demo_portal_score}</div>}
-          {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
-          {data.workshop_file_id !== null && (
+          {(data.board_changelog_id !== null || data.workshop_file_id !== null) && (
             <div>
               Map:{' '}
               <a
                 className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                href={`https://steamcommunity.com/workshop/filedetails/?id=${data.workshop_file_id}`}
+                href={data.board_changelog_id !== null
+                  ? `https://board.portal2.sr/chamber/${data.best_time_id}`
+                  : `https://steamcommunity.com/workshop/filedetails/?id=${data.workshop_file_id}`}
                 target='_blank'
               >
                 {data.alias}
               </a>
             </div>
           )}
+          {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
           <br />
           {data.comment?.length ? <div className={tw`break-words`}>Comment: {data.comment}</div> : (
             <div>
