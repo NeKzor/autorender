@@ -8,14 +8,23 @@
 
 import 'dotenv/load.ts';
 import { db } from '../db.ts';
-import { AuditSource, AuditType, FixedDemoStatus, PendingStatus, RenderQuality } from '~/shared/models.ts';
+import {
+  AuditSource,
+  AuditType,
+  FixedDemoStatus,
+  Game,
+  MapModel,
+  MapType,
+  PendingStatus,
+  RenderQuality,
+} from '~/shared/models.ts';
 import * as uuid from 'uuid/mod.ts';
 import { generateShareId, getDemoFilePath, getFixedDemoFilePath } from '../utils.ts';
 import { getDemoInfo } from '../demo.ts';
 import { logger } from '../logger.ts';
 
 const BOARD_INTEGRATION_UPDATE_INTERVAL = 60 * 1_000;
-const BOARD_INTEGRATION_STARTED_DATE = '2023-08-01';
+const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 
 addEventListener('unhandledrejection', (ev) => {
   ev.preventDefault();
@@ -63,10 +72,6 @@ const fetchDemo = async (url: string) => {
     originalFilename: location.slice(location.lastIndexOf('/') + 1),
   };
 };
-
-const mapsWhichAreWayTooDark: { map: string; value: number }[] = [
-  { map: 'sp_a2_bts3', value: 1 },
-];
 
 export type ChangelogOptions =
   & {
@@ -167,7 +172,7 @@ const checkChangelogUpdates = async () => {
   }
 
   for (const entry of changelog) {
-    if (entry.time_gained.slice(0, 10) < BOARD_INTEGRATION_STARTED_DATE) {
+    if (entry.time_gained.slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
       continue;
     }
 
@@ -220,6 +225,10 @@ const checkChangelogUpdates = async () => {
 
       const demoFile = await Deno.open(filePath, { write: true, create: true });
       await demo.body?.pipeTo(demoFile.writable);
+      try {
+        demoFile.close();
+        // deno-lint-ignore no-empty
+      } catch {}
 
       const demoInfo = await getDemoInfo(filePath);
 
@@ -233,13 +242,76 @@ const checkChangelogUpdates = async () => {
         fixedFilePath = getFixedDemoFilePath(videoId);
       }
 
-      if (demoInfo.isWorkshopMap && !demoInfo.fileUrl) {
+      if (demoInfo.isWorkshopMap && !demoInfo.workshopInfo?.fileUrl) {
         logger.error(`Failed to resolve workshop map`);
         await fileCleanup();
         continue;
       }
 
-      const fullbrightOption = mapsWhichAreWayTooDark.find(({ map }) => map === demoInfo.mapName);
+      const [game] = await db.query<Game>(
+        `select game_id
+           from games
+          where game_mod = ?`,
+        [
+          demoInfo.gameDir,
+        ],
+      );
+
+      let [map] = await db.query<MapModel>(
+        `select map_id
+              , auto_fullbright
+           from maps
+          where game_id = ?
+            and name = ?`,
+        [
+          game!.game_id,
+          demoInfo.fullMapName,
+        ],
+      );
+
+      if (!map) {
+        await db.execute(
+          `insert into maps (
+              game_id
+            , name
+            , alias
+            , type
+            , workshop_file_id
+            , creator_steam_id
+          ) values (
+              ?
+            , ?
+            , ?
+            , ?
+            , ?
+            , ?
+          )`,
+          [
+            game!.game_id,
+            demoInfo.fullMapName,
+            demoInfo.workshopInfo?.title ?? null,
+            demoInfo.workshopInfo
+              ? demoInfo.workshopInfo.isSinglePlayer ? MapType.WorkshopSinglePlayer : MapType.WorkshopCooperative
+              : null,
+            demoInfo.workshopInfo?.publishedFileId ?? null,
+            demoInfo.workshopInfo?.creator ?? null,
+          ],
+        );
+
+        const [newMap] = await db.query<MapModel>(
+          `select map_id
+                , auto_fullbright
+             from maps
+            where game_id = ?
+              and name = ?`,
+          [
+            game!.game_id,
+            demoInfo.fullMapName,
+          ],
+        );
+
+        map = newMap!;
+      }
 
       const title = `${entry.chamberName} in ${formatCmTime(parseInt(entry.score, 10))} by ${entry.player_name}`;
       const comment = entry.note;
@@ -251,7 +323,7 @@ const checkChangelogUpdates = async () => {
       const requestedInChannelName = null;
       const renderQuality = RenderQuality.HD_720p;
       const renderOptions = [
-        fullbrightOption !== undefined ? `mat_fullbright ${fullbrightOption.value}` : null,
+        map.auto_fullbright ? `mat_fullbright 1` : null,
       ];
       const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
       const demoMetadata = JSON.stringify(demoInfo.metadata);
@@ -259,13 +331,10 @@ const checkChangelogUpdates = async () => {
       const boardProfileNumber = entry.profile_number;
       const boardRank = entry.post_rank;
 
-      logger.info({ filename: fullbrightOption });
-      if (fullbrightOption) {
-        Deno.exit(1);
-      }
-
       const fields = [
         videoId,
+        game!.game_id,
+        map.map_id,
         shareId,
         title,
         comment,
@@ -278,7 +347,7 @@ const checkChangelogUpdates = async () => {
         renderQuality,
         renderOptions.filter((command) => command !== null).join('\n'),
         originalFilename,
-        demoInfo.fileUrl,
+        demoInfo.workshopInfo?.fileUrl ?? null,
         demoInfo.fullMapName,
         demoInfo.size,
         demoInfo.mapCrc,
@@ -303,6 +372,8 @@ const checkChangelogUpdates = async () => {
       await db.execute(
         `insert into videos (
               video_id
+            , game_id
+            , map_id
             , share_id
             , title
             , comment
