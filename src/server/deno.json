@@ -2,7 +2,7 @@
   "tasks": {
     "dev": "deno run --no-prompt --allow-env --allow-read=./ --allow-write=log,storage --allow-run=ffprobe --allow-net --watch main.ts",
     "prod": "deno run --no-prompt --allow-env --allow-read=./ --allow-write=log,storage --allow-run=ffprobe --allow-net main.ts",
-    "test": "deno test --allow-net --allow-read --allow-env",
+    "test": "deno test --allow-net --allow-read --allow-env --unsafely-ignore-certificate-errors=autorender.portal2.local",
     "stale": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=./ --allow-net=autorender.database:3307 tasks/stale.ts",
     "perm": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=./ --allow-net=autorender.database:3307 tasks/perm.ts",
     "board": "docker exec -ti autorender-server deno run --no-prompt --allow-env --allow-read=./ --allow-write=storage/demos --allow-net=autorender.database:3307,board.portal2.sr,board.nekz.me tasks/board.ts",

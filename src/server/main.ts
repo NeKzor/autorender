@@ -711,9 +711,9 @@ apiV1
             , IF(video_url IS NULL AND pending <> ?, TRUE, FALSE) as rendering
             , IF(video_url IS NOT NULL, TRUE, FALSE) as rendered
          from videos
-         where requested_by_id = ?
-      order by created_at desc
-         limit 5`,
+        where requested_by_id = ?
+     order by created_at desc
+        limit 5`,
       [
         PendingStatus.FinishedRender,
         PendingStatus.FinishedRender,
@@ -722,6 +722,38 @@ apiV1
     );
 
     Ok(ctx, videos);
+  })
+  // Get back changelog IDs of renders that exist.
+  .post('/check-videos-exist', async (ctx) => {
+    if (!ctx.request.hasBody) {
+      return Err(ctx, Status.InternalServerError);
+    }
+
+    const body = await ctx.request.body({ type: 'json' }).value as { ids?: number[] } | null;
+    if (!body || !Array.isArray(body.ids) || body.ids.length > 4096) {
+      return Err(ctx, Status.BadRequest);
+    }
+
+    const { ids } = body;
+
+    if (!ids.length) {
+      return Ok(ctx, {
+        ids: [],
+      });
+    }
+
+    const videos = await db.query<Pick<Video, 'board_changelog_id'>>(
+      `select board_changelog_id
+         from videos
+        where board_changelog_id in (${ids.map(() => '?')})`,
+      [
+        ...ids,
+      ],
+    );
+
+    Ok(ctx, {
+      ids: videos.map((video) => video.board_changelog_id),
+    });
   })
   .get('/(.*)', (ctx) => {
     Err(ctx, Status.NotFound, 'Route not found :(');
@@ -1732,6 +1764,28 @@ router.get('/assets/js/:file([\\w]+\\.js)', async (ctx) => {
 });
 router.get('/assets/(.*)', (ctx) => {
   Err(ctx, Status.NotFound, 'Asset not found :(');
+});
+
+router.get('/video.html', async (ctx) => {
+  const changelogId = ctx.request.url.searchParams.get('v') ?? '';
+  if (!changelogId.length || parseInt(changelogId, 10).toString() !== changelogId) {
+    return Err(ctx, Status.BadRequest);
+  }
+
+  const [video] = await db.query<Pick<Video, 'share_id'>>(
+    `select share_id
+       from videos
+      where board_changelog_id = ?`,
+    [
+      changelogId,
+    ],
+  );
+
+  if (!video) {
+    return Err(ctx, Status.NotFound);
+  }
+
+  ctx.response.redirect(`/videos/${video.share_id}`);
 });
 
 router.get('/favicon.ico', (ctx) => (ctx.response.status = Status.NotFound));
