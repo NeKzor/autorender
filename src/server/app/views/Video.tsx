@@ -7,14 +7,14 @@
 import * as React from 'react';
 import { tw } from 'twind';
 import { DataLoader, json, notFound, PageMeta, redirect, useLoaderData } from '../Routes.ts';
-import { FixedDemoStatus, PendingStatus, RenderQuality, Video } from '~/shared/models.ts';
+import { FixedDemoStatus, MapModel, PendingStatus, RenderQuality, Video } from '~/shared/models.ts';
 import { DemoMetadata, SarDataTimestamp } from '../../demo.ts';
 import ShareModal from '../components/ShareModal.tsx';
 
 type JoinedVideo = Video & {
   requested_by_username: string | null;
   rendered_by_username: string | null;
-};
+} & Pick<MapModel, 'alias' | 'workshop_file_id'>;
 
 type Data = JoinedVideo | undefined;
 
@@ -42,11 +42,15 @@ export const loader: DataLoader = async ({ params, context }) => {
           , BIN_TO_UUID(videos.video_id) as video_id
           , requester.username as requested_by_username
           , renderer.username as rendered_by_username
+          , maps.alias
+          , maps.workshop_file_id
        from videos
        left join users requester
-            on requester.discord_id = videos.requested_by_id
+         on requester.discord_id = videos.requested_by_id
        left join users renderer
-            on renderer.user_id = videos.rendered_by
+         on renderer.user_id = videos.rendered_by
+       left join maps
+         on maps.map_id = videos.map_id
       where ${where}`,
     [params.share_id],
   );
@@ -208,6 +212,18 @@ export const VideoView = () => {
           {data.demo_time_score !== null && <div>Time: {formatCmTime(data.demo_time_score)}</div>}
           {data.demo_portal_score !== null && <div>Portals: {data.demo_portal_score}</div>}
           {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
+          {data.workshop_file_id !== null && (
+            <div>
+              Map:{' '}
+              <a
+                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                href={`https://steamcommunity.com/workshop/filedetails/?id=${data.workshop_file_id}`}
+                target='_blank'
+              >
+                {data.alias}
+              </a>
+            </div>
+          )}
           <br />
           {data.comment?.length ? <div className={tw`break-words`}>Comment: {data.comment}</div> : (
             <div>
