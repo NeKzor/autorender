@@ -65,14 +65,18 @@ export const loader: DataLoader = async ({ context }) => {
           , requester.username as requested_by_username
           , requester.discord_avatar_url as requested_by_discord_avatar_url
        from videos
-       left join users requester
-            on requester.discord_id = videos.requested_by_id
+  left join users requester
+         on requester.discord_id = videos.requested_by_id
+  left join maps
+         on maps.map_id = videos.map_id
       where video_url is not null
         and deleted_at is null
-        and title like ?
+        and (title like ? or maps.name like ? or maps.alias like ?)
    order by videos.created_at desc
       limit 16`,
     [
+      `%${query}%`,
+      `%${query}%`,
       `%${query}%`,
     ],
   );
