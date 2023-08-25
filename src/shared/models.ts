@@ -71,6 +71,45 @@ export interface AccessToken {
 }
 
 /**
+ * Table "games".
+ */
+export interface Game {
+  game_id: number;
+  name: string;
+  game_mod: string;
+  app_id: number;
+  sourcemod: number;
+}
+
+/**
+ * The type of a map.
+ */
+export enum MapType {
+  SinglePlayer = 1,
+  Cooperative = 2,
+  WorkshopSinglePlayer = 3,
+  WorkshopCooperative = 4,
+}
+
+/**
+ * Table "maps".
+ */
+export interface MapModel {
+  map_id: number;
+  game_id: number;
+  name: string;
+  alias: string;
+  type: MapType;
+  best_time_id: number;
+  best_portals_id: number;
+  chapter: number;
+  auto_fullbright: number;
+  crc: number;
+  workshop_file_id: string;
+  creator_steam_id: string;
+}
+
+/**
  * Pending status of a video.
  */
 export enum PendingStatus {

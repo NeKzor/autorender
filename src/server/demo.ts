@@ -23,6 +23,7 @@ enum WorkshopSteamAppId {
   PortalReloaded = 1255980,
 }
 
+// NOTE: Make sure that these are inserted into the "games" table.
 const supportedGameMods: { [gameDir: string]: WorkshopSteamAppId } = {
   'portal2': WorkshopSteamAppId.Portal2,
   'TWTM': WorkshopSteamAppId.ThinkingWithTimeMachine,
@@ -106,7 +107,7 @@ export const getDemoInfo = async (filePath: string) => {
       fullMapName,
       mapCrc: info.mapCrc,
       isWorkshopMap,
-      fileUrl: isWorkshopMap ? await resolveFileUrl(supportedGame, fullMapName) : null,
+      workshopInfo: isWorkshopMap ? await getWorkshopInfo(supportedGame, fullMapName) : null,
       gameDir: demo.gameDirectory,
       playbackTime: demo.playbackTime,
       useFixedDemo: fixupResult === true,
@@ -121,8 +122,16 @@ export const getDemoInfo = async (filePath: string) => {
   }
 };
 
+interface WorkshopInfo {
+  fileUrl: string | null;
+  title: string | null;
+  publishedFileId: string | null;
+  creator: string | null;
+  isSinglePlayer: boolean | null;
+}
+
 // Example: workshop/271715738875416672/bhop_outdoors
-export const resolveFileUrl = async (appId: WorkshopSteamAppId, mapName: string) => {
+export const getWorkshopInfo = async (appId: WorkshopSteamAppId, mapName: string): Promise<WorkshopInfo> => {
   const [path, ugc, name] = mapName.split('/', 3);
 
   if (path === 'workshop') {
@@ -147,11 +156,30 @@ export const resolveFileUrl = async (appId: WorkshopSteamAppId, mapName: string)
       throw new Error(`Request to mirror.nekz.me failed : ${res.status}`);
     }
 
-    const item = await res.json();
-    return item.file_url ?? null;
+    const item = await res.json() as {
+      file_url?: string;
+      title?: string;
+      publishedfileid?: string;
+      creator?: string;
+      tags?: ({ tag: string })[];
+    };
+
+    return {
+      fileUrl: item.file_url ?? null,
+      title: item.title ?? null,
+      publishedFileId: item.publishedfileid ?? null,
+      creator: item.creator ?? null,
+      isSinglePlayer: Array.isArray(item.tags) ? item.tags.some(({ tag }) => tag === 'Singleplayer') : null,
+    };
   }
 
-  return null;
+  return {
+    fileUrl: null,
+    title: null,
+    publishedFileId: null,
+    creator: null,
+    isSinglePlayer: null,
+  };
 };
 
 // Valve, please fix.

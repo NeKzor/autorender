@@ -50,10 +50,44 @@ CREATE TABLE access_tokens (
     UNIQUE KEY(user_id, token_name)
 );
 
+DROP TABLE IF EXISTS games;
+
+CREATE TABLE games (
+    game_id BIGINT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(64),
+    game_mod VARCHAR(64),
+    app_id INT,
+    sourcemod INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (game_id),
+    UNIQUE KEY(name)
+);
+
+DROP TABLE IF EXISTS maps;
+
+CREATE TABLE maps (
+    map_id BIGINT NOT NULL AUTO_INCREMENT,
+    game_id BIGINT NOT NULL,
+    name VARCHAR(64),
+    alias VARCHAR(64),
+    type INT NOT NULL,
+    best_time_id INT,
+    best_portals_id INT,
+    chapter INT,
+    auto_fullbright INT NOT NULL DEFAULT 0,
+    crc INT,
+    workshop_file_id VARCHAR(32),
+    creator_steam_id VARCHAR(32),
+    PRIMARY KEY (map_id),
+    UNIQUE KEY(game_id, name),
+    FOREIGN KEY (game_id) REFERENCES games(game_id)
+);
+
 DROP TABLE IF EXISTS videos;
 
 CREATE TABLE videos (
     video_id BINARY(16) NOT NULL,
+    game_id BIGINT,
+    map_id BIGINT,
     share_id VARCHAR(11) NOT NULL,
     title VARCHAR(64),
     comment VARCHAR(512),
@@ -105,6 +139,8 @@ CREATE TABLE videos (
     deleted_at TIMESTAMP,
     PRIMARY KEY (video_id),
     UNIQUE KEY(share_id),
+    FOREIGN KEY (game_id) REFERENCES games(game_id),
+    FOREIGN KEY (map_id) REFERENCES maps(map_id),
     FOREIGN KEY (rendered_by) REFERENCES users(user_id),
     FOREIGN KEY (rendered_by_token) REFERENCES access_tokens(access_token_id),
     FOREIGN KEY (deleted_by) REFERENCES users(user_id),

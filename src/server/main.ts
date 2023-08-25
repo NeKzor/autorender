@@ -26,6 +26,9 @@ import {
   AuditType,
   DiscordUser,
   FixedDemoStatus,
+  Game,
+  MapModel,
+  MapType,
   PendingStatus,
   RenderQuality,
   User,
@@ -215,6 +218,8 @@ apiV1
       maxFileSize: AUTORENDER_MAX_DEMO_FILE_SIZE,
     });
 
+    // TODO: File cleanup on error
+
     logger.info('Received', data.files?.length ?? 0, 'demo(s)');
 
     const file = data.files?.at(0);
@@ -230,7 +235,6 @@ apiV1
 
     // TODO:
     //    * Figure out if UGC changes when the revision of a workshop item updates.
-    //    * Should we save map data in the database?
 
     const demoInfo = await getDemoInfo(filePath);
 
@@ -238,9 +242,74 @@ apiV1
       return Err(ctx, Status.BadRequest, demoInfo ?? undefined);
     }
 
-    if (demoInfo.isWorkshopMap && !demoInfo.fileUrl) {
+    if (demoInfo.isWorkshopMap && !demoInfo.workshopInfo?.fileUrl) {
       logger.error(`Failed to resolve workshop map`);
       return Err(ctx, Status.InternalServerError);
+    }
+
+    const [game] = await db.query<Pick<Game, 'game_id'>>(
+      `select game_id
+         from games
+        where game_mod = ?`,
+      [
+        demoInfo.gameDir,
+      ],
+    );
+
+    let [map] = await db.query<Pick<MapModel, 'map_id' | 'auto_fullbright'>>(
+      `select map_id
+            , auto_fullbright
+         from maps
+        where game_id = ?
+          and name = ?`,
+      [
+        game!.game_id,
+        demoInfo.fullMapName,
+      ],
+    );
+
+    if (!map) {
+      await db.execute(
+        `insert into maps (
+            game_id
+          , name
+          , alias
+          , type
+          , workshop_file_id
+          , creator_steam_id
+        ) values (
+            ?
+          , ?
+          , ?
+          , ?
+          , ?
+          , ?
+        )`,
+        [
+          game!.game_id,
+          demoInfo.fullMapName,
+          demoInfo.workshopInfo?.title ?? null,
+          demoInfo.workshopInfo
+            ? demoInfo.workshopInfo.isSinglePlayer ? MapType.WorkshopSinglePlayer : MapType.WorkshopCooperative
+            : null,
+          demoInfo.workshopInfo?.publishedFileId ?? null,
+          demoInfo.workshopInfo?.creator ?? null,
+        ],
+      );
+
+      const [newMap] = await db.query<Pick<MapModel, 'map_id' | 'auto_fullbright'>>(
+        `select map_id
+              , auto_fullbright
+           from maps
+          where game_id = ?
+            and name = ?`,
+        [
+          game!.game_id,
+          demoInfo.fullMapName,
+        ],
+      );
+
+      map = newMap!;
     }
 
     const title = data.fields.title ?? 'untitled video';
@@ -253,12 +322,17 @@ apiV1
     const requestedInChannelName = data.fields.requested_in_channel_name ??
       null;
     const renderQuality = data.fields.quality ?? RenderQuality.HD_720p;
-    const renderOptions = data.fields.render_options ?? null;
+    const renderOptions = [
+      map.auto_fullbright ? 'mat_fullbright 1' : null,
+      data.fields.render_options ?? null,
+    ];
     const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
     const demoMetadata = JSON.stringify(demoInfo.metadata);
 
     const fields = [
       videoId,
+      game!.game_id,
+      map.map_id,
       shareId,
       title,
       comment,
@@ -269,9 +343,9 @@ apiV1
       requestedInChannelId,
       requestedInChannelName,
       renderQuality,
-      renderOptions,
+      renderOptions.filter((command) => command !== null).join('\n'),
       file.originalName,
-      demoInfo.fileUrl,
+      demoInfo.workshopInfo?.fileUrl ?? null,
       demoInfo.fullMapName,
       demoInfo.size,
       demoInfo.mapCrc,
@@ -293,6 +367,8 @@ apiV1
     const { affectedRows } = await db.execute(
       `insert into videos (
             video_id
+          , game_id
+          , map_id
           , share_id
           , title
           , comment
