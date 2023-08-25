@@ -23,15 +23,51 @@ enum WorkshopSteamAppId {
   PortalReloaded = 1255980,
 }
 
+export enum GameMod {
+  Portal2 = 'portal2',
+  ThinkingWithTimeMachine = 'TWTM',
+  ApertureTag = 'aperturetag',
+  PortalStoriesMel = 'portal_stories',
+  Portal2CommunityEdition = 'p2ce',
+  PortalReloaded = 'portalreloaded',
+  Portal2SpeedrunMod = 'Portal 2 Speedrun Mod',
+}
+
+export interface SupportedGame {
+  name: string;
+  workshopAppId: WorkshopSteamAppId;
+}
+
 // NOTE: Make sure that these are inserted into the "games" table.
-const supportedGameMods: { [gameDir: string]: WorkshopSteamAppId } = {
-  'portal2': WorkshopSteamAppId.Portal2,
-  'TWTM': WorkshopSteamAppId.ThinkingWithTimeMachine,
-  'aperturetag': WorkshopSteamAppId.ApertureTag,
-  'portal_stories': WorkshopSteamAppId.None,
-  // "p2ce": WorkshopSteamAppId.Portal2CommunityEdition,
-  'portalreloaded': WorkshopSteamAppId.PortalReloaded,
-  'Portal 2 Speedrun Mod': WorkshopSteamAppId.None,
+export const supportedGameMods: { [gameDir: string]: SupportedGame } = {
+  [GameMod.Portal2]: {
+    name: 'Portal 2',
+    workshopAppId: WorkshopSteamAppId.Portal2,
+  },
+  [GameMod.ThinkingWithTimeMachine]: {
+    name: 'Thinking With Time Machine',
+    workshopAppId: WorkshopSteamAppId.ThinkingWithTimeMachine,
+  },
+  [GameMod.ApertureTag]: {
+    name: 'Aperture Tag',
+    workshopAppId: WorkshopSteamAppId.ApertureTag,
+  },
+  [GameMod.PortalStoriesMel]: {
+    name: 'Portal Stories Mel',
+    workshopAppId: WorkshopSteamAppId.None,
+  },
+  // [GameMod.Portal2CommunityEdition]: {
+  //   name: 'Portal 2: Community Edition',
+  //   workshopAppId: WorkshopSteamAppId.Portal2CommunityEdition,
+  // },
+  [GameMod.PortalReloaded]: {
+    name: 'Portal Reloaded',
+    workshopAppId: WorkshopSteamAppId.PortalReloaded,
+  },
+  [GameMod.Portal2SpeedrunMod]: {
+    name: 'Portal 2 SpeedrunMod',
+    workshopAppId: WorkshopSteamAppId.None,
+  },
 };
 
 export const supportedGameDirs = Object.keys(supportedGameMods);
@@ -107,7 +143,7 @@ export const getDemoInfo = async (filePath: string) => {
       fullMapName,
       mapCrc: info.mapCrc,
       isWorkshopMap,
-      workshopInfo: isWorkshopMap ? await getWorkshopInfo(supportedGame, fullMapName) : null,
+      workshopInfo: isWorkshopMap ? await getWorkshopInfo(supportedGame.workshopAppId, fullMapName) : null,
       gameDir: demo.gameDirectory,
       playbackTime: demo.playbackTime,
       useFixedDemo: fixupResult === true,

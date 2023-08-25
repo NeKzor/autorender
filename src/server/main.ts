@@ -42,7 +42,7 @@ import { AppState as ReactAppState } from './app/AppState.ts';
 import { db } from './db.ts';
 import { createStaticRouter } from 'react-router-dom/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
-import { getDemoInfo, supportedGameDirs } from './demo.ts';
+import { getDemoInfo, supportedGameDirs, supportedGameMods } from './demo.ts';
 import { basename } from 'path/mod.ts';
 import {
   generateShareId,
@@ -823,6 +823,8 @@ router.get('/connect/bot', async (ctx) => {
 
 interface ClientState {
   accessTokenId: number;
+  gameMods: string[];
+  renderQualities: RenderQuality[];
 }
 
 const clients = new Map<string, ClientState>();
@@ -865,6 +867,8 @@ router.get('/connect/client', async (ctx) => {
 
     clients.set(clientId, {
       accessTokenId: accessToken.access_token_id,
+      gameMods: [],
+      renderQualities: [],
     });
   };
 
@@ -948,6 +952,12 @@ router.get('/connect/client', async (ctx) => {
             }
 
             ws.send(JSON.stringify({ type: 'videos', data: videos }));
+
+            const client = clients.get(clientId);
+            if (client && !client.gameMods.length) {
+              client.gameMods = [...clientGameDirs];
+              client.renderQualities = [...clientRenderQualities];
+            }
           } else {
             ws.send(
               JSON.stringify({
@@ -1406,9 +1416,27 @@ const routeToApp = async (ctx: Context) => {
     return matchedRoute.meta({ data: loadersData, context: requestContext });
   })();
 
+  const clientStates: ReactAppState['clientStates'] = new Map();
+  let accessTokenIds: ReactAppState['clients'] = [];
+
+  if (url.pathname === '/status') {
+    if (isHotReloadEnabled) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    accessTokenIds = Array.from(clients.values(), (client) => {
+      clientStates.set(client.accessTokenId, {
+        games: client.gameMods.map((gameMod) => supportedGameMods[gameMod]!.name),
+        renderQualities: Array.from(client.renderQualities),
+      });
+      return client.accessTokenId;
+    });
+  }
+
   const initialState: ReactAppState = {
     user,
-    clients: Array.from(clients.values(), (client) => client.accessTokenId),
+    clients: accessTokenIds,
+    clientStates,
     url,
     meta,
     domain: SERVER_DOMAIN,

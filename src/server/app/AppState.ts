@@ -5,12 +5,16 @@
  */
 
 import * as React from 'react';
-import { User } from '~/shared/models.ts';
+import { RenderQuality, User } from '~/shared/models.ts';
 import { RouteMeta } from './Routes.ts';
 
 export interface AppState {
   user: User | null;
   clients: number[];
+  clientStates: Map<number, {
+    games: string[];
+    renderQualities: RenderQuality[];
+  }>;
   url: URL;
   meta: RouteMeta;
   domain: string;

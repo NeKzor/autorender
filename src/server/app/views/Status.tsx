@@ -121,13 +121,48 @@ export const Status = () => {
           </thead>
           <tbody>
             {tokens.map((token) => {
+              const clientState = state?.clientStates.get(token.access_token_id);
+
               return (
                 <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
                   <th
                     scope='row'
                     className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}
                   >
-                    {token.token_name}
+                    {(clientState?.games?.length ?? 0) === 0 && <span>{token.token_name}</span>}
+                    {(clientState?.games?.length ?? 0) !== 0 && (
+                      <>
+                        <span
+                          data-popover-target='token-name-popover'
+                          data-popover-placement='left'
+                          className={tw`cursor-help`}
+                        >
+                          {token.token_name}
+                        </span>
+                        <div
+                          data-popover
+                          id='token-name-popover'
+                          role='tooltip'
+                          className={tw`absolute z-10 invisible inline-block w-64 text-sm text-black transition-opacity duration-300 bg-gray-50 rounded-lg shadow-sm opacity-0 dark:text-white dark:bg-gray-700`}
+                        >
+                          <div className={tw`px-3 py-2`}>
+                            Supported Games
+                            <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
+                              {clientState!.games.map((game) => {
+                                return <li>{game}</li>;
+                              })}
+                            </ul>
+                            Render Qualities
+                            <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
+                              {clientState!.renderQualities.map((game) => {
+                                return <li>{game}</li>;
+                              })}
+                            </ul>
+                          </div>
+                          <div data-popper-arrow></div>
+                        </div>
+                      </>
+                    )}
                   </th>
                   <td className={tw`px-6 py-4`}>
                     {state?.clients.includes(token.access_token_id) ? 'Connected' : 'Offline'}
