@@ -63,6 +63,7 @@ export const Head = ({ initialState }: HeadProps) => {
         content='minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no'
       />
       <meta http-equiv='Content-Security-Policy' content={getCSP(state.nonce)} />
+      <meta name='referrer' content='no-referrer' />
       <meta name='theme-color' content='#f44336' />
       {metaNames
         .filter((name) => meta[name] !== undefined && meta[name] !== null)
