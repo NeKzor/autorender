@@ -78,33 +78,40 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
           <div className={tw`w-full lg:min-w-[400px]`}>
             <div className={tw`flex mt-4 sm:mt-0`}>
               <div className={tw`sm:ml-4 ml-0 flex-grow items-center`}>
-                <a href={`/videos/${video.share_id}`}>
-                  <div className={tw`font-bold`}>
-                    <span className={tw`text-xl break-all`}>
-                      {video.title}
-                    </span>
-                  </div>
-                  <div className={tw`h-2 mb-4 mt-2 text-sm`}>
-                    {video.views} views | {toAgo(video.rendered_at)}
-                  </div>
-                </a>
-                <div className={tw`flex items-center pt-2`}>
-                  {video.requested_by_discord_avatar_url
-                    ? (
-                      <img
-                        className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
-                        src={video.requested_by_discord_avatar_url!}
-                      />
-                    )
-                    : (
-                      <img
-                        className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
-                        src='/assets/images/portal2boards_avatar.jpg'
-                      />
-                    )}
-                  <div className={tw`pl-2`}>
-                    {video.requested_by_name ?? 'Autorender'}
-                  </div>
+                <div>
+                  <a href={`/videos/${video.share_id}`}>
+                    <div className={tw`font-bold`}>
+                      <span className={tw`text-xl break-all`}>
+                        {video.title}
+                      </span>
+                    </div>
+                    <div className={tw`h-2 mb-4 mt-2 text-sm`}>
+                      {video.views} views | {toAgo(video.rendered_at)}
+                    </div>
+                  </a>
+                </div>
+                <div className={tw`flex pt-2`}>
+                  <a
+                    className={tw`flex items-center`}
+                    href={video.requested_by_name ? `/profile/${video.requested_by_name}` : undefined}
+                  >
+                    {video.requested_by_discord_avatar_url
+                      ? (
+                        <img
+                          className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
+                          src={video.requested_by_discord_avatar_url!}
+                        />
+                      )
+                      : (
+                        <img
+                          className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
+                          src='/assets/images/portal2boards_avatar.jpg'
+                        />
+                      )}
+                    <div className={tw`pl-2`}>
+                      {video.requested_by_name ?? 'Autorender'}
+                    </div>
+                  </a>
                 </div>
                 {video.comment && (
                   <a href={`/videos/${video.share_id}`}>
@@ -120,7 +127,7 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
                     id={`video-menu-button-${video.share_id}`}
                     data-dropdown-toggle={`video-menu-dropdown-${video.share_id}`}
                     type='button'
-                    className={tw`mx-2 hover:text-white focus:outline-none font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:border-gray-500 dark:text-gray-500 dark:hover:text-white dark:focus:ring-gray-800 dark:hover:bg-gray-500`}
+                    className={tw`mx-2 hover:text-white focus:outline-none font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:border-gray-500 dark:text-gray-500 dark:hover:text-white dark:focus:ring-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700`}
                   >
                     <svg
                       className={tw`w-3 h-3 text-gray-800 dark:text-white`}
