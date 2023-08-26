@@ -162,9 +162,8 @@ const checkChangelogUpdates = async () => {
   const changelog = await getChangelog({
     endRank: 200,
     maxDaysAgo: 1,
-    submission: 1,
-    pending: 0,
     banned: 0,
+    pending: 0,
   });
 
   if (!changelog) {
