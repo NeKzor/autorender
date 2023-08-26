@@ -639,7 +639,7 @@ const prepareGameLaunch = async (game: GameConfig): Promise<[string, Deno.Comman
     height.toString(),
   ];
 
-  console.log({ command, args });
+  logger.info(JSON.stringify({ command, args }));
 
   return [autoexecFile, new Deno.Command(command, { args })];
 };

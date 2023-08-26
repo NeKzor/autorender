@@ -15,7 +15,7 @@ import { realGameModFolder } from './utils.ts';
  */
 export const createFolders = async (config: Config | null) => {
   if (!config) {
-    console.log(colors.red(`❌️ Failed to find autorender.yaml config file`));
+    logger.error(colors.red(`❌️ Failed to find autorender.yaml config file`));
     Deno.exit(1);
   }
 

@@ -75,8 +75,6 @@ export const action: ActionLoader = async ({ params, request, context }) => {
     await request.formData(),
   ) as PostFormData;
 
-  console.log({ token_name });
-
   if (!token_name || token_name.length < 3 || token_name.length > 32) {
     badRequest();
   }
