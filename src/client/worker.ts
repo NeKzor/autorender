@@ -156,7 +156,7 @@ const onError = (event: ErrorEvent | Event) => {
     return;
   }
 
-  logger.error('Connection error', isErrorEvent ? event.error ?? event : event);
+  logger.error('Connection error', isErrorEvent ? event.error ?? event.message : event);
 };
 
 const onMessage = async (message: MessageEvent) => {

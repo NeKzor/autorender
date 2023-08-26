@@ -49,7 +49,7 @@ const onError = (event: ErrorEvent | Event) => {
     return;
   }
 
-  console.error('Connection error', isErrorEvent ? event.error ?? event : event);
+  console.error('Connection error', isErrorEvent ? event.error ?? event.message : event);
 };
 
 const connect = () => {
