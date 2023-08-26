@@ -26,6 +26,9 @@ import { logger } from '../logger.ts';
 const BOARD_INTEGRATION_UPDATE_INTERVAL = 60 * 1_000;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 
+const FAILED_RENDER_MIN_RETRY_MINUTES = 15;
+const FAILED_RENDER_MAX_RETRY_MINUTES = 60;
+
 addEventListener('unhandledrejection', (ev) => {
   ev.preventDefault();
   logger.error('unhandledrejection', { ev });
@@ -447,10 +450,42 @@ const checkChangelogUpdates = async () => {
   }
 };
 
+const resetFailedAutorenders = async () => {
+  const { affectedRows } = await db.execute(
+    `update videos
+        set pending = ?
+          , rendered_by = null
+          , rendered_by_token = null
+          , render_node = null
+      where pending = ?
+        and video_url is null
+        and board_changelog_id is not null
+        and rendered_by_token is not null
+        and TIMESTAMPDIFF(MINUTE, created_at, NOW()) >= ?
+        and TIMESTAMPDIFF(MINUTE, created_at, NOW()) <= ?`,
+    [
+      PendingStatus.RequiresRender,
+      PendingStatus.FinishedRender,
+      FAILED_RENDER_MIN_RETRY_MINUTES,
+      FAILED_RENDER_MAX_RETRY_MINUTES,
+    ],
+  );
+
+  if (affectedRows) {
+    logger.info('Reset failed renders:', affectedRows);
+  }
+};
+
 const update = async () => {
   try {
-    logger.info('checking for changelog updates');
+    logger.info('Checking for changelog updates');
     await checkChangelogUpdates();
+  } catch (err) {
+    logger.error(err);
+  }
+
+  try {
+    await resetFailedAutorenders();
   } catch (err) {
     logger.error(err);
   }
