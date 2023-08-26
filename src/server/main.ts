@@ -323,7 +323,13 @@ apiV1
       null;
     const renderQuality = data.fields.quality ?? RenderQuality.HD_720p;
     const renderOptions = [
-      map.auto_fullbright ? 'mat_fullbright 1' : null,
+      ...(map.auto_fullbright && !data.fields.render_options?.includes('mat_fullbright')
+        ? [
+          `mat_ambient_light_r 0.05`,
+          `mat_ambient_light_g 0.05`,
+          `mat_ambient_light_b 0.05`,
+        ]
+        : []),
       data.fields.render_options ?? null,
     ];
     const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
