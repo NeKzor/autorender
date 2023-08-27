@@ -12,8 +12,8 @@ Render Portal 2 demos on-demand with: `/render demo <file>`
   - [Requirements](#requirements)
   - [Setup](#setup)
   - [Install & Run Server](#install--run-server)
-    - [src/server/.env](#srcserverenv)
-    - [src/bot/.env](#srcbotenv)
+    - [.env.server](#srcserverenv)
+    - [.env.bot](#srcbotenv)
   - [User Setup](#user-setup)
   - [Storage](#storage)
   - [Install & Run Client](#install--run-client)
@@ -121,19 +121,19 @@ sequenceDiagram
   - Discord bot token of the application
 - Add the OAuth redirect for the Discord application: `https://autorender.portal2.local/login/discord/authorize`
 - Enable `message content intent` for the Discord bot application
-- Go through the setup process: `deno task setup`
+- Clone the repository and go through the setup process: `deno task setup`
 - Build server image: `deno task build`
 
 ### Install & Run Server
 
-- Optional: Configure [src/server/.env](#srcserverenv) file
-- Optional: Configure [src/bot/.env](#srcbotenv) file
+- Optional: Configure [.env.server](#srcserverenv) file
+- Optional: Configure [.env.bot](#srcbotenv) file
 - Start all containers: `deno task up`
 - Add a host entry `127.0.0.1 autorender.portal2.local` to `/etc/hosts` or `C:\Windows\System32\drivers\etc\hosts`
 
 The server should now be available at `https://autorender.portal2.local` and the bot should be online on Discord.
 
-### src/server/.env
+### .env.server
 
 The redirect URI of the Discord OAuth2 application should be set to:
 
@@ -158,7 +158,7 @@ For development it is recommended to enable `HOT_RELOAD=true`.
 | B2_KEY_NAME           | Key name from Backblaze.                                                            |
 | B2_APP_KEY            | App key from Backblaze.                                                             |
 
-#### src/bot/.env
+#### .env.bot
 
 | Variable             | Description                                                     |
 | -------------------- | --------------------------------------------------------------- |
@@ -169,7 +169,7 @@ For development it is recommended to enable `HOT_RELOAD=true`.
 ### User Setup
 
 - Create a user account by logging in from the home page
-- Make sure that `DISCORD_USER_ID` in the `src/server/.env` file is the correct user ID of the created user
+- Make sure that `DISCORD_USER_ID` in the `.env.server` file is the correct user ID of the created user
 - Set all permissions for the account with `deno task perm`
 - Logout and login again
 
@@ -239,18 +239,29 @@ The project contains convenient tasks which can be executed with `deno task <nam
 
 ## Production
 
-Setup should be self-explanatory as it's the same setup process as in [development](#setup).
+The server image should be build locally or in a CI environment for deployment. This can be done with:
 
-Make sure that the `src/bot/.env` file has the correct values for:
+```bash
+deno task build:prod
+```
+
+On the production system the project folder structure will look similar to `docker/volumes` since all source files in
+`src/bot` and `src/server` are inside the created Docker image.
+
+Run the following from a new folder:
+
+```bash
+deno run \
+  --allow-read=. \
+  --allow-write=. \
+  --allow-net=raw.githubusercontent.com \
+  https://raw.githubusercontent.com/NeKzor/autorender/main/setup.ts --prod
+```
+
+Make sure that the `.env.bot` file has the correct values for:
 
 - `AUTORENDER_BASE_API` should point to the internal address of the host, if hosted within the same network
 - `AUTORENDER_PUBLIC_URI` should point to the public domain
-
-Difference between `dev` and `prod`:
-
-- Entrypoint in `Dockerfile`
-- In development all source and data files are mounted as read-write
-- In production only `.env` files and data files are mounted
 
 Client code will be compiled and shipped in a single executable:
 
@@ -258,14 +269,13 @@ Client code will be compiled and shipped in a single executable:
 
 When deploying make sure that clients have checked the following:
 
-- The game can be launched from the terminal
-- Game updates are disabled
+- Successful benchmark with: `.\autorenderclient.exe benchmark`
 - Steam Overlay is disabled
 - Steam client is in offline mode
 - Operating system does not enter sleep mode
 - Operating system does not power off
 - Network connection is stable
-- There is nothing else that could interrupt the autorender client
+- There is nothing else that could interrupt the client
 
 ### Proxy Example with Nginx + Certbot
 
@@ -307,6 +317,18 @@ server {
         proxy_buffering off;
         proxy_read_timeout 1800s;
         proxy_send_timeout 1800s;
+    }
+
+    location /api/v1/videos/upload {
+        proxy_pass http://127.0.0.1:8834$request_uri;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+        proxy_buffering off;
+        client_max_body_size 150M;
     }
 }
 ```
@@ -361,12 +383,17 @@ server {
 - ~~Support more games~~
   - ~~Common Portal 2 mods~~
   - ~~Sourcemods~~
-- ~~Bot improvements~~
+- Bot improvements
   - ~~Edit original interaction message or create a followup message~~
   - ~~Improve `/bot info`~~
+  - Add `/preset edit`
+  - Update `/preset get` message after edit
 - Frontend design
   - Pages
     - ~~Generate video preview + thumbnails~~
+    - Video
+      - Retry button for failed auto renders
+      - Delete button
     - Demo upload
       - Bulk render
     - Profiles
@@ -383,6 +410,10 @@ server {
     - Admin tools
       - Users
       - Audit logs
+      - All tokens
+    - Tokens
+      - Reset button
+      - Inactive button
   - Implement various data related functions
     - Delete video button
     - Delete data button
