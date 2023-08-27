@@ -26,20 +26,37 @@ const v = (strings: TemplateStringsArray, ...values: string[]) =>
 const cli = new Command()
   .name('autorender-setup')
   .version('1.0.0')
-  .description('Command line setup tool for a new autorender project.')
-  .option('-p, --prod', 'Run setup from production system.');
+  .description('Command line setup tool for the autorender project.')
+  .option('-p, --prod', 'Run setup for the production system.')
+  .option('-s, --sync', 'Sync latest files for the production system.');
 
 const main = async () => {
-  const result = await cli.parse(Deno.args);
-  const env: Environment = result.options.prod ? 'prod' : 'dev';
+  const { options: { prod, sync } } = await cli.parse(Deno.args);
 
-  volumeFolder = env === 'dev' ? 'docker/volumes/' : '';
+  if (sync && !prod) {
+    console.error(
+      colors.bold('[-]'),
+      `Syncing files is not allowed. Did you mean to run this for a production system? Try: --prod --sync`,
+    );
+    Deno.exit(1);
+  }
 
-  await createDockerComposeFile(env);
-  await createConfigAndEnv(env);
-  await createDirectories(env);
-  await downloadStorageFiles(env);
-  await createSslCerts(env);
+  const env: Environment = prod ? 'prod' : 'dev';
+
+  volumeFolder = prod ? '' : 'docker/volumes/';
+
+  if (!sync) {
+    await createDockerComposeFile(env);
+    await createConfigAndEnv(env);
+    await createDirectories();
+  }
+
+  if (prod) {
+    await downloadRemoteFiles();
+    await downloadStorageFiles();
+  } else {
+    await createSslCerts();
+  }
 
   console.log(colors.bold('[+]'), colors.green(`Done`));
 
@@ -101,10 +118,15 @@ const setEnv = (contents: string[], search: string, replace: string) => {
   }
 };
 
-const downloadFromRepository = async (remote: string, local: string) => {
-  const url = repositoryUrl + remote;
+const downloadFromRepository = async (remote: string, local: string, skipIfExists?: boolean) => {
+  if (skipIfExists) {
+    const stat = await tryStat(local);
+    if (stat) {
+      return;
+    }
+  }
 
-  console.log(colors.bold('[+]'), `GET ${url}`);
+  const url = repositoryUrl + remote;
 
   const res = await fetch(url, {
     headers: {
@@ -112,13 +134,15 @@ const downloadFromRepository = async (remote: string, local: string) => {
     },
   });
 
+  console.log(colors.bold(`[${res.ok ? '+' : '-'}]`), `GET ${url} : ${res.status}`);
+
   if (!res.ok || !res.body) {
-    console.error(colors.bold('[-]'), `Unable to download file from repository : ${res.status} (${res.statusText})`);
+    console.log(colors.bold('[-]'), `Unable to download file from repository: ${res.statusText}`);
     Deno.exit(1);
   }
 
   try {
-    Deno.remove(local);
+    await Deno.remove(local);
   } catch (err) {
     if (!(err instanceof Deno.errors.NotFound)) {
       console.error(colors.bold('[-]'), `Unable to delete file: ${local}`);
@@ -128,10 +152,9 @@ const downloadFromRepository = async (remote: string, local: string) => {
   }
 
   try {
-    const file = await Deno.open(local);
+    const file = await Deno.open(local, { create: true, write: true, truncate: true });
     await res.body.pipeTo(file.writable);
-    console.log(colors.bold('[+]'), `File written to ${local}`);
-    file.close();
+    console.log(colors.bold('[+]'), `    File written to ${local}`);
   } catch (err) {
     console.error(err);
     Deno.exit(1);
@@ -154,15 +177,17 @@ const createDockerComposeFile = async (env: Environment) => {
       ],
     });
 
-    console.log({ template });
-    await downloadFromRepository(template, `docker-compose.yml`);
-    await downloadFromRepository('.dockerignore', '.dockerignore');
-    await downloadFromRepository('deno.json', 'deno.json');
-    await downloadFromRepository('deno.lock', 'deno.lock');
-    await downloadFromRepository('Dockerfile', 'Dockerfile');
+    await downloadFromRepository(template, `docker-compose.yml`, true);
+    //await downloadFromRepository('.dockerignore', '.dockerignore');
+    //await downloadFromRepository('Dockerfile', 'Dockerfile');
   } else {
     await tryCopy(`docker/compose/${devHostname}.yml`, 'docker-compose.yml');
   }
+};
+
+const downloadRemoteFiles = async () => {
+  await downloadFromRepository('deno.json', 'deno.json');
+  await downloadFromRepository('deno.lock', 'deno.lock');
 };
 
 /**
@@ -172,15 +197,12 @@ const createDockerComposeFile = async (env: Environment) => {
  *    quickhud.zip          -> Quickhud files for clients
  *    security.txt          -> Security policy, see https://www.rfc-editor.org/rfc/rfc9116
  */
-const downloadStorageFiles = async (env: Environment) => {
-  if (env !== 'prod') {
-    return;
-  }
-
-  await downloadFromRepository('storage/files/autorender.cfg', 'storage/files/autorender.cfg');
-  await downloadFromRepository('storage/files/portal2_benchmark.dem', 'storage/files/portal2_benchmark.dem');
-  await downloadFromRepository('storage/files/quickhud.zip', 'storage/files/quickhud.zip');
-  await downloadFromRepository('storage/files/security.txt', 'storage/files/security.txt');
+const downloadStorageFiles = async () => {
+  const remoteStorageFiles = 'docker/volumes/storage/files/';
+  await downloadFromRepository(`${remoteStorageFiles}autorender.cfg`, 'storage/files/autorender.cfg');
+  await downloadFromRepository(`${remoteStorageFiles}portal2_benchmark.dem`, 'storage/files/portal2_benchmark.dem');
+  await downloadFromRepository(`${remoteStorageFiles}quickhud.zip`, 'storage/files/quickhud.zip');
+  await downloadFromRepository(`${remoteStorageFiles}security.txt`, 'storage/files/security.txt');
 };
 
 /**
@@ -191,9 +213,9 @@ const downloadStorageFiles = async (env: Environment) => {
  */
 const createConfigAndEnv = async (env: Environment) => {
   if (env === 'prod') {
-    await downloadFromRepository('.env.example', '.env');
-    await downloadFromRepository('src/bot/.env.example', v`.env.bot`);
-    await downloadFromRepository('src/server/.env.example', v`.env.server`);
+    await downloadFromRepository('.env.example', '.env', true);
+    await downloadFromRepository('src/bot/.env.example', v`.env.bot`, true);
+    await downloadFromRepository('src/server/.env.example', v`.env.server`, true);
   } else {
     await tryCopy('.env.example', '.env');
     await tryCopy('src/bot/.env.example', v`.env.bot`);
@@ -260,7 +282,7 @@ const createConfigAndEnv = async (env: Environment) => {
     }
   }
 
-  console.log(colors.bold('[+]'), colors.white(`Created .env files`));
+  console.log(colors.bold('[+]'), `Created .env files`);
 };
 
 /**
@@ -270,24 +292,24 @@ const createConfigAndEnv = async (env: Environment) => {
  *    kv          -> Database used by the bot
  *    mysql       -> Database used by the server
  */
-const createDirectories = async (_env: Environment) => {
+const createDirectories = async () => {
   await tryMkdir(v`logs/bot`);
   await tryMkdir(v`logs/server`);
   await tryMkdir(v`kv`);
   await tryMkdir(v`mysql`);
-  await tryMkdir(v`storage`);
+  await tryMkdir(v`storage/demos`);
+  await tryMkdir(v`storage/files`);
+  await tryMkdir(v`storage/previews`);
+  await tryMkdir(v`storage/thumbnails`);
+  await tryMkdir(v`storage/videos`);
 
-  console.log(colors.bold('[+]'), colors.white(`Created directories`));
+  console.log(colors.bold('[+]'), `Created directories`);
 };
 
 /**
  * Self-signed certificate for development only.
  */
-const createSslCerts = async (env: Environment) => {
-  if (env === 'prod') {
-    return;
-  }
-
+const createSslCerts = async () => {
   const stat = await tryStat(v`ssl/${devHostname}.crt`);
   if (stat) {
     console.log(colors.bold('[+]'), colors.white(`Skipped self-signed certificate`));
