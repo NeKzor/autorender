@@ -12,7 +12,9 @@ services:
     environment:
       DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
-      - ./docker/logs/server:/app/log/server:rw
+      - ./docker/volumes/logs/server:/logs/server:rw
+      - ./docker/volumes/storage:/storage:rw
+      - ./docker/volumes/.env.server:/app/.env:rw
       - ./src/server:/app:rw
       - ./src/shared:/shared:rw
   bot:
@@ -27,8 +29,9 @@ services:
     environment:
       DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
-      - ./docker/logs/bot:/app/log/bot:rw
+      - ./docker/volumes/logs/bot:/logs/bot:rw
       - ./docker/volumes/kv:/kv:rw
+      - ./docker/volumes/.env.bot:/app/.env:rw
       - ./src/bot:/app:rw
       - ./src/shared:/shared:rw
   database:
@@ -44,7 +47,7 @@ services:
       MARIADB_DATABASE: ${MARIADB_DATABASE}
       MYSQL_TCP_PORT: ${DATABASE_PORT}
     volumes:
-      - ./docker/initdb:/docker-entrypoint-initdb.d
+      - ./docker/volumes/initdb:/docker-entrypoint-initdb.d
       - ./docker/volumes/mysql:/var/lib/mysql
   proxy:
     image: nginx:stable-alpine
@@ -59,6 +62,6 @@ services:
       - SERVER_PORT=${SERVER_PORT}
       - PROJECT_NAME=${PROJECT_NAME}
     volumes:
-      - ./docker/ssl:/ssl:r
-      - ./docker/nginx:/etc/nginx/templates
-      - ./docker/logs/nginx:/var/log/nginx:rw
+      - ./docker/volumes/ssl:/ssl:r
+      - ./docker/volumes/nginx:/etc/nginx/templates
+      - ./docker/volumes/logs/nginx:/var/log/nginx:rw

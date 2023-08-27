@@ -2,7 +2,6 @@
 .github/
 docker/
 src/client/bin/
-src/server/storage/
 
 # from .gitignore
 .vscode/

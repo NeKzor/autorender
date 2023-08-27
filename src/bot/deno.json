@@ -1,7 +1,7 @@
 {
   "tasks": {
-    "dev": "deno run --unstable --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/kv,log,worker.ts --allow-write=/kv,log --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,board.portal2.sr,autorender.server --watch main.ts",
-    "prod": "deno run --unstable --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/kv,log,worker.ts --allow-write=/kv,log --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,board.portal2.sr,autorender.server main.ts"
+    "dev": "deno run --unstable --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/kv,/logs/bot,worker.ts --allow-write=/kv,/logs/bot --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,board.portal2.sr,autorender.server --watch main.ts",
+    "prod": "deno run --unstable --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/kv,/logs/bot,worker.ts --allow-write=/kv,/logs/bot --allow-net=discord.com,gateway.discord.gg,gateway-us-east1-b.discord.gg,gateway-us-east1-c.discord.gg,gateway-us-east1-d.discord.gg,deno.land,cdn.discord.com,cdn.discordapp.com,board.portal2.sr,autorender.server main.ts"
   },
   "fmt": {
     "useTabs": false,

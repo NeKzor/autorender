@@ -1,2 +1,6 @@
-*
-!.gitignore
+kv/
+logs/
+mysql/
+ssl/
+.env.bot
+.env.server

@@ -138,7 +138,7 @@ if (B2_ENABLED) {
   logger.info('⚠️  Connection to b2 disabled. Using directory to store videos.');
 }
 
-await logger.initFileLogger('log/server', {
+await logger.initFileLogger('/logs/server', {
   rotate: true,
   maxBytes: 100_000_000,
   maxBackupCount: 7,

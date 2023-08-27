@@ -1,6 +1,4 @@
 .vscode/
-docker/ssl/
-docker/logs/
 log/
 .autorender.yaml
 .kv

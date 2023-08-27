@@ -12,14 +12,14 @@ services:
     ports:
       - "127.0.0.1:${HTTP_PORT}:8001"
       - "127.0.0.1:${HTTPS_PORT}:8001"
-    extra_hosts: 
+    extra_hosts:
       - ${SERVER_NAME}:127.0.0.1
     environment:
       DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
-      - ./docker/logs/server:/app/log/server:rw
-      - ./src/server/.env:/app/.env:rw
-      - ./src/server/storage:/app/storage:rw
+      - ./logs/server:/logs/server:rw
+      - ./storage:/storage:rw
+      - ./.env.server:/app/.env:rw
   bot:
     image: "${PROJECT_NAME}-bot"
     build:
@@ -32,9 +32,9 @@ services:
     environment:
       DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
-      - ./docker/logs/bot:/app/log/bot:rw
-      - ./docker/volumes/kv:/kv:rw
-      - ./src/bot/.env:/app/.env:rw
+      - ./logs/bot:/logs/bot:rw
+      - ./kv:/kv:rw
+      - ./.env.bot:/app/.env:rw
   database:
     image: mariadb:latest
     container_name: "${PROJECT_NAME}-db"
@@ -48,5 +48,5 @@ services:
       MARIADB_DATABASE: ${MARIADB_DATABASE}
       MYSQL_TCP_PORT: ${DATABASE_PORT}
     volumes:
-      - ./docker/initdb:/docker-entrypoint-initdb.d
-      - ./docker/volumes/mysql:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d
+      - ./mysql:/var/lib/mysql
