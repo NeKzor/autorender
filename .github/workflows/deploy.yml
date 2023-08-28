@@ -40,8 +40,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build and push bot image
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: p2sr/autorender:latest
+          target: bot
+          tags: p2sr/autorender-bot:latest,p2sr/autorender-bot/1.0.0
+
+      - name: Build and push server image
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          target: server
+          tags: p2sr/autorender-server:latest,p2sr/autorender-server/1.0.0
