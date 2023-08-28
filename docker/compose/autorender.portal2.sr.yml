@@ -1,10 +1,7 @@
 version: "3.8"
 services:
   server:
-    image: "${PROJECT_NAME}-server"
-    build:
-      context: .
-      target: server
+    image: p2sr/autorender-server:latest
     container_name: "${PROJECT_NAME}-server"
     restart: always
     links:
@@ -19,10 +16,7 @@ services:
       - ./storage:/storage:rw
       - ./.env.server:/app/.env:rw
   bot:
-    image: "${PROJECT_NAME}-bot"
-    build:
-      context: .
-      target: bot
+    image: p2sr/autorender-bot:latest
     container_name: "${PROJECT_NAME}-bot"
     restart: always
     links:
