@@ -45,11 +45,11 @@ jobs:
         with:
           push: true
           target: bot
-          tags: p2sr/autorender-bot:latest,p2sr/autorender-bot/1.0.0
+          tags: p2sr/autorender-bot:latest,p2sr/autorender-bot:1.0.0
 
       - name: Build and push server image
         uses: docker/build-push-action@v4
         with:
           push: true
           target: server
-          tags: p2sr/autorender-server:latest,p2sr/autorender-server/1.0.0
+          tags: p2sr/autorender-server:latest,p2sr/autorender-server:1.0.0
