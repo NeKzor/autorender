@@ -9,8 +9,6 @@ services:
     restart: always
     links:
       - database:${PROJECT_NAME}.database
-    environment:
-      DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
       - ./docker/volumes/logs/server:/logs/server:rw
       - ./docker/volumes/storage:/storage:rw
@@ -26,8 +24,6 @@ services:
     restart: always
     links:
       - server:${PROJECT_NAME}.server
-    environment:
-      DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
       - ./docker/volumes/logs/bot:/logs/bot:rw
       - ./docker/volumes/kv:/kv:rw

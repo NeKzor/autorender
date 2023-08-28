@@ -12,6 +12,7 @@ log/
 .kv-wal
 autorender.yaml
 docker-compose.yml
+entrypoint.sh
 
 # Logs
 logs

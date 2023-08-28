@@ -4,3 +4,5 @@ mysql/
 ssl/
 .env.bot
 .env.server
+entrypoint.bot.sh
+entrypoint.server.sh

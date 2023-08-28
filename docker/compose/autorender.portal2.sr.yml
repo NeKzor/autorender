@@ -14,8 +14,6 @@ services:
       - "127.0.0.1:${HTTPS_PORT}:8001"
     extra_hosts:
       - ${SERVER_NAME}:127.0.0.1
-    environment:
-      DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
       - ./logs/server:/logs/server:rw
       - ./storage:/storage:rw
@@ -29,8 +27,6 @@ services:
     restart: always
     links:
       - server:${PROJECT_NAME}.server
-    environment:
-      DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
       - ./logs/bot:/logs/bot:rw
       - ./kv:/kv:rw

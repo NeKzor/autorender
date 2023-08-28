@@ -12,13 +12,11 @@ ADD src/bot .
 
 RUN deno cache main.ts bot.ts worker.ts
 
-CMD deno task ${DENO_TASK_ENTRYPOINT}
+CMD ./entrypoint.sh
 
 # src/server
 
 FROM denoland/deno:alpine-1.35.3 AS server
-
-ARG DENO_TASK_ENTRYPOINT
 
 RUN apk update
 RUN apk upgrade
@@ -34,4 +32,4 @@ ADD src/server .
 
 RUN deno cache main.ts
 
-CMD deno task ${DENO_TASK_ENTRYPOINT}
+CMD ./entrypoint.sh

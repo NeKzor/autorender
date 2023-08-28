@@ -14,12 +14,11 @@ services:
       - "127.0.0.1:${HTTPS_PORT}:8001"
     extra_hosts:
       - ${SERVER_NAME}:127.0.0.1
-    environment:
-      DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
       - ./logs/server:/logs/server:rw
       - ./storage:/storage:rw
       - ./.env.server:/app/.env:rw
+      - ./entrypoint.server.sh:/app/entrypoint.sh:rw
   bot:
     image: "${PROJECT_NAME}-bot"
     build:
@@ -29,12 +28,11 @@ services:
     restart: always
     links:
       - server:${PROJECT_NAME}.server
-    environment:
-      DENO_TASK_ENTRYPOINT: ${DENO_TASK_ENTRYPOINT}
     volumes:
       - ./logs/bot:/logs/bot:rw
       - ./kv:/kv:rw
       - ./.env.bot:/app/.env:rw
+      - ./entrypoint.bot.sh:/app/entrypoint.sh:rw
   database:
     image: mariadb:latest
     container_name: "${PROJECT_NAME}-db"

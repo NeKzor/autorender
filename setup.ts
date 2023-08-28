@@ -48,6 +48,7 @@ const main = async () => {
   if (!sync) {
     await createDockerComposeFile(env);
     await createConfigAndEnv(env);
+    await createEntryPointFiles(env);
     await createDirectories();
   }
 
@@ -161,6 +162,9 @@ const downloadFromRepository = async (remote: string, local: string, skipIfExist
   }
 };
 
+/**
+ * Gets a docker-compose file from the "docker/compose/" folder.
+ */
 const createDockerComposeFile = async (env: Environment) => {
   if (env === 'prod') {
     const template = await Select.prompt({
@@ -283,6 +287,26 @@ const createConfigAndEnv = async (env: Environment) => {
   }
 
   console.log(colors.bold('[+]'), `Created .env files`);
+};
+
+/**
+ * Entrypoint files for Docker:
+ *    entrypoint.bot.sh    -> Script when starting the bot
+ *    entrypoint.server.sh -> Script when starting the server
+ */
+const createEntryPointFiles = async (env: Environment) => {
+  const botEntryPoint = v`entrypoint.bot.sh`;
+  const serverEntryPoint = v`entrypoint.server.sh`;
+
+  if (!await tryStat(botEntryPoint)) {
+    await Deno.writeTextFile(botEntryPoint, `deno task ${env}\n`);
+    await Deno.chmod(botEntryPoint, 755);
+  }
+
+  if (!await tryStat(serverEntryPoint)) {
+    await Deno.writeTextFile(serverEntryPoint, `deno task ${env}\n`);
+    await Deno.chmod(botEntryPoint, 755);
+  }
 };
 
 /**
