@@ -15,6 +15,7 @@ services:
       - ./logs/server:/logs/server:rw
       - ./storage:/storage:rw
       - ./.env.server:/app/.env:rw
+      - ./entrypoint.server.sh:/app/entrypoint.sh:rw
   bot:
     image: p2sr/autorender-bot:latest
     container_name: "${PROJECT_NAME}-bot"
@@ -25,6 +26,7 @@ services:
       - ./logs/bot:/logs/bot:rw
       - ./kv:/kv:rw
       - ./.env.bot:/app/.env:rw
+      - ./entrypoint.bot.sh:/app/entrypoint.sh:rw
   database:
     image: mariadb:latest
     container_name: "${PROJECT_NAME}-db"

@@ -13,6 +13,7 @@ services:
       - ./docker/volumes/logs/server:/logs/server:rw
       - ./docker/volumes/storage:/storage:rw
       - ./docker/volumes/.env.server:/app/.env:rw
+      - ./docker/volumes/entrypoint.server.sh:/app/entrypoint.sh:rw
       - ./src/server:/app:rw
       - ./src/shared:/shared:rw
   bot:
@@ -28,6 +29,7 @@ services:
       - ./docker/volumes/logs/bot:/logs/bot:rw
       - ./docker/volumes/kv:/kv:rw
       - ./docker/volumes/.env.bot:/app/.env:rw
+      - ./docker/volumes/entrypoint.bot.sh:/app/entrypoint.sh:rw
       - ./src/bot:/app:rw
       - ./src/shared:/shared:rw
   database:
