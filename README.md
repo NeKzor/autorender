@@ -20,6 +20,8 @@ Render Portal 2 demos on-demand with: `/render demo <file>`
   - [Testing](#testing)
   - [Tasks](#tasks)
 - [Production](#production)
+  - [Server](#server)
+  - [Clients](#clients)
   - [Proxy Example with Nginx + Certbot](#proxy-example-with-nginx--certbot)
 - [Caveats](#caveats)
 - [TODO](#todo)
@@ -239,11 +241,9 @@ The project contains convenient tasks which can be executed with `deno task <nam
 
 ## Production
 
-The server image should be build locally or in a CI environment for deployment. This can be done with:
+### Server
 
-```bash
-deno task build:prod
-```
+It is recommended to build the server image in a CI environment.
 
 On the production system the project folder structure will look similar to `docker/volumes` since all source files in
 `src/bot` and `src/server` are inside the created Docker image.
@@ -258,10 +258,10 @@ deno run \
   https://raw.githubusercontent.com/NeKzor/autorender/main/setup.ts --prod
 ```
 
-Make sure that the `.env.bot` file has the correct values for:
+After a deployment the downloaded files from the setup can be synced with the remote repository by adding the `--sync`
+flag.
 
-- `AUTORENDER_BASE_API` should point to the internal address of the host, if hosted within the same network
-- `AUTORENDER_PUBLIC_URI` should point to the public domain
+### Clients
 
 Client code will be compiled and shipped in a single executable:
 
