@@ -761,6 +761,24 @@ apiV1
       ids: videos.map((video) => video.board_changelog_id),
     });
   })
+  // Get the video of a leaderboard run.
+  .get('/video/:boardChangelogId(\\d+)/video', async (ctx) => {
+    const [video] = await db.query<Pick<Video, 'video_url'>>(
+      `select video_url
+         from videos
+        where board_changelog_id = ?
+          and video_url is not null`,
+      [
+        ctx.params.boardChangelogId,
+      ],
+    );
+
+    if (!video) {
+      return Err(ctx, Status.NotFound);
+    }
+
+    ctx.response.redirect(video.video_url);
+  })
   .get('/(.*)', (ctx) => {
     Err(ctx, Status.NotFound, 'Route not found :(');
   });
