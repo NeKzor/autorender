@@ -112,10 +112,11 @@ const tryMkdir = async (path: string) => {
   }
 };
 
-const setEnv = (contents: string[], search: string, replace: string) => {
-  const index = contents.findIndex((line) => line.startsWith(search));
+const setEnv = (env: string[], key: string, value: string) => {
+  key += '=';
+  const index = env.findIndex((line) => line.startsWith(key));
   if (index !== -1) {
-    contents[index] = replace;
+    env[index] = key + value;
   }
 };
 
@@ -230,15 +231,15 @@ const createConfigAndEnv = async (env: Environment) => {
   const serverEnv = (await Deno.readTextFile(v`.env.server`)).split('\n');
 
   if (env === 'dev') {
-    setEnv(serverEnv, 'HOT_RELOAD=false', 'HOT_RELOAD=true');
+    setEnv(serverEnv, 'HOT_RELOAD', 'true');
   }
 
   const autorenderBotToken = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(12))));
-  setEnv(botEnv, 'AUTORENDER_BOT_TOKEN=""', `AUTORENDER_BOT_TOKEN="${autorenderBotToken}"`);
-  setEnv(serverEnv, 'AUTORENDER_BOT_TOKEN=""', `AUTORENDER_BOT_TOKEN="${autorenderBotToken}"`);
+  setEnv(botEnv, 'AUTORENDER_BOT_TOKEN', autorenderBotToken);
+  setEnv(serverEnv, 'AUTORENDER_BOT_TOKEN', autorenderBotToken);
 
   const cookieSecretKey = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(12))));
-  setEnv(serverEnv, 'COOKIE_SECRET_KEY=""', `COOKIE_SECRET_KEY="${cookieSecretKey}"`);
+  setEnv(serverEnv, 'COOKIE_SECRET_KEY', cookieSecretKey);
 
   const discordUserId = await Input.prompt({ message: 'Your Discord User ID' });
   const discordClientId = await Input.prompt({ message: 'Client ID of the Discord application' });
@@ -255,16 +256,8 @@ const createConfigAndEnv = async (env: Environment) => {
     const autorenderPublicUri = await Input.prompt({ message: 'Public domain name' });
 
     if (autorenderPublicUri.length) {
-      setEnv(
-        botEnv,
-        'AUTORENDER_PUBLIC_URI',
-        `AUTORENDER_PUBLIC_URI=${autorenderPublicUri}`,
-      );
-      setEnv(
-        serverEnv,
-        'AUTORENDER_PUBLIC_URI',
-        `AUTORENDER_PUBLIC_URI=${autorenderPublicUri}`,
-      );
+      setEnv(botEnv, 'AUTORENDER_PUBLIC_URI', autorenderPublicUri);
+      setEnv(serverEnv, 'AUTORENDER_PUBLIC_URI', autorenderPublicUri);
     }
   }
 
