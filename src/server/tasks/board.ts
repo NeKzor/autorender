@@ -19,7 +19,7 @@ import {
   RenderQuality,
 } from '~/shared/models.ts';
 import * as uuid from 'uuid/mod.ts';
-import { generateShareId, getDemoFilePath, getFixedDemoFilePath } from '../utils.ts';
+import { generateShareId } from '../utils.ts';
 import { getDemoInfo } from '../demo.ts';
 import { logger } from '../logger.ts';
 import { BOARD_BASE_API, fetchDemo, formatCmTime, getChangelog } from './portal2_sr.ts';
@@ -65,27 +65,6 @@ const checkChangelogUpdates = async () => {
       continue;
     }
 
-    let filePath = '';
-    let fixedFilePath = '';
-
-    const fileCleanup = async () => {
-      if (filePath) {
-        try {
-          await Deno.remove(filePath);
-        } catch (err) {
-          logger.error(err);
-        }
-      }
-
-      if (fixedFilePath) {
-        try {
-          await Deno.remove(filePath);
-        } catch (err) {
-          logger.error(err);
-        }
-      }
-    };
-
     try {
       const { demo, originalFilename } = await fetchDemo(`${BOARD_BASE_API}/getDemo?id=${entry.id}`);
 
@@ -97,30 +76,17 @@ const checkChangelogUpdates = async () => {
       const videoId = uuid.v1.generate() as string;
       const shareId = generateShareId();
 
-      filePath = getDemoFilePath(videoId);
-
-      const demoFile = await Deno.open(filePath, { write: true, create: true });
-      await demo.body?.pipeTo(demoFile.writable);
-      try {
-        demoFile.close();
-        // deno-lint-ignore no-empty
-      } catch {}
-
-      const demoInfo = await getDemoInfo(filePath);
+      const demoInfo = await getDemoInfo({
+        buffer: new Uint8Array(await demo.arrayBuffer()),
+      });
 
       if (demoInfo === null || typeof demoInfo === 'string') {
         logger.error('Invalid demo', demoInfo);
-        await fileCleanup();
         continue;
-      }
-
-      if (demoInfo.useFixedDemo) {
-        fixedFilePath = getFixedDemoFilePath(videoId);
       }
 
       if (demoInfo.isWorkshopMap && !demoInfo.workshopInfo?.fileUrl) {
         logger.error(`Failed to resolve workshop map`);
-        await fileCleanup();
         continue;
       }
 
@@ -191,12 +157,6 @@ const checkChangelogUpdates = async () => {
 
       const title = `${entry.chamberName} in ${formatCmTime(parseInt(entry.score, 10))} by ${entry.player_name}`;
       const comment = entry.note;
-      const requestedByName = null;
-      const requestedById = null;
-      const requestedInGuildId = null;
-      const requestedInGuildName = null;
-      const requestedInChannelId = null;
-      const requestedInChannelName = null;
       const renderQuality = RenderQuality.HD_720p;
       const renderOptions = [
         ...(map.auto_fullbright
@@ -220,12 +180,6 @@ const checkChangelogUpdates = async () => {
         shareId,
         title,
         comment,
-        requestedByName,
-        requestedById,
-        requestedInGuildId,
-        requestedInGuildName,
-        requestedInChannelId,
-        requestedInChannelName,
         renderQuality,
         renderOptions.filter((command) => command !== null).join('\n'),
         originalFilename,
@@ -259,12 +213,6 @@ const checkChangelogUpdates = async () => {
             , share_id
             , title
             , comment
-            , requested_by_name
-            , requested_by_id
-            , requested_in_guild_id
-            , requested_in_guild_name
-            , requested_in_channel_id
-            , requested_in_channel_name
             , render_quality
             , render_options
             , file_name
@@ -319,7 +267,6 @@ const checkChangelogUpdates = async () => {
       }
     } catch (err) {
       logger.error(err);
-      await fileCleanup();
     }
   }
 };
