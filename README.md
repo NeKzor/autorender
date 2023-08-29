@@ -243,10 +243,8 @@ The project contains convenient tasks which can be executed with `deno task <nam
 
 ### Server
 
-It is recommended to build the server image in a CI environment.
-
 On the production system the project folder structure will look similar to `docker/volumes` since all source files in
-`src/bot` and `src/server` are inside the created Docker image.
+`src/bot`, `src/server` and `src/shared` are inside the created Docker images.
 
 Run the following from a new folder:
 
@@ -258,14 +256,18 @@ deno run \
   https://raw.githubusercontent.com/NeKzor/autorender/main/setup.ts --prod
 ```
 
-After a deployment the downloaded files from the setup can be synced with the remote repository by adding the `--sync`
-flag.
+Running `deno task up` will start all containers. The official autorender images are pulled from Docker Hub. See
+[deploy.yml](/.github/workflows/deploy.yml) for an example on how to deploy images.
+
+When deploying an update to the server all repository files can be re-synced with `deno task prod:sync`.
 
 ### Clients
 
-Client code will be compiled and shipped in a single executable:
+All code in `src/client` will be compiled and shipped in a single binary:
 
-- `deno task compile --all --release` outputs the executables to `src/client/bin`
+```bash
+deno task compile --all --release
+```
 
 When deploying make sure that clients have checked the following:
 
