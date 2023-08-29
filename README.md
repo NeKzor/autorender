@@ -250,6 +250,7 @@ Run the following from a new folder:
 
 ```bash
 deno run \
+  --reload \
   --allow-read=. \
   --allow-write=. \
   --allow-net=raw.githubusercontent.com \
