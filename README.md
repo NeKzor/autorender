@@ -227,8 +227,8 @@ The project contains convenient tasks which can be executed with `deno task <nam
 | `perm`                   | Resets permissions of developer account.                            |
 | `board`                  | Automatically checks for videos to render on board.portal2.sr.      |
 | `processing`             | Automatically generate thumbnails and previews for uploaded videos. |
+| `migrate`                | Migrate videos from autorender v1.                                  |
 | `build`                  | Builds server image.                                                |
-| `build:prod`             | Builds server image in prod environment.                            |
 | `up`                     | Starts all containers.                                              |
 | `up:prod`                | Starts all containers in prod environment.                          |
 | `down`                   | Removes all containers.                                             |
@@ -238,6 +238,7 @@ The project contains convenient tasks which can be executed with `deno task <nam
 | `db:stop`                | Stop the database container.                                        |
 | `db:restart`             | Restart the database container.                                     |
 | `setup`                  | Run the setup process.                                              |
+| `prod:sync`              | Sync repository files on production server.                         |
 
 ## Production
 
@@ -281,6 +282,9 @@ When deploying make sure that clients have checked the following:
 - There is nothing else that could interrupt the client
 
 ### Proxy Example with Nginx + Certbot
+
+<details>
+<summary>View autorender.nekz.me.conf</summary>
 
 ```
 server {
@@ -333,8 +337,23 @@ server {
         proxy_buffering off;
         client_max_body_size 150M;
     }
+
+    location /storage/videos {
+        proxy_pass http://127.0.0.1:8834$request_uri;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_send_timeout 300s;
+        proxy_read_timeout 300s;
+        proxy_buffering off;
+        proxy_force_ranges on;
+        client_max_body_size 150M;
+    }
 }
 ```
+
+</details>
 
 ## Caveats
 
