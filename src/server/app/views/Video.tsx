@@ -32,9 +32,6 @@ export const meta: PageMeta<Data> = ({ data, context }) => {
 };
 
 export const loader: DataLoader = async ({ params, context }) => {
-  // TODO: Remove this in the future
-  const where = (params.share_id?.length ?? 0) > 11 ? 'video_id = UUID_TO_BIN(?)' : 'share_id = ?';
-
   // TODO: Check if the ID is valid
 
   const [video] = await context.db.query<JoinedVideo>(
@@ -52,8 +49,10 @@ export const loader: DataLoader = async ({ params, context }) => {
          on renderer.user_id = videos.rendered_by
        left join maps
          on maps.map_id = videos.map_id
-      where ${where}`,
-    [params.share_id],
+      where share_id = ?`,
+    [
+      params.share_id,
+    ],
   );
 
   if (!video) {

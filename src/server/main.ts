@@ -233,8 +233,7 @@ apiV1
     const filePath = getDemoFilePath(videoId);
     await Deno.rename(file.filename, filePath);
 
-    // TODO:
-    //    * Figure out if UGC changes when the revision of a workshop item updates.
+    // TODO: Figure out if UGC changes when the revision of a workshop item updates.
 
     const demoInfo = await getDemoInfo({ filePath });
 
@@ -1507,8 +1506,7 @@ const routeToApp = async (ctx: Context) => {
 };
 
 if (!B2_ENABLED) {
-  // TODO: Remove
-  router.get('/storage/videos/:share_id([0-9A-Za-z_-]{11})', async (ctx) => {
+  router.get('/storage/videos/:share_id', async (ctx) => {
     if (!validateShareId(ctx.params.share_id!)) {
       await routeToApp(ctx);
       return;
@@ -1547,49 +1545,9 @@ if (!B2_ENABLED) {
       }
     }
   });
-  router.get('/storage/videos/:video_id', async (ctx) => {
-    if (!uuid.validate(ctx.params.video_id)) {
-      await routeToApp(ctx);
-      return;
-    }
-
-    try {
-      const [video] = await db.query<
-        Pick<Video, 'video_id' | 'file_name' | 'title'>
-      >(
-        `select BIN_TO_UUID(video_id) as video_id
-              , file_name
-              , title
-           from videos
-          where video_id = UUID_TO_BIN(?)`,
-        [ctx.params.video_id],
-      );
-
-      if (!video) {
-        await routeToApp(ctx);
-        return;
-      }
-
-      const file = await Deno.readFile(getVideoFilePath(video.video_id));
-
-      ctx.response.headers.set(
-        'Content-Disposition',
-        `filename="${encodeURIComponent(getVideoDownloadFilename(video))}"`,
-      );
-
-      Ok(ctx, file, 'video/mp4');
-    } catch (err) {
-      if (err instanceof Deno.errors.NotFound) {
-        await routeToApp(ctx);
-      } else {
-        logger.error(err);
-      }
-    }
-  });
 }
 
-// TODO: Remove regex
-router.get('/storage/demos/:share_id([0-9A-Za-z_-]{11})/:fixed(fixed)?', async (ctx) => {
+router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
   if (!validateShareId(ctx.params.share_id!)) {
     await routeToApp(ctx);
     return;
@@ -1621,57 +1579,6 @@ router.get('/storage/demos/:share_id([0-9A-Za-z_-]{11})/:fixed(fixed)?', async (
     const demo = await Deno.readFile(getFilePath(video.video_id));
 
     // TODO: Fix this
-    const filename = requestedFixedDemo
-      ? video.file_name.toLowerCase().endsWith('.dem')
-        ? `${video.file_name.slice(0, -4)}_fixed.dem`
-        : `${video.file_name}_fixed.dem`
-      : video.file_name;
-
-    ctx.response.headers.set(
-      'Content-Disposition',
-      `attachment; filename="${
-        filename
-          .replaceAll('\\', '\\\\')
-          .replaceAll('"', '\\"')
-      }"`,
-    );
-
-    Ok(ctx, demo, 'application/octet-stream');
-  } catch (err) {
-    if (err instanceof Deno.errors.NotFound) {
-      await routeToApp(ctx);
-    } else {
-      logger.error(err);
-    }
-  }
-});
-// TODO: Remove
-router.get('/storage/demos/:video_id/:fixed(fixed)?', async (ctx) => {
-  if (!uuid.validate(ctx.params.video_id!)) {
-    await routeToApp(ctx);
-    return;
-  }
-
-  try {
-    const [video] = await db.query<Pick<Video, 'video_id' | 'file_name'>>(
-      `select BIN_TO_UUID(video_id) as video_id
-          , file_name
-       from videos
-      where video_id = UUID_TO_BIN(?)`,
-      [ctx.params.video_id],
-    );
-
-    if (!video) {
-      await routeToApp(ctx);
-      return;
-    }
-
-    const requestedFixedDemo = ctx.params.fixed !== undefined;
-
-    const getFilePath = requestedFixedDemo ? getFixedDemoFilePath : getDemoFilePath;
-
-    const demo = await Deno.readFile(getFilePath(video.video_id));
-
     const filename = requestedFixedDemo
       ? video.file_name.toLowerCase().endsWith('.dem')
         ? `${video.file_name.slice(0, -4)}_fixed.dem`
