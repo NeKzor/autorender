@@ -8,7 +8,7 @@ services:
     container_name: "${PROJECT_NAME}-server"
     restart: always
     links:
-      - database:${PROJECT_NAME}.database
+      - database:autorender.database
     volumes:
       - ./docker/volumes/logs/server:/logs/server:rw
       - ./docker/volumes/storage:/storage:rw
@@ -24,7 +24,7 @@ services:
     container_name: "${PROJECT_NAME}-bot"
     restart: always
     links:
-      - server:${PROJECT_NAME}.server
+      - server:autorender.server
     volumes:
       - ./docker/volumes/logs/bot:/logs/bot:rw
       - ./docker/volumes/kv:/kv:rw
@@ -51,7 +51,7 @@ services:
     image: nginx:stable-alpine
     container_name: "${PROJECT_NAME}-proxy"
     links:
-      - server:${PROJECT_NAME}.server
+      - server:autorender.server
     ports:
       - 443:443
     environment:

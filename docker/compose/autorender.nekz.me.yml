@@ -5,7 +5,7 @@ services:
     container_name: "${PROJECT_NAME}-server"
     restart: always
     links:
-      - database:${PROJECT_NAME}.database
+      - database:autorender.database
     ports:
       - "127.0.0.1:8824:8001"
       - "127.0.0.1:8834:8001"
@@ -21,7 +21,7 @@ services:
     container_name: "${PROJECT_NAME}-bot"
     restart: always
     links:
-      - server:${PROJECT_NAME}.server
+      - server:autorender.server
     volumes:
       - ./logs/bot:/logs/bot:rw
       - ./kv:/kv:rw
