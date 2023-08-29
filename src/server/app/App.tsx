@@ -34,7 +34,7 @@ const getCSP = (nonce: string) => {
     `script-src 'nonce-${nonce}' cdnjs.cloudflare.com;`,
     `style-src 'nonce-${nonce}' cdnjs.cloudflare.com https://fonts.googleapis.com;`,
     `font-src 'self' https://fonts.gstatic.com;`,
-    `media-src 'self' blob:;`,
+    `media-src 'self' blob: *.backblazeb2.com;`,
     `img-src 'self' data: cdn.discordapp.com;`,
     `connect-src 'self' *.backblazeb2.com;`,
   ].join(' ');

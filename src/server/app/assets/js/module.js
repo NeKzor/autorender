@@ -267,9 +267,9 @@ const initShareModal = () => {
 
 if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
   const video = document.querySelector('video');
-  const videoLoadingStatus = document.getElementById('video-loading-status');
+  //const videoLoadingStatus = document.getElementById('video-loading-status');
 
-  if (video && videoLoadingStatus) {
+  if (video) {
     const videoVolume = parseFloat(localStorage.getItem('video-volume'));
     if (!isNaN(videoVolume)) {
       video.volume = videoVolume;
@@ -281,29 +281,27 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       }
     });
 
-    const source = video.querySelector('source');
-    if (source) {
-      fetch(source.id.slice(7))
-        .then(async (res) => {
-          const blob = await res.blob();
-          video.src = URL.createObjectURL(blob);
+    video.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+    });
 
-          video.removeChild(source);
-          video.classList.remove('hidden');
-          videoLoadingStatus.classList.add('hidden');
+    let timestampSet = false;
 
-          const search = new URLSearchParams(location.search);
-          const param = search.get('t');
-          const time = parseInt(param, 10);
+    video.addEventListener('canplay', () => {
+      if (!timestampSet) {
+        timestampSet = true;
 
-          if (param === time.toString()) {
-            video.currentTime = time;
-          }
+        const search = new URLSearchParams(location.search);
+        const param = search.get('t');
+        const time = parseInt(param, 10);
 
-          fetch(`/api/v1${location.pathname}/views`, { method: 'POST' }).catch(console.error);
-        })
-        .catch(console.error);
-    }
+        if (param === time.toString()) {
+          video.currentTime = time;
+        }
+      }
+    });
+
+    fetch(`/api/v1${location.pathname}/views`, { method: 'POST' }).catch(console.error);
 
     initShareModal();
   }

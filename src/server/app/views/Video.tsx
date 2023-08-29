@@ -144,13 +144,15 @@ export const VideoView = () => {
           {hasVideo && (
             <>
               <video
-                className={tw`h-[56.25vw] xl:h-[${videoHeight}px] hidden`}
+                className={tw`h-[56.25vw] xl:h-[${videoHeight}px]`}
                 controls
                 autoPlay
+                controlsList='nodownload'
               >
-                <source id={'source-' + data.video_url} itemType='video/mp4'></source>
+                <source src={data.video_url} itemType='video/mp4'></source>
               </video>
-              <div
+              {
+                /* <div
                 id='video-loading-status'
                 className={tw`flex items-center justify-center h-[56.25vw] xl:max-h-[${videoHeight}px] border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-700`}
               >
@@ -172,7 +174,8 @@ export const VideoView = () => {
                     />
                   </svg>
                 </div>
-              </div>
+              </div> */
+              }
             </>
           )}
           <div className={tw`mt-6 relative text-[20px]`}>
@@ -182,6 +185,20 @@ export const VideoView = () => {
             </div>
           </div>
           <br />
+          {(data.board_changelog_id !== null || data.workshop_file_id !== null) && (
+            <div>
+              Map:{' '}
+              <a
+                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                href={data.board_changelog_id !== null
+                  ? `https://board.portal2.sr/chamber/${data.best_time_id}`
+                  : `https://steamcommunity.com/workshop/filedetails/?id=${data.workshop_file_id}`}
+                target='_blank'
+              >
+                {data.alias}
+              </a>
+            </div>
+          )}
           {data.demo_steam_id !== null && (
             <div>
               Player:{' '}
@@ -225,21 +242,6 @@ export const VideoView = () => {
                 : <>{formatCmTime(data.demo_time_score)}</>}
             </div>
           )}
-          {data.demo_portal_score !== null && <div>Portals: {data.demo_portal_score}</div>}
-          {(data.board_changelog_id !== null || data.workshop_file_id !== null) && (
-            <div>
-              Map:{' '}
-              <a
-                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                href={data.board_changelog_id !== null
-                  ? `https://board.portal2.sr/chamber/${data.best_time_id}`
-                  : `https://steamcommunity.com/workshop/filedetails/?id=${data.workshop_file_id}`}
-                target='_blank'
-              >
-                {data.alias}
-              </a>
-            </div>
-          )}
           {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
           <br />
           {data.comment?.length ? <div className={tw`break-words`}>Comment: {data.comment}</div> : (
@@ -271,19 +273,21 @@ export const VideoView = () => {
             </div>
           )}
           {(data.render_options?.length ?? 0) !== 0 && <div>Render options: {data.render_options}</div>}
-          <div>Render time: {formatRenderTime(data)}</div>
-          <div>
-            Render node: {data.rendered_by_username !== null
-              ? (
-                <a
-                  className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                  href={`/profile/${data.rendered_by_username}`}
-                >
-                  {data.render_node}@{data.rendered_by_username}
-                </a>
-              )
-              : <>-</>}
-          </div>
+          {!!data.render_time && <div>Render time: {formatRenderTime(data)}</div>}
+          {(data.rendered_by_username || data.render_node) && (
+            <div>
+              Render node: {data.rendered_by_username !== null
+                ? (
+                  <a
+                    className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                    href={`/profile/${data.rendered_by_username}`}
+                  >
+                    {data.render_node}@{data.rendered_by_username}
+                  </a>
+                )
+                : <>{data.render_node}</>}
+            </div>
+          )}
           {metadata.timestamp !== null && (
             <div className={tw`mt-4 mb-4`}>Timestamp: {formatTimestamp(metadata.timestamp)}</div>
           )}
@@ -421,32 +425,34 @@ export const VideoView = () => {
                 </a>
               </div>
             )}
-            <div>
-              <button
-                data-modal-target='share-modal'
-                data-modal-toggle='share-modal'
-                id={`video-share-button-${data.share_id}`}
-                type='button'
-                className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
-              >
-                <svg
-                  className={tw`w-4 h-4 text-white dark:text-white`}
-                  aria-hidden='true'
-                  xmlns='http://www.w3.org/2000/svg'
-                  fill='none'
-                  viewBox='0 0 18 16'
+            {hasVideo && (
+              <div>
+                <button
+                  data-modal-target='share-modal'
+                  data-modal-toggle='share-modal'
+                  id={`video-share-button-${data.share_id}`}
+                  type='button'
+                  className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                 >
-                  <path
-                    stroke='currentColor'
-                    stroke-linecap='round'
-                    stroke-linejoin='round'
-                    stroke-width='2'
-                    d='M1.248 15C.22 11.77 2.275 4.232 9.466 4.232V2.079a1.025 1.025 0 0 1 1.644-.862l5.479 4.307a1.108 1.108 0 0 1 0 1.723l-5.48 4.307a1.026 1.026 0 0 1-1.643-.861V8.539C2.275 9.616 1.248 15 1.248 15Z'
-                  />
-                </svg>
-                Share Video
-              </button>
-            </div>
+                  <svg
+                    className={tw`w-4 h-4 text-white dark:text-white`}
+                    aria-hidden='true'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 18 16'
+                  >
+                    <path
+                      stroke='currentColor'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      stroke-width='2'
+                      d='M1.248 15C.22 11.77 2.275 4.232 9.466 4.232V2.079a1.025 1.025 0 0 1 1.644-.862l5.479 4.307a1.108 1.108 0 0 1 0 1.723l-5.48 4.307a1.026 1.026 0 0 1-1.643-.861V8.539C2.275 9.616 1.248 15 1.248 15Z'
+                    />
+                  </svg>
+                  Share Video
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
