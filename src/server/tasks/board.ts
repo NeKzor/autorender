@@ -22,6 +22,7 @@ import * as uuid from 'uuid/mod.ts';
 import { generateShareId, getDemoFilePath, getFixedDemoFilePath } from '../utils.ts';
 import { getDemoInfo } from '../demo.ts';
 import { logger } from '../logger.ts';
+import { BOARD_BASE_API, fetchDemo, formatCmTime, getChangelog } from './portal2_sr.ts';
 
 const BOARD_INTEGRATION_UPDATE_INTERVAL = 60 * 1_000;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
@@ -31,135 +32,8 @@ const FAILED_RENDER_MAX_RETRY_MINUTES = 60;
 
 addEventListener('unhandledrejection', (ev) => {
   ev.preventDefault();
-  logger.error('unhandledrejection', { ev });
+  logger.error('unhandledrejection', { reason: ev.reason });
 });
-
-const formatCmTime = (time: number) => {
-  if (isNaN(time)) return '0.00';
-  const cs = time % 100;
-  const secs = Math.floor(time / 100);
-  const sec = secs % 60;
-  const min = Math.floor(secs / 60);
-  return min > 0
-    ? `${min}:${sec < 10 ? `0${sec}` : `${sec}`}.${cs < 10 ? `0${cs}` : `${cs}`}`
-    : `${sec}.${cs < 10 ? `0${cs}` : `${cs}`}`;
-};
-
-const fetchDemo = async (url: string) => {
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'User-Agent': Deno.env.get('USER_AGENT')!,
-    },
-    redirect: 'manual',
-  });
-
-  const location = res.headers.get('Location');
-  if (!location) {
-    logger.error({ url: res.url, headers: res.headers });
-    throw new Error('Unable to redirect without location.');
-  }
-
-  const redirect = new URL(res.url);
-  redirect.pathname = location;
-
-  const demo = await fetch(redirect.toString(), {
-    method: 'GET',
-    headers: {
-      'User-Agent': Deno.env.get('USER_AGENT')!,
-    },
-  });
-
-  return {
-    demo,
-    originalFilename: location.slice(location.lastIndexOf('/') + 1),
-  };
-};
-
-export type ChangelogOptions =
-  & {
-    id?: number;
-    chamber?: string;
-    chapter?: string;
-    boardName?: string;
-    profileNumber?: string;
-    type?: string;
-    sp?: 0 | 1;
-    coop?: 0 | 1;
-    wr?: 0 | 1;
-    demo?: 0 | 1;
-    yt?: 0 | 1;
-    endDate?: string;
-    startRank?: number;
-    endRank?: number;
-    submission?: 0 | 1;
-    banned?: 0 | 1;
-    pending?: 0 | 1 | 2;
-  }
-  & (
-    {
-      maxDaysAgo?: number;
-    } | {
-      startDate?: string;
-    }
-  );
-
-export interface ChangelogEntry {
-  player_name: string;
-  avatar: string;
-  profile_number: string;
-  score: string;
-  id: string;
-  pre_rank: string;
-  post_rank: string;
-  wr_gain: string;
-  time_gained: string;
-  hasDemo: string;
-  youtubeID: string | null;
-  note: string;
-  banned: string;
-  submission: string;
-  pending: string;
-  previous_score: string | null;
-  chamberName: string;
-  chapterId: string;
-  mapid: string;
-  improvement: number;
-  rank_improvement: number | null;
-  pre_points: number | null;
-  post_point: number | null;
-  point_improvement: number | null;
-}
-
-const BASE_API = 'https://board.portal2.sr';
-
-const getChangelog = async (options?: ChangelogOptions) => {
-  const params = new URLSearchParams();
-
-  Object.entries(options ?? {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      params.set(key, value.toString());
-    }
-  });
-
-  const query = params.toString();
-
-  const url = `${BASE_API}/changelog/json?${query}`;
-  logger.info(`[GET] ${url}`);
-
-  const res = await fetch(url, {
-    headers: {
-      'User-Agent': Deno.env.get('USER_AGENT')!,
-    },
-  });
-
-  if (!res.ok) {
-    logger.error('Failed to fetch changelog. Status:', res.statusText);
-    return null;
-  }
-
-  return await res.json() as ChangelogEntry[];
-};
 
 const checkChangelogUpdates = async () => {
   const changelog = await getChangelog({
@@ -213,7 +87,7 @@ const checkChangelogUpdates = async () => {
     };
 
     try {
-      const { demo, originalFilename } = await fetchDemo(`${BASE_API}/getDemo?id=${entry.id}`);
+      const { demo, originalFilename } = await fetchDemo(`${BOARD_BASE_API}/getDemo?id=${entry.id}`);
 
       if (!demo.ok) {
         logger.error(`Unable to download demo`);

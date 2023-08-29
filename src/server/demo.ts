@@ -72,14 +72,17 @@ export const supportedGameMods: { [gameDir: string]: SupportedGame } = {
 
 export const supportedGameDirs = Object.keys(supportedGameMods);
 
-export const getDemoInfo = async (filePath: string) => {
+export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: boolean }) => {
   const buffer = await Deno.readFile(filePath);
 
   try {
     const parser = SourceDemoParser.default()
       .setOptions({
+        // Workshop info + challenge mode data
         packets: true,
-        dataTables: true,
+        // Demo fixup
+        dataTables: !options?.isBoardDemo,
+        // Steam data
         stringTables: true,
       });
 
@@ -110,10 +113,10 @@ export const getDemoInfo = async (filePath: string) => {
       return 'Demo is too long.';
     }
 
-    let fixupResult: Awaited<ReturnType<typeof tryToFixOldPortal2Demos>> = false;
+    let fixupResult: Awaited<ReturnType<typeof autoFixupOldPortal2Demo>> = false;
 
-    if (demo.gameDirectory === 'portal2') {
-      fixupResult = await tryToFixOldPortal2Demos(
+    if (demo.gameDirectory === 'portal2' && !options?.isBoardDemo) {
+      fixupResult = await autoFixupOldPortal2Demo(
         demo,
         parser,
         buffer,
@@ -134,7 +137,7 @@ export const getDemoInfo = async (filePath: string) => {
     }
 
     // TODO: More strict validation
-    const isWorkshopMap = demo.mapName !== info.mapName;
+    const isWorkshopMap = !options?.isBoardDemo && demo.mapName !== info.mapName;
     const fullMapName = info.mapName.replaceAll('\\', '/');
 
     return {
@@ -219,7 +222,7 @@ export const getWorkshopInfo = async (appId: WorkshopSteamAppId, mapName: string
 };
 
 // Valve, please fix.
-const tryToFixOldPortal2Demos = async (
+const autoFixupOldPortal2Demo = async (
   demo: SourceDemo,
   parser: SourceDemoParser,
   buffer: ArrayBuffer,

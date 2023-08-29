@@ -18,6 +18,7 @@
     "perm": "docker exec -ti autorender-server deno task perm",
     "board": "docker exec -ti autorender-server deno task board",
     "processing": "docker exec -ti autorender-server deno task processing",
+    "migrate": "docker exec -ti autorender-server deno task migrate",
     "build": "docker compose build",
     "up": "docker compose up",
     "down": "docker compose down",

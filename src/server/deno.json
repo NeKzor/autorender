@@ -6,7 +6,8 @@
     "stale": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server --allow-net=autorender.database:3307 tasks/stale.ts",
     "perm": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server --allow-net=autorender.database:3307 tasks/perm.ts",
     "board": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server,/storage --allow-write=/storage --allow-net=autorender.database:3307,board.portal2.sr,board.nekz.me tasks/board.ts",
-    "processing": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server,/storage --allow-write=/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/processing.ts"
+    "processing": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server,/storage --allow-write=/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/processing.ts",
+    "migrate": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server,/storage --allow-write=/storage --allow-net=autorender.database:3307,autorender.portal2.sr,board.portal2.sr tasks/migrate.ts"
   },
   "fmt": {
     "useTabs": false,
