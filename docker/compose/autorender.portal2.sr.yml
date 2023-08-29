@@ -7,10 +7,10 @@ services:
     links:
       - database:${PROJECT_NAME}.database
     ports:
-      - "127.0.0.1:${HTTP_PORT}:8001"
-      - "127.0.0.1:${HTTPS_PORT}:8001"
+      - "127.0.0.1:8824:8001"
+      - "127.0.0.1:8834:8001"
     extra_hosts:
-      - ${SERVER_NAME}:127.0.0.1
+      - autorender.server:127.0.0.1
     volumes:
       - ./logs/server:/logs/server:rw
       - ./storage:/storage:rw

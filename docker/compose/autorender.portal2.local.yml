@@ -55,10 +55,8 @@ services:
     ports:
       - 443:443
     environment:
-      - NGINX_HOST=${SERVER_NAME}
+      - NGINX_HOST=autorender.portal2.local
       - NGINX_PORT=443
-      - SERVER_PORT=${SERVER_PORT}
-      - PROJECT_NAME=${PROJECT_NAME}
     volumes:
       - ./docker/volumes/ssl:/ssl:r
       - ./docker/volumes/nginx:/etc/nginx/templates
