@@ -28,7 +28,7 @@ services:
       - ./.env.bot:/app/.env:rw
       - ./entrypoint.bot.sh:/app/entrypoint.sh:rw
   database:
-    image: mariadb:latest
+    image: mariadb:11
     container_name: "${PROJECT_NAME}-db"
     restart: unless-stopped
     ports:

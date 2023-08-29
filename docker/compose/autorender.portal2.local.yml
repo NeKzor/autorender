@@ -33,7 +33,7 @@ services:
       - ./src/bot:/app:rw
       - ./src/shared:/shared:rw
   database:
-    image: mariadb:latest
+    image: mariadb:11
     container_name: "${PROJECT_NAME}-db"
     restart: unless-stopped
     ports:
@@ -48,7 +48,7 @@ services:
       - ./docker/volumes/initdb:/docker-entrypoint-initdb.d
       - ./docker/volumes/mysql:/var/lib/mysql
   proxy:
-    image: nginx:stable-alpine
+    image: nginx:stable-alpine3.17
     container_name: "${PROJECT_NAME}-proxy"
     links:
       - server:autorender.server
