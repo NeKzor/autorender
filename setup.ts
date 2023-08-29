@@ -10,7 +10,7 @@ import { Input, Secret, Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/pr
 
 type Environment = 'dev' | 'prod';
 
-// Used for template file in docker/compose/ and for generating SSL certs.
+// Used for template file in docker/compose, for the public URI in .env files and for generating SSL certs.
 const devHostname = 'autorender.portal2.local';
 
 // Used to download files for prod setup.
@@ -18,6 +18,7 @@ const repositoryUrl = 'https://raw.githubusercontent.com/NeKzor/autorender/main/
 
 let inviteLink = '';
 let volumeFolder = '';
+let publicUri = '';
 
 /** String as volume folder. */
 const v = (strings: TemplateStringsArray, ...values: string[]) =>
@@ -183,10 +184,12 @@ const createDockerComposeFile = async (env: Environment) => {
     });
 
     await downloadFromRepository(template, `docker-compose.yml`, true);
-    //await downloadFromRepository('.dockerignore', '.dockerignore');
-    //await downloadFromRepository('Dockerfile', 'Dockerfile');
+
+    publicUri = `https://'${template.split('/').at(-1)!.slice(0, -4)}`;
   } else {
     await tryCopy(`docker/compose/${devHostname}.yml`, 'docker-compose.yml');
+
+    publicUri = `https://${devHostname}`;
   }
 };
 
@@ -252,14 +255,8 @@ const createConfigAndEnv = async (env: Environment) => {
   discordClientId.length && setEnv(botEnv, 'DISCORD_BOT_ID', discordClientId);
   discordBotToken.length && setEnv(botEnv, 'DISCORD_BOT_TOKEN', discordBotToken);
 
-  if (env === 'prod') {
-    const autorenderPublicUri = await Input.prompt({ message: 'Public domain name' });
-
-    if (autorenderPublicUri.length) {
-      setEnv(botEnv, 'AUTORENDER_PUBLIC_URI', autorenderPublicUri);
-      setEnv(serverEnv, 'AUTORENDER_PUBLIC_URI', autorenderPublicUri);
-    }
-  }
+  setEnv(botEnv, 'AUTORENDER_PUBLIC_URI', publicUri);
+  setEnv(serverEnv, 'AUTORENDER_PUBLIC_URI', publicUri);
 
   await Deno.writeTextFile(v`.env.bot`, botEnv.join('\n'));
   await Deno.writeTextFile(v`.env.server`, serverEnv.join('\n'));
