@@ -185,7 +185,7 @@ const createDockerComposeFile = async (env: Environment) => {
 
     await downloadFromRepository(template, `docker-compose.yml`, true);
 
-    publicUri = `https://'${template.split('/').at(-1)!.slice(0, -4)}`;
+    publicUri = `https://${template.split('/').at(-1)!.slice(0, -4)}`;
   } else {
     await tryCopy(`docker/compose/${devHostname}.yml`, 'docker-compose.yml');
 
