@@ -19,7 +19,7 @@ import { formatCmTime, getChangelog, getInfo } from './portal2_sr.ts';
 
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
 
-// rsync: rsync -chavzP --stats rsync://board.portal2.sr:/demos /demos
+// rsync: rsync -avvvhrP --stats rsync://board.portal2.sr:/demos /demos
 // volume: /demos:/storage/demos/migration:rw
 const demosDir = join(Storage.Demos, 'migration');
 
