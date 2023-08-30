@@ -1009,9 +1009,17 @@ router.get('/connect/client', async (ctx) => {
             ws.send(JSON.stringify({ type: 'videos', data: videos }));
 
             const client = clients.get(clientId);
-            if (client && !client.gameMods.length) {
-              client.gameMods = [...clientGameDirs];
-              client.renderQualities = [...clientRenderQualities];
+            if (client) {
+              if (!client.gameMods.length) {
+                client.gameMods = [...clientGameDirs];
+                client.renderQualities = [...clientRenderQualities];
+              }
+            } else {
+              clients.set(clientId, {
+                accessTokenId: accessToken.access_token_id,
+                gameMods: [...clientGameDirs],
+                renderQualities: [...clientRenderQualities],
+              });
             }
           } else {
             ws.send(
