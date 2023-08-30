@@ -1763,10 +1763,26 @@ type AppState = {
 
 const app = new Application<AppState>({
   proxy: true,
+  logErrors: false,
 });
+
+const noisyErrors = [
+  'Http: connection error: Connection reset by peer',
+  'Http: error writing a body to connection: Connection reset by peer',
+  'Http: error writing a body to connection: Broken pipe',
+  'Http: connection closed before message completed',
+  'TypeError: cannot read headers: request closed',
+  'BadResource: Bad resource ID',
+];
 
 app.addEventListener('error', (ev) => {
   try {
+    const message = ev.error?.toString() ?? '';
+
+    if (noisyErrors.some((noise) => message.startsWith(noise))) {
+      return;
+    }
+
     logger.error(ev.error);
   } catch (err) {
     console.error('This should not happen!', err, ev?.error);
