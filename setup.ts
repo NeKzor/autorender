@@ -194,6 +194,9 @@ const createDockerComposeFile = async (env: Environment) => {
 };
 
 const downloadRemoteFiles = async () => {
+  await downloadFromRepository('docker/volumes/initdb/_create.sql', 'initdb/_create.sql');
+  await downloadFromRepository('docker/volumes/initdb/_init.sql', 'initdb/_init.sql');
+  await downloadFromRepository('docker/volumes/initdb/_populate.sql', 'initdb/_populate.sql');
   await downloadFromRepository('deno.json', 'deno.json');
   await downloadFromRepository('deno.lock', 'deno.lock');
 };
@@ -309,9 +312,10 @@ const createEntryPointFiles = async (env: Environment) => {
  */
 const createDirectories = async () => {
   await tryMkdir(v`backups`);
+  await tryMkdir(v`initdb`);
+  await tryMkdir(v`kv`);
   await tryMkdir(v`logs/bot`);
   await tryMkdir(v`logs/server`);
-  await tryMkdir(v`kv`);
   await tryMkdir(v`mysql`);
   await tryMkdir(v`storage/demos`);
   await tryMkdir(v`storage/files`);
