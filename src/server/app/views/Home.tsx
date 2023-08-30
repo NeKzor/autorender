@@ -23,6 +23,7 @@ type LatestVideo =
     | 'thumbnail_url_small'
     | 'thumbnail_url_large'
     | 'video_length'
+    | 'board_changelog_id'
   >
   & {
     requested_by_username: string | null;
@@ -50,6 +51,7 @@ export const loader: DataLoader = async ({ context }) => {
           , videos.thumbnail_url_small
           , videos.thumbnail_url_large
           , videos.video_length
+          , videos.board_changelog_id
           , requester.username as requested_by_username
           , requester.discord_avatar_url as requested_by_discord_avatar_url
        from videos

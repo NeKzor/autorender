@@ -10,10 +10,25 @@ import { DataLoader, json, PageMeta, useLoaderData } from '../Routes.ts';
 import { PendingStatus, User, Video } from '~/shared/models.ts';
 import { VideoCard } from '../components/VideoCard.tsx';
 
-type JoinedVideo = Video & {
-  requested_by_username: string | null;
-  requested_by_discord_avatar_url: string | null;
-};
+type JoinedVideo =
+  & Pick<
+    Video,
+    | 'share_id'
+    | 'title'
+    | 'rendered_at'
+    | 'views'
+    | 'requested_by_id'
+    | 'video_preview_url'
+    | 'thumbnail_url_small'
+    | 'thumbnail_url_large'
+    | 'video_length'
+    | 'board_changelog_id'
+    | 'pending'
+  >
+  & {
+    requested_by_username: string | null;
+    requested_by_discord_avatar_url: string | null;
+  };
 
 type Data = {
   user: User | undefined;
@@ -60,8 +75,17 @@ export const loader: DataLoader = async ({ params, context }) => {
   // TODO: Uploaded and non-deleted videos are common enough to create a view for this.
 
   const videos = await context.db.query<JoinedVideo>(
-    `select *
-          , BIN_TO_UUID(video_id) as video_id
+    `select share_id
+          , title
+          , rendered_at
+          , views
+          , requested_by_id
+          , video_preview_url
+          , thumbnail_url_small
+          , thumbnail_url_large
+          , video_length
+          , board_changelog_id
+          , pending
           , requester.username as requested_by_username
           , requester.discord_avatar_url as requested_by_discord_avatar_url
        from videos
