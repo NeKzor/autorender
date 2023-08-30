@@ -158,7 +158,9 @@ const processVideos = async () => {
     ],
   );
 
-  logger.info('Processing videos', { videos: videos.length });
+  if (videos.length) {
+    logger.info(`Processing ${videos.length} new videos`);
+  }
 
   for (const video of videos) {
     logger.info('Video', { video });
@@ -205,7 +207,6 @@ const processVideos = async () => {
 
 const update = async () => {
   try {
-    logger.info('checking for videos to process');
     await processVideos();
   } catch (err) {
     logger.error(err);

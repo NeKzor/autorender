@@ -59,11 +59,11 @@ const checkChangelogUpdates = async () => {
       [entry.id],
     );
 
-    logger.info({ id: entry.id, existingVideo });
-
     if (existingVideo) {
       continue;
     }
+
+    logger.info(`Creating new video for ${entry.id}`);
 
     try {
       const { demo, originalFilename } = await fetchDemo(`${BOARD_BASE_API}/getDemo?id=${entry.id}`);
@@ -293,13 +293,12 @@ const resetFailedAutorenders = async () => {
   );
 
   if (affectedRows) {
-    logger.info('Reset failed renders:', affectedRows);
+    logger.info(`Reset ${affectedRows} failed renders`);
   }
 };
 
 const update = async () => {
   try {
-    logger.info('Checking for changelog updates');
     await checkChangelogUpdates();
   } catch (err) {
     logger.error(err);

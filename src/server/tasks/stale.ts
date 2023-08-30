@@ -40,12 +40,13 @@ const checkStaleVideos = async () => {
     ],
   );
 
-  logger.info('stale videos count', { affectedRows });
+  if (affectedRows) {
+    logger.info(`Marked ${affectedRows} videos as stale`);
+  }
 };
 
 const update = async () => {
   try {
-    logger.info('checking for stale videos');
     await checkStaleVideos();
   } catch (err) {
     logger.error(err);
