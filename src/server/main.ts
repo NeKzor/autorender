@@ -1529,14 +1529,18 @@ if (!B2_ENABLED) {
         return;
       }
 
-      const file = await Deno.readFile(getVideoFilePath(video.video_id));
+      const filename = getVideoDownloadFilename(video);
 
-      ctx.response.headers.set(
-        'Content-Disposition',
-        `filename="${encodeURIComponent(getVideoDownloadFilename(video))}"`,
-      );
+      ctx.response.headers.set('Accept-Ranges', 'bytes');
+      ctx.response.headers.set('Content-Disposition', `filename="${encodeURIComponent(filename)}"`);
 
-      Ok(ctx, file, 'video/mp4');
+      await ctx.send({
+        path: `${video.video_id}.mp4`,
+        root: Storage.Videos,
+        contentTypes: {
+          '.mp4': 'video/mp4',
+        },
+      });
     } catch (err) {
       if (err instanceof Deno.errors.NotFound) {
         await routeToApp(ctx);
