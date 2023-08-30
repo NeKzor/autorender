@@ -153,6 +153,14 @@ const insertVideo = async (filePath: string, originalFilename: string) => {
     const boardChangelogId = entry.changelogId;
     const boardProfileNumber = entry.profile_number;
     const boardRank = entry.post_rank;
+    // FIXME: The info API route should return these URLs :>
+    const videoUrl = isRendered
+      ? `https://f002.backblazeb2.com/file/portal2-boards-autorender/${entry.changelogId}.mp4`
+      : null;
+    const thumbnailUrlLarge = isRendered
+      ? `https://f002.backblazeb2.com/file/portal2-boards-autorender/${entry.changelogId}.jpg`
+      : null;
+    const processed = 1;
 
     const fields = [
       videoId,
@@ -187,8 +195,9 @@ const insertVideo = async (filePath: string, originalFilename: string) => {
       boardProfileNumber,
       boardRank,
       PendingStatus.FinishedRender,
-      // FIXME: The info API route should return the URL :>
-      isRendered ? `https://f002.backblazeb2.com/file/portal2-boards-autorender/${entry.changelogId}.mp4` : null,
+      videoUrl,
+      thumbnailUrlLarge,
+      processed,
     ];
 
     await db.execute(
@@ -226,6 +235,8 @@ const insertVideo = async (filePath: string, originalFilename: string) => {
             , board_rank
             , pending
             , video_url
+            , thumbnail_url_large
+            , processed
           ) values (UUID_TO_BIN(?), ${new Array(fields.length - 1).fill('?').join(',')})`,
       fields,
     );

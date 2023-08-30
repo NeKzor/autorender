@@ -2,8 +2,6 @@
  * Copyright (c) 2023, NeKz
  *
  * SPDX-License-Identifier: MIT
- *
- * This checks if there are any videos to render from board.portal2.sr.
  */
 
 import { logger } from '../logger.ts';
