@@ -295,7 +295,7 @@ const createEntryPointFiles = async (env: Environment) => {
 
   if (!await tryStat(serverEntryPoint)) {
     await Deno.writeTextFile(serverEntryPoint, `deno task ${env}\n`);
-    await Deno.chmod(botEntryPoint, 755);
+    await Deno.chmod(serverEntryPoint, 755);
   }
 };
 
