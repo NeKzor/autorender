@@ -237,6 +237,7 @@ The project contains convenient tasks which can be executed with `deno task <nam
 | `db:debug`               | Connect to the database container.                                  |
 | `db:stop`                | Stop the database container.                                        |
 | `db:restart`             | Restart the database container.                                     |
+| `db:dump`                | Create database dump.                                               |
 | `setup`                  | Run the setup process.                                              |
 | `prod:sync`              | Sync repository files on production server.                         |
 
@@ -258,10 +259,13 @@ deno run \
   https://raw.githubusercontent.com/NeKzor/autorender/main/setup.ts --prod
 ```
 
+> Note: The setup does not ask for b2 credentials which means that the `.env.server` file has to be modified manually.
+
 Running `deno task up` will start all containers. The official autorender images are pulled from Docker Hub. See
 [deploy.yml](/.github/workflows/deploy.yml) for an example on how to deploy images.
 
-When deploying an update to the server all repository files can be re-synced with `deno task prod:sync`.
+When deploying an update to the server all repository files can be re-synced with `deno task prod:sync`. This mainly
+includes `deno.json`, `deno.lock` and `storage/files`. New keys in `.env` files have to be added manually.
 
 ### Clients
 
