@@ -301,12 +301,14 @@ const createEntryPointFiles = async (env: Environment) => {
 
 /**
  * Mounted directories:
- *    logs/bot    -> Bot logs
- *    logs/server -> Server logs
- *    kv          -> Database used by the bot
- *    mysql       -> Database used by the server
+ *    backups     -> Folder for database dumps
+ *    logs        -> Bot and server logs
+ *    kv          -> Bot database
+ *    mysql       -> Server database
+ *    storage     -> Server file storage
  */
 const createDirectories = async () => {
+  await tryMkdir(v`backups`);
   await tryMkdir(v`logs/bot`);
   await tryMkdir(v`logs/server`);
   await tryMkdir(v`kv`);

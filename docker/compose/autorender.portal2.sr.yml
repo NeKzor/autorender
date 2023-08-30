@@ -42,3 +42,4 @@ services:
     volumes:
       - ./initdb:/docker-entrypoint-initdb.d
       - ./mysql:/var/lib/mysql
+      - ./backups:/backups
