@@ -1288,8 +1288,8 @@ router.get('/connect/client', async (ctx) => {
     }
   };
 
-  ws.onclose = () => {
-    logger.info(`Client ${clientId} disconnected`);
+  ws.onclose = (event) => {
+    logger.info(`Client ${clientId} disconnected`, event);
     clients.delete(clientId);
   };
 
