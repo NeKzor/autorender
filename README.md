@@ -240,6 +240,7 @@ The project contains convenient tasks which can be executed with `deno task <nam
 | `db:dump`                | Create database dump.                                               |
 | `setup`                  | Run the setup process.                                              |
 | `prod:sync`              | Sync repository files on production server.                         |
+| `prod:update`            | Updates Docker images, syncs files and restarts containers.         |
 
 ## Production
 
@@ -261,15 +262,18 @@ deno run \
 
 > Note: The setup does not ask for b2 credentials which means that the `.env.server` file has to be modified manually.
 
-Running `deno task up` will start all containers. The official autorender images are pulled from Docker Hub. See
-[deploy.yml](/.github/workflows/deploy.yml) for an example on how to deploy images.
+Running `deno task up` will start all containers. The official autorender images are pulled from [Docker Hub].
 
-When deploying an update to the server all repository files can be re-synced with `deno task prod:sync`. This mainly
-includes `deno.json`, `deno.lock` and `storage/files`. New keys in `.env` files have to be added manually.
+When deploying an update to the server all repository files have to be synced again which mainly includes `deno.json`,
+`deno.lock`, `storage/initdb` and `storage/files`. New keys in `.env` files have to be added manually.
+
+The command `deno task prod:update` will pull the latest images, sync all files and recreate the containers.
+
+[Docker Hub]: https://hub.docker.com/orgs/p2sr/repositories
 
 ### Clients
 
-All code in `src/client` will be compiled and shipped in a single binary:
+The code in `src/client` will be compiled and shipped in a single binary:
 
 ```bash
 deno task compile --all --release
@@ -465,9 +469,9 @@ server {
   - Improve documentation
     - Document client setup
     - Use static site generator
-  - Improve server deployment
-    - Build server image in CI for minimal setup
-    - Deploy from GitHub runner
+  - ~~Improve server deployment~~
+    - ~~Build server image in CI for minimal setup~~
+    - ~~Deploy image from GitHub runner~~
 - SAR wishlist
   - ~~Remove unnecessary watermark~~
   - ~~Sandbox commands like in 1.0~~ `sar_demo_blacklist_all` exists now, nice
