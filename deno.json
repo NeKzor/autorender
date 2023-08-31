@@ -28,7 +28,8 @@
     "db:stop": "docker container stop autorender-db",
     "db:dump": "docker exec -ti autorender-db bash -c 'printf [client]\\\\nuser=${MARIADB_USER}\\\\npassword=${MARIADB_PASSWORD}\\\\n[mysql]\\\\ndatabase=${MARIADB_DATABASE} > /etc/my.cnf && mariadb-dump --compact ${MARIADB_DATABASE} | gzip -8 > /backups/${MARIADB_DATABASE}_dump_$(date +%Y-%m-%d-%H.%M.%S).sql.gz'",
     "setup": "deno run --allow-read=. --allow-write=. --allow-run=mkcert setup.ts",
-    "prod:sync": "deno run --reload --allow-read=. --allow-write=. --allow-net=raw.githubusercontent.com https://raw.githubusercontent.com/NeKzor/autorender/main/setup.ts --prod --sync"
+    "prod:sync": "deno run --reload --allow-read=. --allow-write=. --allow-net=raw.githubusercontent.com https://raw.githubusercontent.com/NeKzor/autorender/main/setup.ts --prod --sync",
+    "prod:update": "docker pull p2sr/autorender-bot && docker pull p2sr/autorender-server && deno task prod:sync && deno task up -d --force-recreate"
   },
   "lint": {
     "exclude": [
