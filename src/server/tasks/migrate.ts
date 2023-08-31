@@ -10,18 +10,22 @@ import 'dotenv/load.ts';
 
 import { join } from 'path/join.ts';
 import { db } from '../db.ts';
-import { AuditSource, AuditType, FixedDemoStatus, MapModel, PendingStatus, RenderQuality } from '~/shared/models.ts';
+import { FixedDemoStatus, MapModel, PendingStatus, RenderQuality } from '~/shared/models.ts';
 import * as uuid from 'uuid/mod.ts';
 import { generateShareId, Storage } from '../utils.ts';
 import { getDemoInfo } from '../demo.ts';
 import { logger } from '../logger.ts';
-import { formatCmTime, getChangelog, getInfo } from './portal2_sr.ts';
+import { formatCmTime } from './portal2_sr.ts';
 
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
 
-// rsync: rsync -avvvhrP --stats rsync://board.portal2.sr:/demos /demos
-// volume: /demos:/storage/demos/migration:rw
+// rsync: rsync -avvvhrP --stats rsync://board.portal2.sr:/demos demos
+// volume: demos:/storage/demos/migration:ro
 const demosDir = join(Storage.Demos, 'migration');
+
+// Data dump from mirror :^)
+// volume: board-portal2.changelogs_top_200.json:/storage/demos/board-portal2.changelogs_top_200.json:ro
+const top200Data = join(Storage.Demos, 'board-portal2.changelogs_top_200.json');
 
 // From "games" table
 const portal2GameId = 1;
@@ -31,141 +35,104 @@ addEventListener('unhandledrejection', (ev) => {
   logger.error('unhandledrejection', { reason: ev.reason });
 });
 
-const insertVideo = async (filePath: string, originalFilename: string) => {
-  const [_chamberName, _score, _playerProfileNumber, changelogId] = originalFilename.slice(0, -4).split('_');
-  logger.info(JSON.stringify({ originalFilename, changelogId }));
+interface MirrorEntry {
+  id: number;
+  chamberName: string;
+  mapid: number;
+  note: string | null;
+  player_name: string;
+  post_rank: number;
+  profile_number: string;
+  score: number;
+  time_gained: string;
+  video_url: string;
+  demo_name: string;
+}
+
+const main = async () => {
+  const entries = JSON.parse(await Deno.readTextFile(top200Data)) as MirrorEntry[];
+
+  const maps = await db.query<Pick<MapModel, 'map_id' | 'best_time_id'>>(
+    `select map_id
+          , best_time_id
+       from maps
+      where game_id = ?
+        and best_time_id is not null`,
+    [
+      portal2GameId,
+    ],
+  );
+
+  const mapIdMapping = maps.reduce(
+    (cache, map) => cache.set(map.best_time_id, map.map_id),
+    new Map<MapModel['best_time_id'], MapModel['map_id']>(),
+  );
+
+  for (const entry of entries) {
+    try {
+      const mapId = mapIdMapping.get(entry.mapid);
+      if (mapId === undefined) {
+        throw new Error(`No mapping for map ID ${entry.mapid} of entry ${entry.id}`);
+      }
+
+      await insertVideo(entry, mapId);
+    } catch (err) {
+      logger.error(err);
+    }
+  }
+};
+
+const insertVideo = async (entry: MirrorEntry, mapId: number) => {
+  logger.info(JSON.stringify(entry));
 
   const [existingVideo] = await db.query(
     `select 1
        from videos
       where board_changelog_id = ?`,
-    [changelogId],
+    [entry.id],
   );
-
-  logger.info({ existingVideo });
 
   if (existingVideo) {
     return;
   }
 
-  if (!changelogId) {
-    throw new Error('No ID');
-  }
-
-  let isRendered = false;
-
-  const entry = await (async () => {
-    const info = await getInfo(changelogId);
-    if (info) {
-      isRendered = true;
-
-      return {
-        changelogId,
-        chamber: info.map_id,
-        chamberName: info.map,
-        profile_number: info.user_id,
-        post_rank: info.orig_rank,
-        note: info.comment ?? '',
-        score: info.time,
-        player_name: info.user,
-        rendered_by: info.rendered_by,
-        date: info.date.replace('T', ' ').slice(0, -1),
-      };
-    } else {
-      const [entry] = (await getChangelog({ id: Number(changelogId) })) ?? [];
-      if (!entry) {
-        try {
-          await db.execute(
-            `insert into audit_logs (
-                    title
-                  , audit_type
-                  , source
-                  , source_user_id
-                ) values (
-                    ?
-                  , ?
-                  , ?
-                  , ?
-                )`,
-            [
-              `Missing entry for changelog ID ${changelogId}`,
-              AuditType.Error,
-              AuditSource.Server,
-              null,
-            ],
-          );
-          logger.warn(`Inserted error audit log`);
-        } catch (err) {
-          logger.error(err);
-        }
-        return null;
-      }
-
-      return {
-        changelogId,
-        chamber: entry.mapid,
-        chamberName: entry.chamberName,
-        profile_number: entry.profile_number,
-        post_rank: entry.post_rank,
-        note: entry.note,
-        score: Number(entry.score),
-        player_name: entry.player_name,
-        rendered_by: null,
-        // If only the date was in ISO format...
-        date: entry.time_gained,
-      };
-    }
-  })();
-
-  if (!entry) {
-    return;
-  }
+  const isRendered = entry.video_url !== null;
 
   try {
     const videoId = uuid.v1.generate() as string;
     const shareId = generateShareId();
 
-    const demoInfo = await getDemoInfo(filePath, { isBoardDemo: true });
+    const demoInfo = await getDemoInfo(join(demosDir, entry.demo_name), { isBoardDemo: true });
 
     if (demoInfo === null || typeof demoInfo === 'string') {
       logger.error('Invalid demo', demoInfo);
       return;
     }
 
-    const [map] = await db.query<MapModel>(
-      `select map_id
-           from maps
-          where best_time_id = ?`,
-      [
-        entry.chamber,
-      ],
-    );
-
     const title = `${entry.chamberName} in ${formatCmTime(entry.score)} by ${entry.player_name}`;
     const comment = entry.note;
     const renderQuality = RenderQuality.HD_720p;
     const renderOptions: string[] = [];
-    const createdAt = entry.date;
+    const createdAt = entry.time_gained;
     const renderedAt = createdAt;
-    const renderNode = entry.rendered_by;
+    // FIXME: Use "rendered_by" field from autorender v1
+    const renderNode = 'portal2-cm-autorender';
     const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
     const demoMetadata = JSON.stringify(demoInfo.metadata);
-    const boardChangelogId = entry.changelogId;
+    const boardChangelogId = entry.id;
     const boardProfileNumber = entry.profile_number;
     const boardRank = entry.post_rank;
-    // FIXME: The info API route should return these URLs :>
-    const videoUrl = isRendered
-      ? `https://f002.backblazeb2.com/file/portal2-boards-autorender/${entry.changelogId}.mp4`
-      : null;
+    // FIXME: These URLs should be imported from autorender v1
+    const videoUrl = isRendered ? `https://f002.backblazeb2.com/file/portal2-boards-autorender/${entry.id}.mp4` : null;
     const thumbnailUrlLarge = isRendered
-      ? `https://f002.backblazeb2.com/file/portal2-boards-autorender/${entry.changelogId}.jpg`
+      ? `https://f002.backblazeb2.com/file/portal2-boards-autorender/${entry.id}.jpg`
       : null;
     const processed = 1;
 
     const fields = [
       videoId,
       portal2GameId,
-      map!.map_id,
+      mapId,
       shareId,
       title,
       comment,
@@ -174,7 +141,7 @@ const insertVideo = async (filePath: string, originalFilename: string) => {
       renderQuality,
       renderOptions.filter((command) => command !== null).join('\n'),
       renderNode,
-      originalFilename,
+      entry.demo_name,
       demoInfo.workshopInfo?.fileUrl ?? null,
       demoInfo.fullMapName,
       demoInfo.size,
@@ -249,12 +216,4 @@ const insertVideo = async (filePath: string, originalFilename: string) => {
   }
 };
 
-for await (const file of Deno.readDir(demosDir)) {
-  try {
-    if (file.isFile) {
-      await insertVideo(join(demosDir, file.name), file.name);
-    }
-  } catch (err) {
-    logger.error(err);
-  }
-}
+await main();
