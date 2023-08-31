@@ -191,12 +191,6 @@ const checkChangelogUpdates = async () => {
 
       const title = `${entry.chamberName} in ${formatCmTime(parseInt(entry.score, 10))} by ${entry.player_name}`;
       const comment = entry.note;
-      const requestedByName = null;
-      const requestedById = null;
-      const requestedInGuildId = null;
-      const requestedInGuildName = null;
-      const requestedInChannelId = null;
-      const requestedInChannelName = null;
       const renderQuality = RenderQuality.HD_720p;
       const renderOptions = [
         ...(map.auto_fullbright
@@ -220,12 +214,6 @@ const checkChangelogUpdates = async () => {
         shareId,
         title,
         comment,
-        requestedByName,
-        requestedById,
-        requestedInGuildId,
-        requestedInGuildName,
-        requestedInChannelId,
-        requestedInChannelName,
         renderQuality,
         renderOptions.filter((command) => command !== null).join('\n'),
         originalFilename,
@@ -259,12 +247,6 @@ const checkChangelogUpdates = async () => {
             , share_id
             , title
             , comment
-            , requested_by_name
-            , requested_by_id
-            , requested_in_guild_id
-            , requested_in_guild_name
-            , requested_in_channel_id
-            , requested_in_channel_name
             , render_quality
             , render_options
             , file_name
