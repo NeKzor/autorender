@@ -17,6 +17,21 @@ export const toAgo = (date: string | null) => {
 
   const days = Math.floor(ago.seconds / 60 / 60 / 24);
   if (days) {
+    if (days >= 365) {
+      const years = Math.floor(days / 365);
+      return `${years} year${years === 1 ? '' : 's'} ago`;
+    }
+
+    if (days >= 31) {
+      const months = Math.floor(days / 31);
+      return `${months} month${months === 1 ? '' : 's'} ago`;
+    }
+
+    if (days >= 14) {
+      const weeks = Math.floor(days / 7);
+      return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
+    }
+
     return `${days} day${days === 1 ? '' : 's'} ago`;
   }
 
