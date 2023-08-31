@@ -72,14 +72,8 @@ export const supportedGameMods: { [gameDir: string]: SupportedGame } = {
 
 export const supportedGameDirs = Object.keys(supportedGameMods);
 
-export type DemoInfoOptions = {
-  filePath?: string;
-  buffer?: Uint8Array;
-  isBoardDemo?: boolean;
-};
-
-export const getDemoInfo = async (options: DemoInfoOptions) => {
-  const buffer = options.filePath ? await Deno.readFile(options.filePath) : options.buffer!;
+export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: boolean }) => {
+  const buffer = await Deno.readFile(filePath);
 
   try {
     const parser = SourceDemoParser.default()
@@ -87,7 +81,7 @@ export const getDemoInfo = async (options: DemoInfoOptions) => {
         // Workshop info + challenge mode data
         packets: true,
         // Demo fixup
-        dataTables: !options.isBoardDemo,
+        dataTables: !options?.isBoardDemo,
         // Steam data
         stringTables: true,
       });
@@ -121,12 +115,12 @@ export const getDemoInfo = async (options: DemoInfoOptions) => {
 
     let fixupResult: Awaited<ReturnType<typeof autoFixupOldPortal2Demo>> = false;
 
-    if (demo.gameDirectory === 'portal2' && !options.isBoardDemo) {
+    if (demo.gameDirectory === 'portal2' && !options?.isBoardDemo) {
       fixupResult = await autoFixupOldPortal2Demo(
         demo,
         parser,
         buffer,
-        options.filePath!,
+        filePath,
       );
 
       if (fixupResult === null || typeof fixupResult === 'string') {
@@ -136,12 +130,14 @@ export const getDemoInfo = async (options: DemoInfoOptions) => {
 
     const info = demo.findPacket(NetMessages.SvcServerInfo);
     if (!info?.mapName) {
-      logger.error(`SvcServerInfo packet or map name not found in demo`, options.filePath ?? '');
+      logger.error(
+        `SvcServerInfo packet or map name not found in demo: ${filePath}`,
+      );
       return 'Corrupted demo.';
     }
 
     // TODO: More strict validation
-    const isWorkshopMap = !options.isBoardDemo && demo.mapName !== info.mapName;
+    const isWorkshopMap = !options?.isBoardDemo && demo.mapName !== info.mapName;
     const fullMapName = info.mapName.replaceAll('\\', '/');
 
     return {

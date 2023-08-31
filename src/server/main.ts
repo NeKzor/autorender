@@ -235,7 +235,7 @@ apiV1
 
     // TODO: Figure out if UGC changes when the revision of a workshop item updates.
 
-    const demoInfo = await getDemoInfo({ filePath });
+    const demoInfo = await getDemoInfo(filePath);
 
     if (demoInfo === null || typeof demoInfo === 'string') {
       return Err(ctx, Status.BadRequest, demoInfo ?? undefined);
@@ -1566,10 +1566,9 @@ router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
   }
 
   try {
-    const [video] = await db.query<Pick<Video, 'video_id' | 'file_name' | 'board_changelog_id'>>(
+    const [video] = await db.query<Pick<Video, 'video_id' | 'file_name'>>(
       `select BIN_TO_UUID(video_id) as video_id
           , file_name
-          , board_changelog_id
        from videos
       where share_id = ?`,
       [ctx.params.share_id],
@@ -1578,10 +1577,6 @@ router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
     if (!video) {
       await routeToApp(ctx);
       return;
-    }
-
-    if (video.board_changelog_id) {
-      return ctx.response.redirect(`https://board.portal2.sr/getDemo?id=${video.board_changelog_id}`);
     }
 
     const requestedFixedDemo = ctx.params.fixed !== undefined;

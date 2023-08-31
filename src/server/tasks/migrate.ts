@@ -125,7 +125,7 @@ const insertVideo = async (filePath: string, originalFilename: string) => {
     const videoId = uuid.v1.generate() as string;
     const shareId = generateShareId();
 
-    const demoInfo = await getDemoInfo({ filePath, isBoardDemo: true });
+    const demoInfo = await getDemoInfo(filePath, { isBoardDemo: true });
 
     if (demoInfo === null || typeof demoInfo === 'string') {
       logger.error('Invalid demo', demoInfo);
