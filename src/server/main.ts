@@ -605,6 +605,12 @@ apiV1
               logger.error('Failed to execute board webhook for', video.video_id, ':', await webhook.text());
             }
           }
+
+          try {
+            await Deno.remove(getDemoFilePath(video.video_id));
+          } catch (err) {
+            logger.error(err);
+          }
         } else {
           type VideoUpload = Pick<
             Video,
