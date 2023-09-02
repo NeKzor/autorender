@@ -401,11 +401,16 @@
   "npm": {
     "specifiers": {
       "@nekz/sdp": "@nekz/sdp@0.4.0",
-      "@nekz/sdp@0.4.0": "@nekz/sdp@0.4.0"
+      "@nekz/sdp@0.4.0": "@nekz/sdp@0.4.0",
+      "@nekz/sdp@0.5.0": "@nekz/sdp@0.5.0"
     },
     "packages": {
       "@nekz/sdp@0.4.0": {
         "integrity": "sha512-zbTEWQOmWPn5ZFKfwlghoJfdjQR9RJLI/OjpfIN4PWxIBBzdbVH0T7QA+NfpQztDhHjWekLIjg+s6lRyg2PPmw==",
+        "dependencies": {}
+      },
+      "@nekz/sdp@0.5.0": {
+        "integrity": "sha512-DbBd9XBl7ibKob8TP7OfFJa3ZE2fgvMZbvrtggLf48Rgv8BeOCiQlnk9ZG6odKq7Pr9Ocz3FE1reQymbNDP+Jw==",
         "dependencies": {}
       }
     }
