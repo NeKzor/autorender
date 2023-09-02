@@ -402,7 +402,8 @@
     "specifiers": {
       "@nekz/sdp": "@nekz/sdp@0.4.0",
       "@nekz/sdp@0.4.0": "@nekz/sdp@0.4.0",
-      "@nekz/sdp@0.5.0": "@nekz/sdp@0.5.0"
+      "@nekz/sdp@0.5.0": "@nekz/sdp@0.5.0",
+      "@nekz/sdp@0.6.0": "@nekz/sdp@0.6.0"
     },
     "packages": {
       "@nekz/sdp@0.4.0": {
@@ -411,6 +412,10 @@
       },
       "@nekz/sdp@0.5.0": {
         "integrity": "sha512-DbBd9XBl7ibKob8TP7OfFJa3ZE2fgvMZbvrtggLf48Rgv8BeOCiQlnk9ZG6odKq7Pr9Ocz3FE1reQymbNDP+Jw==",
+        "dependencies": {}
+      },
+      "@nekz/sdp@0.6.0": {
+        "integrity": "sha512-1qZpl37/trX9hvQKby8TJPiHTwUtBAQCe9DrYheJ4w6aa568qnoirUXbht6t5zowgQjt3PEnIgBZ6UaMWl0kCA==",
         "dependencies": {}
       }
     }
