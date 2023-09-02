@@ -36,6 +36,7 @@ export enum GameMod {
 export interface SupportedGame {
   name: string;
   workshopAppId: WorkshopSteamAppId;
+  tickrate: number;
 }
 
 // NOTE: Make sure that these are inserted into the "games" table.
@@ -43,64 +44,82 @@ export const supportedGameMods: { [gameDir: string]: SupportedGame } = {
   [GameMod.Portal2]: {
     name: 'Portal 2',
     workshopAppId: WorkshopSteamAppId.Portal2,
+    tickrate: 60,
   },
   [GameMod.ThinkingWithTimeMachine]: {
     name: 'Thinking With Time Machine',
     workshopAppId: WorkshopSteamAppId.ThinkingWithTimeMachine,
+    tickrate: 60,
   },
   [GameMod.ApertureTag]: {
     name: 'Aperture Tag',
     workshopAppId: WorkshopSteamAppId.ApertureTag,
+    tickrate: 60,
   },
   [GameMod.PortalStoriesMel]: {
     name: 'Portal Stories Mel',
     workshopAppId: WorkshopSteamAppId.None,
+    tickrate: 60,
   },
   // [GameMod.Portal2CommunityEdition]: {
   //   name: 'Portal 2: Community Edition',
   //   workshopAppId: WorkshopSteamAppId.Portal2CommunityEdition,
+  //   tickrate: 60,
   // },
   [GameMod.PortalReloaded]: {
     name: 'Portal Reloaded',
     workshopAppId: WorkshopSteamAppId.PortalReloaded,
+    tickrate: 60,
   },
   [GameMod.Portal2SpeedrunMod]: {
     name: 'Portal 2 SpeedrunMod',
     workshopAppId: WorkshopSteamAppId.None,
+    tickrate: 60,
   },
 };
 
 export const supportedGameDirs = Object.keys(supportedGameMods);
 
+const parser = SourceDemoParser.default();
+
 export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: boolean }) => {
   const buffer = await Deno.readFile(filePath);
 
   try {
-    const parser = SourceDemoParser.default()
-      .setOptions({
-        // Workshop info + challenge mode data
-        packets: true,
-        // Demo fixup
-        dataTables: !options?.isBoardDemo,
-        // Steam data
-        stringTables: true,
-      });
-
-    let demo: SourceDemo;
+    const buf = parser.prepare(buffer);
+    const demo = SourceDemo.default();
 
     try {
-      demo = parser
-        .parse(buffer)
-        .adjustTicks()
-        .adjustRange();
+      demo.readHeader(buf);
     } catch (err) {
-      logger.error(err);
+      logger.error('readHeader', filePath, err);
       return 'Corrupted demo.';
     }
 
     const supportedGame = supportedGameMods[demo.gameDirectory!];
     if (supportedGame === undefined) {
       return 'Game is not supported.';
+    }
+
+    try {
+      demo.readMessages(buf);
+    } catch (err) {
+      logger.error('readMessages', filePath, err);
+    }
+
+    try {
+      demo.readPackets();
+    } catch (err) {
+      logger.error('readPackets', filePath, err);
+    }
+
+    // Fix playback time and negative non-synced ticks.
+    try {
+      demo
+        .adjustTicks()
+        .adjustRange(0, 0, supportedGame.tickrate);
+    } catch (err) {
+      logger.error('adjustTicks + adjustRange', filePath, err);
     }
 
     const playbackTime = demo.playbackTime ?? 0;
@@ -116,6 +135,12 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
     let fixupResult: Awaited<ReturnType<typeof autoFixupOldPortal2Demo>> = false;
 
     if (demo.gameDirectory === 'portal2' && !options?.isBoardDemo) {
+      try {
+        demo.readDataTables();
+      } catch (err) {
+        logger.error('readDataTables', filePath, err);
+      }
+
       fixupResult = await autoFixupOldPortal2Demo(
         demo,
         parser,
@@ -134,6 +159,12 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
         `SvcServerInfo packet or map name not found in demo: ${filePath}`,
       );
       return 'Corrupted demo.';
+    }
+
+    try {
+      demo.readStringTables();
+    } catch (err) {
+      logger.error('readStringTables', filePath, err);
     }
 
     // TODO: More strict validation
@@ -156,7 +187,7 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       ...getPlayerInfo(demo),
     };
   } catch (err) {
-    logger.error(err);
+    logger.error(filePath, err);
     return null;
   }
 };
