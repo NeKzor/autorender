@@ -52,6 +52,11 @@ export const loader: DataLoader = async ({ context }) => {
        from access_tokens
        join users
          on users.user_id = access_tokens.user_id
+      where access_tokens.access_token_id in (
+            select distinct rendered_by_token
+                       from videos
+                      where TIMESTAMPDIFF(DAY, created_at, NOW()) <= 7
+        )
    order by access_tokens.created_at`,
   );
 
