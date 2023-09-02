@@ -412,8 +412,10 @@ const extractSteamData = (playerInfo?: StringTables.StringTableEntry): [string |
     logger.error(`Found invalid SteamID: ${guid}`);
   }
 
+  const playerName = playerInfo.data?.name;
+
   return [
-    playerInfo.data?.name ?? null,
+    playerName ? decodeURIComponent(escape(playerName)) : null,
     steamId?.toString() ?? null,
   ];
 };
