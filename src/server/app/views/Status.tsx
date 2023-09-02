@@ -47,6 +47,9 @@ export const loader: DataLoader = async ({ context }) => {
             select count(1)
               from videos
              where videos.rendered_by_token = access_tokens.access_token_id
+               and videos.pending = ?
+               and videos.video_url is not null
+               and videos.deleted_at is null
           ) as render_count
           , users.username
        from access_tokens
@@ -58,6 +61,9 @@ export const loader: DataLoader = async ({ context }) => {
                       where TIMESTAMPDIFF(DAY, created_at, NOW()) <= 7
         )
    order by access_tokens.created_at`,
+    [
+      PendingStatus.FinishedRender,
+    ],
   );
 
   const queuedVideos = await context.db.query<QueuedVideo>(
