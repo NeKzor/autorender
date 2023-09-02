@@ -122,6 +122,7 @@ const Navbar = () => {
             id='theme-toggle-button'
             type='button'
             className={tw`text-gray-500 inline-flex items-center justify-center dark:text-gray-400 hover:bg-gray-100 w-10 h-10 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-4`}
+            data-tooltip-target='theme-toggle-button-tooltip'
           >
             <svg
               id='theme-toggle-dark-icon'
@@ -144,6 +145,14 @@ const Navbar = () => {
               <path d='M10 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-11a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v2a1 1 0 0 0 1 1Zm0 12a1 1 0 0 0-1 1v2a1 1 0 1 0 2 0v-2a1 1 0 0 0-1-1ZM4.343 5.757a1 1 0 0 0 1.414-1.414L4.343 2.929a1 1 0 0 0-1.414 1.414l1.414 1.414Zm11.314 8.486a1 1 0 0 0-1.414 1.414l1.414 1.414a1 1 0 0 0 1.414-1.414l-1.414-1.414ZM4 10a1 1 0 0 0-1-1H1a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1Zm15-1h-2a1 1 0 1 0 0 2h2a1 1 0 0 0 0-2ZM4.343 14.243l-1.414 1.414a1 1 0 1 0 1.414 1.414l1.414-1.414a1 1 0 0 0-1.414-1.414ZM14.95 6.05a1 1 0 0 0 .707-.293l1.414-1.414a1 1 0 1 0-1.414-1.414l-1.414 1.414a1 1 0 0 0 .707 1.707Z' />
             </svg>
           </button>
+          <div
+            id='theme-toggle-button-tooltip'
+            role='tooltip'
+            className={`absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700`}
+          >
+            Toggle Light/Dark Mode
+            <div className={tw`tooltip-arrow`} data-popper-arrow></div>
+          </div>
           {state?.user
             ? (
               <>
@@ -204,16 +213,39 @@ const Navbar = () => {
               </>
             )
             : (
-              <a id='login-button' href={state?.discordAuthorizeLink} tabIndex={-1}>
-                <button
-                  className={tw`group relative flex select-none items-center gap-3 overflow-hidden rounded-lg bg-gradient-to-tr from-discord to-discord px-3 py-2 text-center align-middle font-sans text-sm font-bold uppercase text-white shadow-md shadow-discord-500/20 transition-all hover:shadow-lg hover:shadow-discord/40 active:opacity-[0.85] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none`}
-                  type='button'
-                  data-ripple-light='true'
+              <>
+                <a id='login-button' href={state?.discordAuthorizeLink} tabIndex={-1}>
+                  <button
+                    className={tw`text-gray-500 inline-flex items-center justify-center dark:text-gray-400 hover:bg-gray-100 w-10 h-10 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-4`}
+                    type='button'
+                    data-ripple-light='true'
+                    data-tooltip-target='login-button-tooltip'
+                  >
+                    <svg
+                      className={tw`w-6 h-6 text-gray-800 dark:text-white`}
+                      viewBox='0 0 24 24'
+                      aria-hidden='true'
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='currentColor'
+                    >
+                      <g>
+                        <rect fill='none' height='24' width='24' />
+                      </g>
+                      <g>
+                        <path d='M11,7L9.6,8.4l2.6,2.6H2v2h10.2l-2.6,2.6L11,17l5-5L11,7z M20,19h-8v2h8c1.1,0,2-0.9,2-2V5c0-1.1-0.9-2-2-2h-8v2h8V19z' />
+                      </g>
+                    </svg>
+                  </button>
+                </a>
+                <div
+                  id='login-button-tooltip'
+                  role='tooltip'
+                  className={`absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700`}
                 >
-                  Sign in with Discord
-                  <img src='/assets/images/icon_clyde_white_RGB.png' alt='clyde' className={tw`h-5 w-6`} />
-                </button>
-              </a>
+                  Login with Discord
+                  <div className={tw`tooltip-arrow`} data-popper-arrow></div>
+                </div>
+              </>
             )}
         </div>
       </div>
