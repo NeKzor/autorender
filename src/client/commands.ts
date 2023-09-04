@@ -28,6 +28,7 @@ import * as yaml from 'yaml/mod.ts';
 import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
 import { Options } from './cli.ts';
 import { getRelease } from './github.ts';
+import { GameProcess } from './game.ts';
 
 const isWindows = Deno.build.os === 'windows';
 
@@ -238,18 +239,7 @@ export const runBenchmark = async (
     Deno.exit(1);
   }
 
-  let autoexecFile = '';
-
-  const autoexecCleanup = async () => {
-    if (autoexecFile) {
-      try {
-        await Deno.remove(autoexecFile);
-      } catch (err) {
-        options.verboseMode && console.error(err);
-        console.log(colors.red(`Failed to remove temporary autoexec ${autoexecFile}`));
-      }
-    }
-  };
+  const gameProcess = new GameProcess();
 
   try {
     const { state: readAccess } = await Deno.permissions.request({
@@ -310,80 +300,17 @@ export const runBenchmark = async (
       await Deno.remove(videoFile);
       // deno-lint-ignore no-empty
     } catch {}
-
-    const autoexec = [
-      `exec ${game.cfg}`,
-      `sar_quickhud_set_texture crosshair/quickhud720-`,
-      `sar_on_renderer_finish "wait 300;exit"`,
-      `playdemo ${join(config.autorender['folder-name'], demoBenchmarkFile)}`,
-    ];
-
-    autoexecFile = realGameModFolder(game, 'cfg', 'autoexec.cfg');
-
-    await Deno.writeTextFile(autoexecFile, autoexec.join('\n'));
-
-    const getCommand = (): [string, string] => {
-      const command = gameFolder(game, game.exe);
-
-      switch (Deno.build.os) {
-        case 'windows':
-          return [command, game.exe];
-        case 'linux':
-          return ['/bin/bash', command];
-        default:
-          throw new Error('Unsupported operating system');
-      }
-    };
-
-    const [command, argv0] = getCommand();
-
-    const args = [
-      argv0,
-      '-game',
-      game.mod === 'portalreloaded' ? 'portal2' : game.sourcemod ? `../../sourcemods/${game.mod}` : game.mod,
-      '-novid',
-      '-windowed',
-      '-w',
-      '1280',
-      '-h',
-      '720',
-    ];
-
-    const cmd = new Deno.Command(command, { args });
-
-    const gameProcess = cmd.spawn();
-    const gameProcessName = game.proc;
-
-    console.log(colors.white(`Spawned process ${gameProcess.pid}`));
-
-    let killed = false;
-
-    const killGameProcess = () => {
-      killed = true;
-
-      const pid = Deno.build.os === 'windows' ? gameProcess.pid : -gameProcess.pid;
-
-      console.log(colors.white(`Killing process ${pid}`));
-
-      if (Deno.build.os !== 'windows') {
-        const kill = new Deno.Command('pkill', { args: [gameProcessName] });
-        const { code } = kill.outputSync();
-        console.log(colors.white(`pkill ${gameProcessName}`), { code });
-      } else {
-        Deno.kill(pid, 'SIGKILL');
-      }
-
-      console.log(colors.white('killed'));
-    };
-
-    console.log(colors.white('Killing process after 5 minutes'));
-    setTimeout(killGameProcess, 5 * 60 * 1_000);
-
+    
     const start = performance.now();
-    const { code } = await gameProcess.output();
+    const { killed, code } = await gameProcess.launch({
+      config,
+      game,
+      benchmarkFile: demoBenchmarkFile,
+      timeoutInSeconds: 5 * 60,
+    });
     const end = performance.now();
 
-    console.log(colors.white('Game exited'), { code });
+    await gameProcess.removeAutoexec();
 
     if (killed || code !== 0) {
       console.log(colors.red('Failed to render the benchmark video'));
@@ -424,11 +351,13 @@ export const runBenchmark = async (
   } catch (err) {
     options.verboseMode && console.error(err);
     console.log(colors.red('Error'));
-    await autoexecCleanup();
+    
+    gameProcess.tryKillGameProcess();
+    await gameProcess.removeAutoexec();
+
     Deno.exit(1);
   }
 
-  await autoexecCleanup();
   Deno.exit(0);
 };
 
@@ -441,6 +370,8 @@ export const launchGame = async (
     Deno.exit(1);
   }
 
+  const gameProcess = new GameProcess();
+
   try {
     const gameToLaunch = await Select.prompt<string>({
       message: '🎮️ Select a game to test if it can ben launched.',
@@ -449,46 +380,18 @@ export const launchGame = async (
 
     const game = config.games.find((game) => game.mod === gameToLaunch)!;
 
-    const getCommand = (): [string, string] => {
-      const command = gameFolder(game, game.exe);
-
-      switch (Deno.build.os) {
-        case 'windows':
-          return [command, game.exe];
-        case 'linux':
-          return ['/bin/bash', command];
-        default:
-          throw new Error('Unsupported operating system');
-      }
-    };
-
-    const [command, argv0] = getCommand();
-
-    const args = [
-      argv0,
-      '-game',
-      game.mod === 'portalreloaded' ? 'portal2' : game.sourcemod ? `../../sourcemods/${game.mod}` : game.mod,
-      '-novid',
-      '-windowed',
-      '-w',
-      '1280',
-      '-h',
-      '720',
-    ];
-
-    const cmd = new Deno.Command(command, { args });
-
-    console.log(colors.white('Spawning process'));
-
-    const gameProcess = cmd.spawn();
-
-    console.log(colors.white(`Spawned process ${gameProcess.pid}`));
-
-    const { code } = await gameProcess.output();
-    console.log(colors.white('Game exited'), { code });
+    await gameProcess.launch({
+      config,
+      game,
+      noTimeout: true,
+      noAutoexec: true,
+    });
   } catch (err) {
     options.verboseMode && console.error(err);
     console.log(colors.red('Error'));
+
+    gameProcess.tryKillGameProcess();
+
     Deno.exit(1);
   }
 

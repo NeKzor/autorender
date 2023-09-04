@@ -163,7 +163,7 @@ export interface Video {
   requested_in_channel_id: string;
   requested_in_channel_name: string;
   created_at: string;
-  render_quality: string;
+  render_quality: RenderQuality;
   render_options: string;
   file_name: string;
   file_url: string;

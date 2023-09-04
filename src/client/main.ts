@@ -17,14 +17,13 @@ import {
   AutorenderSendMessages,
   VideoPayload,
 } from './protocol.ts';
-import { RenderQuality } from '~/shared/models.ts';
 import { ClientState, ClientStatus } from './state.ts';
 import { UploadWorkerDataType } from './upload.ts';
 import { GameConfig, getConfig } from './config.ts';
 import { WorkerDataType } from './worker.ts';
 import { UserAgent } from './constants.ts';
-import { createFolders } from './game.ts';
-import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
+import { createFolders, GameProcess, prepareGameLaunch } from './game.ts';
+import { gameModFolder, realGameModFolder } from './utils.ts';
 import { parseArgs } from './cli.ts';
 
 addEventListener('error', (ev) => {
@@ -37,9 +36,6 @@ addEventListener('unhandledrejection', (ev) => {
 
 const _args = await parseArgs();
 const config = await getConfig();
-
-// TODO: Upstream sar_on_renderer feature
-const AUTORENDER_PATCHED_SAR = true;
 
 await createFolders(config);
 
@@ -203,69 +199,12 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos['data']) => {
   }
 };
 
-let gameProcess: Deno.ChildProcess | null = null;
-let gameProcessName = '';
-let timeout: number | null = null;
-
-/**
- * Kills the game process.
- */
-const killGameProcess = () => {
-  if (!gameProcess) {
-    return;
-  }
-
-  // Negative PID in Unix means killing the entire process group.
-  const pid = Deno.build.os === 'windows' ? gameProcess.pid : -gameProcess.pid;
-
-  logger.info(`Killing process ${pid}`);
-
-  //Deno.kill(pid, "SIGKILL");
-
-  // Deno.kill does not work for some reason :>
-  if (Deno.build.os !== 'windows') {
-    const kill = new Deno.Command('pkill', { args: [gameProcessName] });
-    const { code } = kill.outputSync();
-    logger.info(`pkill ${gameProcessName}`, { code });
-  } else {
-    Deno.kill(pid, 'SIGKILL');
-  }
-
-  logger.info('killed');
-};
-
-Deno.addSignalListener('SIGINT', () => {
-  if (gameProcess) {
-    try {
-      logger.info('Handling termination...');
-      killGameProcess();
-      logger.info('Termination game process');
-    } catch (err) {
-      logger.error(err);
-    } finally {
-      gameProcess = null;
-    }
-  }
-
-  Deno.exit();
-});
+const gameProcess = new GameProcess();
 
 /**
  * Server requests the start of a render after it got the confirmed videos.
  */
 const handleMessageStart = async (game: GameConfig) => {
-  let autoexecFile = '';
-
-  const autoexecCleanup = async () => {
-    if (autoexecFile) {
-      try {
-        await Deno.remove(autoexecFile);
-      } catch (err) {
-        logger.error(`Failed to remove temporary autoexec ${autoexecFile}`, err);
-      }
-    }
-  };
-
   try {
     if (!state.videos.length) {
       throw new Error('No videos available');
@@ -273,80 +212,29 @@ const handleMessageStart = async (game: GameConfig) => {
 
     state.status = ClientStatus.Rendering;
 
-    const [autoexecFilePath, command] = await prepareGameLaunch(game);
+    // Render the video.
+    await gameProcess.launch({
+      config,
+      game,
+      videos: state.videos,
+    });
 
-    autoexecFile = autoexecFilePath;
-
-    logger.info('Spawning process...');
-
-    gameProcess = command.spawn();
-    gameProcessName = game.proc;
-
-    logger.info(`Spawned process ${gameProcess.pid}`);
-
-    const calculatedTimeout = state.videos.reduce(
-      (total, video) => {
-        return total + (video.demo_playback_time * config.autorender['scale-timeout']) +
-          config.autorender['load-timeout'];
-      },
-      config.autorender['base-timeout'],
-    );
-
-    logger.info(`Process timeout in ${calculatedTimeout.toFixed(2)} seconds`);
-
-    timeout = setTimeout(() => {
-      if (gameProcess) {
-        try {
-          logger.warn('Timeout of process');
-          killGameProcess();
-          logger.warn('Killed process');
-        } catch (err) {
-          logger.error(err);
-        } finally {
-          gameProcess = null;
-        }
-      }
-    }, calculatedTimeout * 1_000);
-
-    const { code } = await gameProcess.output();
-
-    clearTimeout(timeout);
-    gameProcess = null;
-    timeout = null;
-
-    logger.info('Game exited', { code });
-
-    // Let the upload thread do the work.
-    const autorenderDir = realGameModFolder(game, config.autorender['folder-name']);
-
+    // Let another thread handle the upload.
     upload.postMessage({
       type: UploadWorkerDataType.Upload,
       data: {
         videos: state.videos,
-        autorenderDir,
       },
     });
   } finally {
-    if (timeout !== null) {
-      clearTimeout(timeout);
-      timeout = null;
-    }
+    gameProcess.clearTimeout();
 
     state.toDownload = 0;
     state.videos = [];
     state.status = ClientStatus.Idle;
 
-    if (gameProcess) {
-      try {
-        killGameProcess();
-      } catch (err) {
-        logger.error(err);
-      } finally {
-        gameProcess = null;
-      }
-    }
-
-    await autoexecCleanup();
+    gameProcess.tryKillGameProcess();
+    await gameProcess.removeAutoexec();
 
     fetchNextVideos();
   }
@@ -506,140 +394,4 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
 
     fetchNextVideos();
   }
-};
-
-/**
- * Get window width and height.
- * NOTE: This will also be used for the custom crosshair.
- */
-const getGameResolution = (): [number, number] => {
-  // Quality for each video should be the same.
-  // This is handled server-side.
-  const { render_quality } = state.videos.at(0)!;
-
-  switch (render_quality) {
-    case RenderQuality.SD_480p:
-      // NOTE: This is 16:10 for now...
-      return [768, 480];
-    case RenderQuality.HD_720p:
-      return [1280, 720];
-    case RenderQuality.FHD_1080p:
-      return [1920, 1080];
-    case RenderQuality.QHD_1440p:
-      return [2560, 1440];
-    case RenderQuality.UHD_2160p:
-      return [3840, 2160];
-    default:
-      return [1280, 720];
-  }
-};
-
-/**
- * Game specific quirks.
- */
-const getAutoExecQuirks = (game: GameConfig) => {
-  let sarTogglewait: string | null = 'sar_togglewait';
-  let sndRestart: string | null = 'sar_on_demo_start snd_restart';
-
-  switch (game.mod) {
-    case 'TWTM':
-      // No snd_restart here because it crashes the game.
-      sndRestart = null;
-      break;
-    case 'Portal 2 Speedrun Mod':
-      // No sar_togglewait here because the smsm plugin enables it.
-      sarTogglewait = null;
-      break;
-    default:
-      break;
-  }
-
-  return [
-    sarTogglewait,
-    sndRestart,
-  ].filter((quirk) => quirk !== null) as string[];
-};
-
-/**
- * Prepares autoexec.cfg to queue all demos.
- */
-const prepareGameLaunch = async (game: GameConfig): Promise<[string, Deno.Command]> => {
-  const getDemoName = ({ video_id }: VideoPayload) => {
-    return join(config.autorender['folder-name'], video_id.toString());
-  };
-
-  const exitCommand = 'wait 300;exit';
-
-  const playdemo = (
-    video: VideoPayload,
-    index: number,
-    videos: VideoPayload[],
-  ) => {
-    const demoName = getDemoName(video);
-    const isLastVideo = index == videos.length - 1;
-    const nextCommand = isLastVideo ? exitCommand : `autorender_video_${index + 1}`;
-    const renderOptions = video.render_options?.split('\n')?.join(';') ?? '';
-
-    return (
-      `sar_alias autorender_video_${index} "${renderOptions};playdemo ${demoName};` +
-      `sar_alias autorender_queue ${nextCommand}"`
-    );
-  };
-
-  const usesQueue = state.videos.length > 1;
-  const nextCommand = usesQueue ? 'autorender_queue' : exitCommand;
-  const eventCommand = AUTORENDER_PATCHED_SAR ? 'sar_on_renderer_finish' : 'sar_on_demo_stop';
-
-  const [width, height] = getGameResolution();
-
-  const firstVideo = state.videos.at(0)!;
-  const renderOptions = firstVideo.render_options?.split('\n')?.join(';') ?? '';
-
-  const autoexec = [
-    `exec ${game.cfg}`,
-    ...getAutoExecQuirks(game),
-    `sar_quickhud_set_texture crosshair/quickhud${height}-`,
-    `cl_crosshairgap ${height / 120}`,
-    ...state.videos.slice(1).map(playdemo),
-    ...(usesQueue ? ['sar_alias autorender_queue autorender_video_0'] : []),
-    `${eventCommand} "${nextCommand}"`,
-    `${renderOptions};playdemo ${getDemoName(firstVideo)}`,
-  ];
-
-  const autoexecFile = realGameModFolder(game, 'cfg', 'autoexec.cfg');
-
-  await Deno.writeTextFile(autoexecFile, autoexec.join('\n'));
-
-  const getCommand = (): [string, string] => {
-    const command = gameFolder(game, game.exe);
-
-    switch (Deno.build.os) {
-      case 'windows':
-        return [command, game.exe];
-      case 'linux':
-        return ['/bin/bash', command];
-      default:
-        throw new Error('Unsupported operating system');
-    }
-  };
-
-  const [command, argv0] = getCommand();
-
-  const args: string[] = [
-    argv0,
-    '-game',
-    game.mod === 'portalreloaded' ? 'portal2' : game.sourcemod ? `../../sourcemods/${game.mod}` : game.mod,
-    '-novid',
-    // TODO: vulkan is not always available
-    //"-vulkan",
-    '-windowed',
-    '-w',
-    width.toString(),
-    '-h',
-    height.toString(),
-  ];
-
-  logger.info(JSON.stringify({ command, args }));
-
-  return [autoexecFile, new Deno.Command(command, { args })];
 };
