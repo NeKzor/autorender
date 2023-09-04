@@ -12,7 +12,7 @@ export const AutorenderConnectUri = {
 };
 
 export const AutorenderBaseApi = {
-  dev: 'wss://autorender.portal2.local/connect/client',
+  dev: 'https://autorender.portal2.local',
   prod: 'https://autorender.nekz.me',
 };
 
