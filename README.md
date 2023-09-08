@@ -48,13 +48,14 @@ Render Portal 2 demos on-demand with: `/render demo <file>`
 | `/render message` | Render an already uploaded demo file by providing a message link or an ID.        |
 | `/render latest`  | Render an already uploaded demo file by automatically finding the latest message. |
 | `/preset create`  | Create a custom preset for executing render commands.                             |
-| `/preset get`     | Display and edit a custom preset.                                                 |
+| `/preset get`     | Show a custom preset.                                                             |
+| `/preset edit`    | Edit a custom preset.                                                             |
 | `/preset delete`  | Delete a created custom preset.                                                   |
-| `/preset help`    | Display all available render commands.                                            |
+| `/preset help`    | Show all available render commands.                                               |
 | `/watch latest`   | List latest requested videos.                                                     |
 | `/watch random`   | Watch a random requested video.                                                   |
 | `/fixup`          | Fix an old Portal 2 demo file to make it work on the latest engine version.       |
-| `/bot info`       | Display information about the bot.                                                |
+| `/bot info`       | Show information about the bot.                                                   |
 
 ## Local Development
 
@@ -416,8 +417,8 @@ server {
 - Bot improvements
   - ~~Edit original interaction message or create a followup message~~
   - ~~Improve `/bot info`~~
-  - Add `/preset edit`
-  - Update `/preset get` message after edit
+  - ~~Add `/preset edit`~~
+  - ~~Update `/preset get` message after edit~~
 - Frontend design
   - Pages
     - ~~Generate video preview + thumbnails~~
