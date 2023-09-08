@@ -22,7 +22,7 @@ import { UploadWorkerDataType } from './upload.ts';
 import { GameConfig, getConfig } from './config.ts';
 import { WorkerDataType } from './worker.ts';
 import { UserAgent } from './constants.ts';
-import { createFolders, GameProcess, prepareGameLaunch } from './game.ts';
+import { createFolders, GameProcess } from './game.ts';
 import { gameModFolder, realGameModFolder } from './utils.ts';
 import { parseArgs } from './cli.ts';
 

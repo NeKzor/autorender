@@ -300,7 +300,7 @@ export const runBenchmark = async (
       await Deno.remove(videoFile);
       // deno-lint-ignore no-empty
     } catch {}
-    
+
     const start = performance.now();
     const { killed, code } = await gameProcess.launch({
       config,
@@ -351,7 +351,7 @@ export const runBenchmark = async (
   } catch (err) {
     options.verboseMode && console.error(err);
     console.log(colors.red('Error'));
-    
+
     gameProcess.tryKillGameProcess();
     await gameProcess.removeAutoexec();
 
