@@ -46,6 +46,20 @@ createCommand({
       ],
     },
     {
+      name: 'edit',
+      description: 'Edit a render preset!',
+      type: ApplicationCommandOptionTypes.SubCommand,
+      options: [
+        {
+          name: 'name',
+          description: 'The name of the preset to edit.',
+          type: ApplicationCommandOptionTypes.String,
+          required: true,
+          autocomplete: true,
+        },
+      ],
+    },
+    {
       name: 'delete',
       description: 'Delete a render preset!',
       type: ApplicationCommandOptionTypes.SubCommand,
@@ -72,6 +86,7 @@ createCommand({
       case InteractionTypes.ApplicationCommandAutocomplete: {
         switch (subCommand.name) {
           case 'get':
+          case 'edit':
           case 'delete': {
             const args = [...(subCommand.options?.values() ?? [])];
             const name = args.find((arg) => arg.name === 'name');
@@ -177,7 +192,9 @@ createCommand({
                 interaction.id,
                 interaction.token,
                 {
-                  type: InteractionResponseTypes.UpdateMessage,
+                  type: interaction.message
+                    ? InteractionResponseTypes.UpdateMessage
+                    : InteractionResponseTypes.ChannelMessageWithSource,
                   data: {
                     content: `📃️ ${isEdit ? 'Updating' : 'Creating'} preset...`,
                     flags: MessageFlags.Ephemeral,
@@ -310,6 +327,67 @@ createCommand({
               );
             } catch (err) {
               console.error(err);
+            }
+            break;
+          }
+          case 'edit': {
+            const args = [...(subCommand.options?.values() ?? [])];
+            const name = args.find((arg) => arg.name === 'name')!
+              .value as string;
+
+            try {
+              const preset = await Presets.find(interaction.user.id, name);
+
+              if (!preset) {
+                await bot.helpers.sendInteractionResponse(
+                  interaction.id,
+                  interaction.token,
+                  {
+                    type: InteractionResponseTypes.ChannelMessageWithSource,
+                    data: {
+                      content: `❌️ Failed to find preset.`,
+                      flags: MessageFlags.Ephemeral,
+                    },
+                  },
+                );
+                return;
+              }
+
+              await bot.helpers.sendInteractionResponse(
+                interaction.id,
+                interaction.token,
+                {
+                  type: InteractionResponseTypes.Modal,
+                  data: {
+                    title: `Edit preset "${preset.name}"`,
+                    customId: `preset_edit_${preset.name}`,
+                    components: [
+                      {
+                        type: MessageComponentTypes.ActionRow,
+                        components: [
+                          {
+                            type: MessageComponentTypes.InputText,
+                            style: TextStyles.Paragraph,
+                            customId: 'options',
+                            label: 'Options',
+                            placeholder: 'Please enter your render commands e.g. sar_ihud 1',
+                            minLength: 1,
+                            maxLength: 1024,
+                            required: true,
+                            value: preset.options,
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              );
+            } catch (err) {
+              console.error(err);
+
+              await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+                content: `❌️ Failed to edit preset.`,
+              });
             }
             break;
           }
