@@ -157,12 +157,14 @@ export function getPublicUrl(url: string) {
  * @param customId - The full custom ID of the interaction.
  * @returns - Custom name and ID.
  */
-export function parseCustomId(customId?: string): [string, string] {
+export function parseCustomId(customId?: string): [string, string?] {
   const id = customId ?? '';
   const subId = id.slice(id.indexOf('_') + 1);
   const index = subId.indexOf('_');
-  return [
-    subId.slice(0, index),
-    subId.slice(index + 1),
-  ];
+  return index !== -1
+    ? [
+      subId.slice(0, index),
+      subId.slice(index + 1),
+    ]
+    : [subId];
 }

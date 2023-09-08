@@ -121,7 +121,11 @@ createCommand({
         switch (button) {
           case 'edit': {
             try {
-              const preset = await Presets.find(interaction.user.id, name!);
+              if (!name?.length) {
+                throw new Error(`Invalid preset name.`);
+              }
+
+              const preset = await Presets.find(interaction.user.id, name);
               if (!preset) {
                 await bot.helpers.sendInteractionResponse(
                   interaction.id,
