@@ -211,7 +211,8 @@ const render = async (
       const preset = await Presets.find(interaction.user.id, presetName);
       if (!preset) {
         await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-          content: `❌️ Unable to find preset.`,
+          content: '❌️ This preset does not exist. Please make sure to create your own preset first.' +
+            ' Use `/preset help` for more info.',
         });
         return;
       }
