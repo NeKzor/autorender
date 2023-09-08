@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { logger } from '../logger.ts';
-
 export const BOARD_BASE_API = 'https://board.portal2.sr';
 export const AUTORENDER_BASE_API = 'https://autorender.portal2.sr/api/v1';
 
@@ -76,7 +74,6 @@ export const getChangelog = async (options?: ChangelogOptions) => {
   const query = params.toString();
 
   const url = `${BOARD_BASE_API}/changelog/json?${query}`;
-  logger.info(`[GET] ${url}`);
 
   const res = await fetch(url, {
     headers: {
@@ -85,7 +82,6 @@ export const getChangelog = async (options?: ChangelogOptions) => {
   });
 
   if (!res.ok) {
-    logger.error('Failed to fetch changelog:', res.status);
     return null;
   }
 
@@ -114,7 +110,6 @@ export const fetchDemo = async (url: string) => {
 
   const location = res.headers.get('Location');
   if (!location) {
-    logger.error({ url: res.url, headers: res.headers });
     throw new Error('Unable to redirect without location.');
   }
 
@@ -153,8 +148,6 @@ export interface VideoInfo {
 export const getInfo = async (changelogId: string) => {
   const url = `${AUTORENDER_BASE_API}/video/${changelogId}/info`;
 
-  logger.info(`[GET] ${url}`);
-
   const res = await fetch(url, {
     headers: {
       'User-Agent': Deno.env.get('USER_AGENT')!,
@@ -162,7 +155,6 @@ export const getInfo = async (changelogId: string) => {
   });
 
   if (!res.ok) {
-    logger.error('Failed to get video info:', res.status);
     return null;
   }
 
