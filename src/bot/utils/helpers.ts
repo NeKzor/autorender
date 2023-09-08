@@ -151,3 +151,18 @@ export function escapeMarkdown(text: string) {
 export function getPublicUrl(url: string) {
   return new URL(url, Deno.env.get('AUTORENDER_PUBLIC_URI')!);
 }
+
+/**
+ * Split the custom ID into its name and ID.
+ * @param customId - The full custom ID of the interaction.
+ * @returns - Custom name and ID.
+ */
+export function parseCustomId(customId?: string): [string, string] {
+  const id = customId ?? '';
+  const subId = id.slice(id.indexOf('_') + 1);
+  const index = subId.indexOf('_');
+  return [
+    subId.slice(0, index),
+    subId.slice(index + 1),
+  ];
+}

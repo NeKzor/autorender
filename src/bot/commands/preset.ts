@@ -17,7 +17,7 @@ import {
   TextStyles,
 } from '@discordeno/bot';
 import { Presets, RenderPreset } from '../services/presets.ts';
-import { escapeMarkdown } from '../utils/helpers.ts';
+import { escapeMarkdown, parseCustomId } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';
 
 createCommand({
@@ -116,7 +116,7 @@ createCommand({
         break;
       }
       case InteractionTypes.MessageComponent: {
-        const [_command, button, name] = interaction.data?.customId?.split('_') ?? [];
+        const [button, name] = parseCustomId(interaction.data?.customId);
 
         switch (button) {
           case 'edit': {
@@ -180,7 +180,7 @@ createCommand({
         break;
       }
       case InteractionTypes.ModalSubmit: {
-        const [_command, subCommand, presetName] = interaction.data?.customId?.split('_', 3) ?? [];
+        const [subCommand, presetName] = parseCustomId(interaction.data?.customId);
 
         switch (subCommand) {
           case 'create':
