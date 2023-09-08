@@ -521,7 +521,14 @@ createCommand({
                 {
                   type: InteractionResponseTypes.ChannelMessageWithSource,
                   data: {
-                    content: 'The following commands are supported:',
+                    content: [
+                      '`/preset create` - create a new preset',
+                      '`/preset get` - show a preset',
+                      '`/preset edit` - update a preset',
+                      '`/preset delete` - delete a preset',
+                      '',
+                      'The following commands are supported:',
+                    ].join('\n'),
                     files: [
                       {
                         name: 'supported_preset_commands.txt',
