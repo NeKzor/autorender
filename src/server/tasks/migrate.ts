@@ -19,6 +19,8 @@ import { formatCmTime } from './portal2_sr.ts';
 
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
 
+await logger.initFileLogger('/logs/server/migrate');
+
 // rsync: rsync -avvvhrP --stats rsync://board.portal2.sr:/demos demos
 // volume: demos:/storage/demos/migration:ro
 const demosDir = join(Storage.Demos, 'migration');
