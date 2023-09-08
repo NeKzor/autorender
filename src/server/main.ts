@@ -756,7 +756,8 @@ apiV1
     const videos = await db.query<Pick<Video, 'board_changelog_id'>>(
       `select board_changelog_id
          from videos
-        where board_changelog_id in (${ids.map(() => '?')})`,
+        where board_changelog_id in (${ids.map(() => '?')})
+          and video_url is not null`,
       [
         ...ids,
       ],
