@@ -177,7 +177,7 @@ createCommand({
                 interaction.id,
                 interaction.token,
                 {
-                  type: InteractionResponseTypes.ChannelMessageWithSource,
+                  type: InteractionResponseTypes.UpdateMessage,
                   data: {
                     content: `📃️ ${isEdit ? 'Updating' : 'Creating'} preset...`,
                     flags: MessageFlags.Ephemeral,
