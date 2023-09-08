@@ -53,6 +53,4 @@ const update = async () => {
   }
 };
 
-await update();
-
 setInterval(update, STALE_VIDEO_UPDATE_INTERVAL);

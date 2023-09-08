@@ -346,6 +346,4 @@ const update = async () => {
   }
 };
 
-await update();
-
 setInterval(update, BOARD_INTEGRATION_UPDATE_INTERVAL);

@@ -213,6 +213,4 @@ const update = async () => {
   }
 };
 
-await update();
-
 setInterval(update, POST_PROCESS_UPDATE_INTERVAL);
