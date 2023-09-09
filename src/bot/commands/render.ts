@@ -217,7 +217,7 @@ const render = async (
         return;
       }
 
-      body.append('render_options', preset.options);
+      body.append('render_options', preset.options.replace('sar_force_fov', 'sar_on_config_exec sar_force_fov'));
     }
 
     if (!body.get('title')) {
