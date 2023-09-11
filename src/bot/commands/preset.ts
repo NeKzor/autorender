@@ -17,7 +17,7 @@ import {
   TextStyles,
 } from '@discordeno/bot';
 import { Presets, RenderPreset } from '../services/presets.ts';
-import { escapeMarkdown, parseCustomId } from '../utils/helpers.ts';
+import { parseCustomId } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';
 
 createCommand({
@@ -668,7 +668,7 @@ const validatePresetOptions = (options: string) => {
     }
 
     if (!/^[a-zA-Z0-9_ .=# ]+$/g.test(command)) {
-      errors.push(`Invalid character found: "${escapeMarkdown(command)}"`);
+      errors.push(`Invalid character found: "${command}"`);
       continue;
     }
 
@@ -680,13 +680,13 @@ const validatePresetOptions = (options: string) => {
 
     console.log({ commandName, commandValue, restValues });
     if (!supported) {
-      errors.push(`Command not supported: "${escapeMarkdown(command)}"`);
+      errors.push(`Command not supported: "${command}"`);
       continue;
     }
 
     if (supported.noArgs) {
       if (commandValue !== undefined) {
-        errors.push(`Command is not allowed to have any values: "${escapeMarkdown(command)}"`);
+        errors.push(`Command is not allowed to have any values: "${command}"`);
       } else {
         result.push(`${commandName}`);
       }
@@ -695,21 +695,21 @@ const validatePresetOptions = (options: string) => {
 
     if (supported.validValues && !supported.validValues.some((validValue) => validValue === commandValue)) {
       errors.push(
-        `Value must be one of the following ${supported.validValues.join(', ')}: "${escapeMarkdown(command)}"`,
+        `Value must be one of the following ${supported.validValues.join(', ')}: "${command}"`,
       );
       continue;
     }
 
     if (supported.argType === 'float' || supported.argType === 'integer') {
       if (argCount !== 1) {
-        errors.push(`Expected only one value: "${escapeMarkdown(command)}"`);
+        errors.push(`Expected only one value: "${command}"`);
         continue;
       }
 
       const value = supported.argType === 'float' ? parseFloat(commandValue!) : parseInt(commandValue!, 10);
 
       if (isNaN(value)) {
-        errors.push(`Value is not of type ${supported.argType}: "${escapeMarkdown(command)}"`);
+        errors.push(`Value is not of type ${supported.argType}: "${command}"`);
         continue;
       }
 
@@ -717,12 +717,12 @@ const validatePresetOptions = (options: string) => {
         const [min, max] = supported.range;
 
         if (min !== undefined && value < min) {
-          errors.push(`Minimum value must be ${min}: "${escapeMarkdown(command)}"`);
+          errors.push(`Minimum value must be ${min}: "${command}"`);
           continue;
         }
 
         if (max !== undefined && value > max) {
-          errors.push(`Maximum value must be ${max}: "${escapeMarkdown(command)}"`);
+          errors.push(`Maximum value must be ${max}: "${command}"`);
           continue;
         }
       }
