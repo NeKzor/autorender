@@ -667,7 +667,7 @@ const validatePresetOptions = (options: string) => {
       continue;
     }
 
-    if (!/^[a-zA-Z0-9_ .= ]+$/g.test(command)) {
+    if (!/^[a-zA-Z0-9_ .=# ]+$/g.test(command)) {
       errors.push(`Invalid character found: "${escapeMarkdown(command)}"`);
       continue;
     }
