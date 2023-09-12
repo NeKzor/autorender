@@ -101,6 +101,11 @@ if (
     if (ev.key === 'k' && ev.ctrlKey && navSearchInput !== document.activeElement) {
       ev.preventDefault();
       navSearchInput.focus();
+      const length = navSearchInput.value.length;
+      navSearchInput.setSelectionRange(length, length);
+    } else if (ev.key === 'Escape' && navSearchInput === document.activeElement) {
+      ev.preventDefault();
+      navSearchInput.blur();
     }
   };
 
