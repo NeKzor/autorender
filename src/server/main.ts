@@ -785,6 +785,195 @@ apiV1
 
     ctx.response.redirect(video.video_url);
   })
+  // Search a leaderboard run.
+  .get('/search', async (ctx) => {
+    interface SearchResponse {
+      end: boolean;
+      results: {
+        comment: string;
+        cur_rank: number;
+        date: string;
+        id: number;
+        map: string;
+        map_id: number;
+        obsoleted: number;
+        orig_rank: number;
+        time: number;
+        user: string;
+        user_id: string;
+        views: number;
+        share_id: string;
+      }[];
+    }
+
+    type VideoSelect =
+      & Pick<
+        Video,
+        | 'comment'
+        | 'created_at'
+        | 'board_changelog_id'
+        | 'board_rank'
+        | 'demo_time_score'
+        | 'demo_player_name'
+        | 'board_profile_number'
+        | 'views'
+        | 'share_id'
+      >
+      & Pick<MapModel, 'alias' | 'best_time_id'>;
+
+    const searchResult = (video: VideoSelect): SearchResponse['results']['0'] => {
+      return {
+        comment: video.comment,
+        cur_rank: 0,
+        date: video.created_at,
+        id: video.board_changelog_id,
+        map: video.alias,
+        map_id: video.best_time_id,
+        obsoleted: 0,
+        orig_rank: video.board_rank,
+        time: video.demo_time_score,
+        user: video.demo_player_name,
+        user_id: video.board_profile_number,
+        views: video.views,
+        share_id: video.share_id,
+      };
+    };
+
+    const query = ctx.request.url.searchParams.get('q')?.trim() ?? '';
+
+    if (!query.length) {
+      const videos = await db.query<VideoSelect>(
+        `select videos.created_at
+              , videos.board_changelog_id
+              , videos.board_rank
+              , videos.demo_time_score
+              , videos.demo_player_name
+              , videos.board_profile_number
+              , videos.views
+              , videos.comment
+              , videos.share_id
+              , maps.alias
+              , maps.best_time_id
+           from videos
+           join maps
+             on maps.map_id = videos.map_id
+          where board_changelog_id is not null
+            and video_url is not null
+          order by created_at desc
+          limit 21`,
+      );
+
+      return Ok(
+        ctx,
+        {
+          end: false,
+          results: videos.map(searchResult),
+        } satisfies SearchResponse,
+      );
+    }
+
+    /**
+     * Syntax:
+     *     <map> [rank]
+     *     <map> [wr]
+     *     <map> [time]
+     *     <map> [player]
+     *     [player] <map>
+     */
+
+    const isWr = query.endsWith(' wr') || query.endsWith(' world record');
+    const matchedRank = / ([1-9]+)(st|nd|rd|th)$/g.exec(query)?.at(1) ?? / rank ([1-9]+)$/g.exec(query)?.at(1);
+
+    const rank = isWr ? 1 : Number(matchedRank);
+
+    const [_g1, _g2, min, sec, cs] = [.../ (([0-9]):)?([0-9]?[0-9])\.([0-9][0-9])$/g.exec(query) ?? []];
+    const time = (Number(min ?? 0) * 60 * 100) + (Number(sec ?? 0) * 100) + Number(cs ?? 0);
+
+    const words = query.split(' ');
+    const lastIndex = (isWr && words.at(-2) === 'world') || (!isNaN(rank) && words.at(-2) === 'rank')
+      ? -2
+      : isWr || matchedRank || time
+      ? -1
+      : 0;
+
+    lastIndex && words.splice(lastIndex, -lastIndex);
+
+    const mapNames = [
+      ...new Set([
+        words.join(' '),
+        words.slice(1).join(' '),
+        words.slice(0, -1).join(' '),
+      ]),
+    ].filter((name) => name.length > 0);
+
+    const [map] = mapNames.length
+      ? await db.query<Pick<MapModel, 'map_id' | 'alias'>>(
+        `select map_id
+              , alias
+           from maps
+          where best_time_id is not null
+            and (${mapNames.map(() => `maps.alias like ?`).join(' or ')})`,
+        mapNames,
+      )
+      : [];
+
+    if (!map) {
+      return Ok(
+        ctx,
+        {
+          end: true,
+          results: [],
+        } satisfies SearchResponse,
+      );
+    }
+
+    const joinedWords = words.join(' ').toLowerCase();
+    const mapName = map.alias.toLocaleLowerCase();
+    const playerName = joinedWords.startsWith(mapName) && !joinedWords.endsWith(mapName)
+      ? words.at(-1) ?? ''
+      : joinedWords.endsWith(mapName) && !joinedWords.startsWith(mapName)
+      ? words.at(0) ?? ''
+      : '';
+
+    const videos = await db.query<VideoSelect>(
+      `select videos.created_at
+            , videos.board_changelog_id
+            , videos.board_rank
+            , videos.demo_time_score
+            , videos.demo_player_name
+            , videos.board_profile_number
+            , videos.views
+            , videos.comment
+            , videos.share_id
+            , maps.alias
+            , maps.best_time_id
+         from videos
+         join maps
+           on maps.map_id = videos.map_id
+        where board_changelog_id is not null
+          and video_url is not null
+          and videos.map_id = ?
+          ${time === 0 && isNaN(rank) && playerName.length ? `and videos.demo_player_name sounds like ?` : ''}
+          ${time !== 0 ? ' and demo_time_score = ?' : ''}
+          ${!isNaN(rank) ? ' and board_rank = ?' : ''}
+     order by created_at desc
+        limit 21`,
+      [
+        map.map_id,
+        ...(time === 0 && isNaN(rank) && playerName.length ? [playerName] : []),
+        ...(time !== 0 ? [time] : []),
+        ...(!isNaN(rank) ? [rank] : []),
+      ],
+    );
+
+    Ok(
+      ctx,
+      {
+        end: false,
+        results: videos.map(searchResult),
+      } satisfies SearchResponse,
+    );
+  })
   .get('/(.*)', (ctx) => {
     Err(ctx, Status.NotFound, 'Route not found :(');
   });

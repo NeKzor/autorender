@@ -69,3 +69,43 @@ Deno.test('Get redirect to video by changelog ID', async () => {
 
   await res.blob();
 });
+
+Deno.test('Search videos', async () => {
+  // TODO: Refactor
+  interface SearchResponse {
+    end: boolean;
+    results: {
+      comment: string;
+      cur_rank: number;
+      date: string;
+      id: number;
+      map: string;
+      map_id: number;
+      obsoleted: number;
+      orig_rank: number;
+      time: number;
+      user: string;
+      user_id: string;
+      views: number;
+      share_id: string;
+    }[];
+  }
+
+  const url = `${hostUri}/api/v1/search?q=${encodeURIComponent('123456 wr')}`;
+
+  console.info(`[GET] ${url}`);
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'User-Agent': Deno.env.get('USER_AGENT')!,
+    },
+  });
+
+  assertEquals(res.status, 200);
+
+  const search = await res.json() as SearchResponse;
+
+  assertEquals(Array.isArray(search.results), true);
+  assertEquals(search.results.length, 0);
+});
