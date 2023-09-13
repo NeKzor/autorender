@@ -860,7 +860,7 @@ apiV1
           where board_changelog_id is not null
             and video_url is not null
           order by created_at desc
-          limit 21`,
+          limit 30`,
       );
 
       return Ok(
@@ -966,10 +966,15 @@ apiV1
       ],
     );
 
+    const isEnd = videos.length !== 21;
+    if (!isEnd) {
+      videos.splice(-1, 1);
+    }
+
     Ok(
       ctx,
       {
-        end: false,
+        end: isEnd,
         results: videos.map(searchResult),
       } satisfies SearchResponse,
     );

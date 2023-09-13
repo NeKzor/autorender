@@ -91,21 +91,83 @@ Deno.test('Search videos', async () => {
     }[];
   }
 
-  const url = `${hostUri}/api/v1/search?q=${encodeURIComponent('123456 wr')}`;
+  {
+    const url = `${hostUri}/api/v1/search?q=${encodeURIComponent('123456 wr')}`;
 
-  console.info(`[GET] ${url}`);
+    console.info(`[GET] ${url}`);
 
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'User-Agent': Deno.env.get('USER_AGENT')!,
-    },
-  });
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': Deno.env.get('USER_AGENT')!,
+      },
+    });
 
-  assertEquals(res.status, 200);
+    assertEquals(res.status, 200);
 
-  const search = await res.json() as SearchResponse;
+    const search = await res.json() as SearchResponse;
 
-  assertEquals(Array.isArray(search.results), true);
-  assertEquals(search.results.length, 0);
+    assertEquals(Array.isArray(search.results), true);
+    assertEquals(search.results.length, 0);
+  }
+
+  {
+    const url = `${hostUri}/api/v1/search?q`;
+
+    console.info(`[GET] ${url}`);
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': Deno.env.get('USER_AGENT')!,
+      },
+    });
+
+    assertEquals(res.status, 200);
+
+    const search = await res.json() as SearchResponse;
+
+    assertEquals(Array.isArray(search.results), true);
+    assertEquals(search.results.length, 30);
+  }
+
+  {
+    const url = `${hostUri}/api/v1/search?q=${encodeURIComponent('Bomb Flings wr')}`;
+
+    console.info(`[GET] ${url}`);
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': Deno.env.get('USER_AGENT')!,
+      },
+    });
+
+    assertEquals(res.status, 200);
+
+    const search = await res.json() as SearchResponse;
+
+    assertEquals(Array.isArray(search.results), true);
+    assertEquals(search.results.length >= 4, true);
+  }
+
+  {
+    const url = `${hostUri}/api/v1/search?q=${encodeURIComponent('Bridge Intro')}`;
+
+    console.info(`[GET] ${url}`);
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': Deno.env.get('USER_AGENT')!,
+      },
+    });
+
+    assertEquals(res.status, 200);
+
+    const search = await res.json() as SearchResponse;
+
+    assertEquals(Array.isArray(search.results), true);
+    assertEquals(search.results.length, 20);
+  }
 });
