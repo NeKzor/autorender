@@ -40,6 +40,7 @@ await import('./commands/bot.ts');
 await import('./commands/fixup.ts');
 await import('./commands/preset.ts');
 await import('./commands/render.ts');
+await import('./commands/vid.ts');
 await import('./commands/watch.ts');
 
 await import('./events/guildCreate.ts');

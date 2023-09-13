@@ -168,3 +168,21 @@ export function parseCustomId(customId?: string): [string, string?] {
     ]
     : [subId];
 }
+
+/**
+ * Format challenge mode time.
+ *    e.g. 600 = 6.00
+ *         6000 = 1:00.00
+ *
+ * @param time - Total centiseconds.
+ * @returns - Time as string.
+ */
+export function formatCmTime(time: number) {
+  const cs = time % 100;
+  const secs = Math.floor(time / 100);
+  const sec = secs % 60;
+  const min = Math.floor(secs / 60);
+  return (min > 0)
+    ? `${min}:${((sec < 10) ? `0${sec}` : `${sec}`)}.${((cs < 10) ? `0${cs}` : `${cs}`)}`
+    : `${sec}.${((cs < 10) ? `0${cs}` : `${cs}`)}`;
+}
