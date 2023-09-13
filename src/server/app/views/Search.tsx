@@ -73,10 +73,14 @@ export const loader: DataLoader = async ({ context }) => {
          on maps.map_id = videos.map_id
       where video_url is not null
         and deleted_at is null
-        and (title like ? or maps.name like ? or maps.alias like ?)
-   order by videos.created_at desc
+        and (
+             MATCH (title) AGAINST (?)
+          or maps.name sounds like ?
+          or maps.alias sounds like ?
+          or videos.demo_player_name sounds like ?)
       limit 16`,
     [
+      `${query}`,
       `%${query}%`,
       `%${query}%`,
       `%${query}%`,
