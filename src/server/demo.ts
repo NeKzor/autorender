@@ -266,14 +266,6 @@ const autoFixupOldPortal2Demo = async (
       return 'Corrupted demo.';
     }
 
-    const pointSurvey = dt.tables
-      .findIndex((table) => table.netTableName === 'DT_PointSurvey');
-
-    // Fixup not needed for already fixed or new demos.
-    if (pointSurvey === -1) {
-      return false;
-    }
-
     // Current fixup method does not work on these maps :>
     const mapsWhichUsePointSurvey = [
       'sp_a2_bts2',
@@ -282,6 +274,25 @@ const autoFixupOldPortal2Demo = async (
       'sp_a2_core',
       'sp_a2_bts4',
     ];
+
+    const pointCameraClasses = dt.serverClasses.filter((table) => table.className === 'CPointCamera');
+
+    // Fixup not needed for already fixed demos.
+    if (pointCameraClasses.length === 2) {
+      if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
+        return 'This demo has been corrupted by demofixup.';
+      }
+
+      return false;
+    }
+
+    const pointSurvey = dt.tables
+      .findIndex((table) => table.netTableName === 'DT_PointSurvey');
+
+    // Fixup not needed for new demos.
+    if (pointSurvey === -1) {
+      return false;
+    }
 
     if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
       return 'Unable to fix old Portal 2 demo.';
