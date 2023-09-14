@@ -131,8 +131,8 @@ export const supportedGames: Record<string, Partial<GameConfig>> = {
     : {}),
   'Thinking with Time Machine': {
     mod: 'TWTM',
-    exe: isWindows ? 'TWTM.exe' : 'TWTM.sh',
-    proc: isWindows ? 'TWTM.exe' : 'TWTM_linux',
+    exe: isWindows ? 'portal2.exe' : 'TWTM.sh',
+    proc: isWindows ? 'portal2.exe' : 'TWTM_linux',
   },
   'Portal Stories Mel': {
     mod: 'portal_stories',
