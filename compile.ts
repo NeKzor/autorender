@@ -4,12 +4,19 @@
  * SPDX-License-Identifier: MIT
  */
 
+import { join } from 'https://deno.land/std@0.192.0/path/mod.ts';
 import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
 import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
 
 const devHostname = 'autorender.portal2.local';
 
-const supportedTargets: Record<string, { target: string; binaryName: string }> = {
+type SupportedTarget = {
+  target: string;
+  binaryName: string;
+  steamappsDir?: string;
+};
+
+const supportedTargets: Record<string, SupportedTarget> = {
   linux: {
     target: 'x86_64-unknown-linux-gnu',
     binaryName: 'autorenderclient',
@@ -17,7 +24,18 @@ const supportedTargets: Record<string, { target: string; binaryName: string }> =
   windows: {
     target: 'x86_64-pc-windows-msvc',
     binaryName: 'autorenderclient.exe',
+    steamappsDir: 'C:\\\\Program Files (x86)\\\\Steam\\\\steamapps',
   },
+};
+
+export const supportedGames: Record<string, { sourcemod: boolean }> = {
+  'Portal 2': { sourcemod: false },
+  'Aperture Tag': { sourcemod: false },
+  'Thinking with Time Machine': { sourcemod: false },
+  'Portal Stories Mel': { sourcemod: false },
+  // 'Portal 2 Community Edition': { sourcemod: false },
+  'Portal Reloaded': { sourcemod: false },
+  'Portal 2 Speedrun Mod': { sourcemod: true },
 };
 
 const getCompilationOptions = (os: string) => {
@@ -41,24 +59,28 @@ const main = async () => {
       const systems = all ? ['linux', 'windows'] : [os ?? Deno.build.os];
 
       for (const os of systems) {
-        const { target, binaryName } = getCompilationOptions(os);
+        const { target, binaryName, steamappsDir } = getCompilationOptions(os);
         const developerFlags = release ? '' : `--unsafely-ignore-certificate-errors=${devHostname}`;
 
-        const command = new Deno.Command('deno', {
-          env: {
-            COMPILATION_TARGET: target,
-            COMPILATION_BINARY_NAME: binaryName,
-            COMPILATION_DEVELOPER_FLAGS: developerFlags,
-          },
-          args: [
-            'task',
-            '--cwd',
-            'src/client',
-            'compile',
-          ],
-        });
+        const env = {
+          COMPILATION_TARGET: target,
+          COMPILATION_BINARY_NAME: binaryName,
+          COMPILATION_DEVELOPER_FLAGS: developerFlags,
+          COMPILATION_READ_WRITE_GAME_PATHS: steamappsDir
+            ? ',' + Object.entries(supportedGames)
+              .map(([gameName, { sourcemod }]) => join(steamappsDir, sourcemod ? 'sourcemods' : 'common', gameName!))
+              .join(',')
+            : '',
+        };
 
-        await command
+        const args = [
+          'task',
+          '--cwd',
+          'src/client',
+          'compile',
+        ];
+
+        await new Deno.Command('deno', { env, args })
           .spawn()
           .output();
       }

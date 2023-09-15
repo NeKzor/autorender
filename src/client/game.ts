@@ -27,24 +27,29 @@ export const createFolders = async (config: Config | null) => {
   for (const game of config.games) {
     const commonDir = dirname(game.dir);
 
-    const { state: readAccess } = await Deno.permissions.request({
-      name: 'read',
-      path: commonDir,
-    });
+    const gameDirReadAccess = await Deno.permissions.query({ name: 'read', path: game.dir });
+    const gameDirWiteAccess = await Deno.permissions.query({ name: 'write', path: game.dir });
 
-    if (readAccess !== 'granted') {
-      logger.error(`Unable to get read access for path ${commonDir}`);
-      Deno.exit(1);
-    }
+    if (gameDirReadAccess.state !== 'granted' || gameDirWiteAccess.state !== 'granted') {
+      const { state: readAccess } = await Deno.permissions.request({
+        name: 'read',
+        path: commonDir,
+      });
 
-    const { state: writeAccess } = await Deno.permissions.request({
-      name: 'write',
-      path: commonDir,
-    });
+      if (readAccess !== 'granted') {
+        logger.error(`Unable to get read access for path ${commonDir}`);
+        Deno.exit(1);
+      }
 
-    if (writeAccess !== 'granted') {
-      logger.error(`Unable to get write access for path ${commonDir}`);
-      Deno.exit(1);
+      const { state: writeAccess } = await Deno.permissions.request({
+        name: 'write',
+        path: commonDir,
+      });
+
+      if (writeAccess !== 'granted') {
+        logger.error(`Unable to get write access for path ${commonDir}`);
+        Deno.exit(1);
+      }
     }
 
     try {
