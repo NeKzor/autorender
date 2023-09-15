@@ -93,11 +93,17 @@ const getGameResolution = (renderQuality: VideoPayload['render_quality']): [numb
 const getAutoexecQuirks = (game: GameConfig) => {
   let sarTogglewait: string | null = 'sar_togglewait';
   let sndRestart: string | null = 'sar_on_demo_start snd_restart';
+  let aliasExec: string | null = null;
+  let aliasSvCheats: string | null = null;
 
   switch (game.mod) {
     case 'TWTM':
       // No snd_restart here because it crashes the game.
       sndRestart = null;
+      // Disable exec because loading a map will execute autoexec.cfg again.
+      aliasExec = 'sar_on_config_exec alias exec ""';
+      // Disable sv_cheats after activation because the game will set it to 0.
+      aliasSvCheats = 'sar_on_config_exec alias sv_cheats ""';
       break;
     case 'Portal 2 Speedrun Mod':
       // No sar_togglewait here because the smsm plugin enables it.
@@ -110,6 +116,8 @@ const getAutoexecQuirks = (game: GameConfig) => {
   return [
     sarTogglewait,
     sndRestart,
+    aliasExec,
+    aliasSvCheats,
   ].filter((quirk) => quirk !== null) as string[];
 };
 
