@@ -182,7 +182,7 @@ const handleMessageVideos = async (videos: AutorenderMessageVideos['data']) => {
         const filename = join(autorenderDir, file.name);
 
         try {
-          Deno.remove(filename);
+          await Deno.remove(filename);
         } catch (err) {
           logger.error(
             `Failed to remove file ${filename}:`,
