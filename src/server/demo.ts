@@ -37,6 +37,7 @@ export interface SupportedGame {
   name: string;
   workshopAppId: WorkshopSteamAppId;
   tickrate: number;
+  autoFixup: boolean;
 }
 
 // NOTE: Make sure that these are inserted into the "games" table.
@@ -45,36 +46,43 @@ export const supportedGameMods: { [gameDir: string]: SupportedGame } = {
     name: 'Portal 2',
     workshopAppId: WorkshopSteamAppId.Portal2,
     tickrate: 60,
+    autoFixup: true,
   },
   [GameMod.ThinkingWithTimeMachine]: {
     name: 'Thinking With Time Machine',
     workshopAppId: WorkshopSteamAppId.ThinkingWithTimeMachine,
     tickrate: 60,
+    autoFixup: false,
   },
   [GameMod.ApertureTag]: {
     name: 'Aperture Tag',
     workshopAppId: WorkshopSteamAppId.ApertureTag,
     tickrate: 60,
+    autoFixup: false,
   },
   [GameMod.PortalStoriesMel]: {
     name: 'Portal Stories Mel',
     workshopAppId: WorkshopSteamAppId.None,
     tickrate: 60,
+    autoFixup: false,
   },
   // [GameMod.Portal2CommunityEdition]: {
   //   name: 'Portal 2: Community Edition',
   //   workshopAppId: WorkshopSteamAppId.Portal2CommunityEdition,
   //   tickrate: 60,
+  //   autoFixup: false,
   // },
   [GameMod.PortalReloaded]: {
     name: 'Portal Reloaded',
     workshopAppId: WorkshopSteamAppId.PortalReloaded,
     tickrate: 60,
+    autoFixup: false,
   },
   [GameMod.Portal2SpeedrunMod]: {
     name: 'Portal 2 SpeedrunMod',
     workshopAppId: WorkshopSteamAppId.None,
     tickrate: 60,
+    autoFixup: true,
   },
 };
 
@@ -134,7 +142,7 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
 
     let fixupResult: Awaited<ReturnType<typeof autoFixupOldPortal2Demo>> = false;
 
-    if (demo.gameDirectory === 'portal2' && !options?.isBoardDemo) {
+    if (supportedGame.autoFixup && !options?.isBoardDemo) {
       try {
         demo.readDataTables();
       } catch (err) {
@@ -295,7 +303,7 @@ const autoFixupOldPortal2Demo = async (
     }
 
     if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
-      return 'Unable to fix old Portal 2 demo.';
+      return 'This demo cannot be fixed.';
     }
 
     dt.tables.splice(pointSurvey, 1);
