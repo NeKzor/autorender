@@ -431,7 +431,8 @@
       "@nekz/sdp@0.4.0": "@nekz/sdp@0.4.0",
       "@nekz/sdp@0.5.0": "@nekz/sdp@0.5.0",
       "@nekz/sdp@0.6.0": "@nekz/sdp@0.6.0",
-      "@nekz/sdp@0.7.0": "@nekz/sdp@0.7.0"
+      "@nekz/sdp@0.7.0": "@nekz/sdp@0.7.0",
+      "@nekz/sdp@0.8.0": "@nekz/sdp@0.8.0"
     },
     "packages": {
       "@nekz/sdp@0.4.0": {
@@ -448,6 +449,10 @@
       },
       "@nekz/sdp@0.7.0": {
         "integrity": "sha512-51nNXemcnpvyQdPQrg/sFb+R0TcUuHKjyvy2pBEAx6OHaDdtFojA7vKE4BsJ9O7ekWSnuHLgHBYDlB+be2zKVw==",
+        "dependencies": {}
+      },
+      "@nekz/sdp@0.8.0": {
+        "integrity": "sha512-K4UcrUgmeqkGqSP3lk5TzTLruTu3YEhKkyGi1R5c1NE8qAD0VEosim0v6ClwaHQQLsrR85060ugtPI+uxtG1GQ==",
         "dependencies": {}
       }
     }
