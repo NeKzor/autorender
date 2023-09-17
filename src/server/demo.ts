@@ -115,6 +115,21 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       logger.error('readMessages', filePath, err);
     }
 
+    let fixupResult: Awaited<ReturnType<typeof autoFixupOldPortal2Demo>> = false;
+
+    if (supportedGame.autoFixup && !options?.isBoardDemo) {
+      fixupResult = await autoFixupOldPortal2Demo(
+        demo,
+        parser,
+        buffer,
+        filePath,
+      );
+
+      if (fixupResult === null || typeof fixupResult === 'string') {
+        return fixupResult;
+      }
+    }
+
     try {
       demo.readPackets();
     } catch (err) {
@@ -138,27 +153,6 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
 
     if (playbackTime > AUTORENDER_MAX_PLAYBACK_TIME) {
       return 'Demo is too long.';
-    }
-
-    let fixupResult: Awaited<ReturnType<typeof autoFixupOldPortal2Demo>> = false;
-
-    if (supportedGame.autoFixup && !options?.isBoardDemo) {
-      try {
-        demo.readDataTables();
-      } catch (err) {
-        logger.error('readDataTables', filePath, err);
-      }
-
-      fixupResult = await autoFixupOldPortal2Demo(
-        demo,
-        parser,
-        buffer,
-        filePath,
-      );
-
-      if (fixupResult === null || typeof fixupResult === 'string') {
-        return fixupResult;
-      }
     }
 
     const info = demo.findPacket(NetMessages.SvcServerInfo);
@@ -268,6 +262,12 @@ const autoFixupOldPortal2Demo = async (
   filePath: string,
 ) => {
   try {
+    demo.readDataTables();
+  } catch (err) {
+    logger.error('readDataTables', filePath, err);
+  }
+
+  try {
     const dt = demo.findMessage(Messages.DataTable)?.dataTable;
     if (!dt) {
       logger.error(`DataTable message not found in demo: ${filePath}`);
@@ -317,6 +317,8 @@ const autoFixupOldPortal2Demo = async (
 
     svc.className = 'CPointCamera';
     svc.dataTableName = 'DT_PointCamera';
+
+    demo.writeDataTables();
 
     const saved = parser.save(demo, buffer.byteLength);
 

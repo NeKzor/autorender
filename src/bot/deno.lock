@@ -29,7 +29,8 @@
       "@nekz/sdp@0.5.0": "@nekz/sdp@0.5.0",
       "@nekz/sdp@0.6.0": "@nekz/sdp@0.6.0",
       "@nekz/sdp@0.7.0": "@nekz/sdp@0.7.0",
-      "@nekz/sdp@0.8.0": "@nekz/sdp@0.8.0"
+      "@nekz/sdp@0.8.0": "@nekz/sdp@0.8.0",
+      "@nekz/sdp@0.9.0": "@nekz/sdp@0.9.0"
     },
     "packages": {
       "@discordeno/bot@19.0.0-next.0aeadbb": {
@@ -158,6 +159,10 @@
       },
       "@nekz/sdp@0.8.0": {
         "integrity": "sha512-K4UcrUgmeqkGqSP3lk5TzTLruTu3YEhKkyGi1R5c1NE8qAD0VEosim0v6ClwaHQQLsrR85060ugtPI+uxtG1GQ==",
+        "dependencies": {}
+      },
+      "@nekz/sdp@0.9.0": {
+        "integrity": "sha512-ndg3Ze/RZxsyX0QRhZ0HnkHUIth7/3jpTcABhzQzsXV0Y4MzpoZ0dj6KRqiBz+O3acZdk0/9gr40Smqc7S4ikg==",
         "dependencies": {}
       },
       "dotenv@16.3.1": {
