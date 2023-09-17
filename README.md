@@ -31,8 +31,9 @@ Render Portal 2 demos on-demand with: `/render demo <file>`
 ## Features
 
 - Render videos on-demand!
-- Support for workshop maps, powered by [sdp] and mirror
-- Runs in a secure runtime with [Deno]
+- Support for mods and workshop maps, powered by mirror
+- Automatic fixup of old demos, powered by [sdp]
+- Runs in a secure runtime using [Deno]
 - Written in 100% TypeScript
 - Hosted inside Docker containers
 
