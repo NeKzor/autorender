@@ -66,14 +66,13 @@ createCommand({
           dataTables: true,
         });
 
-      const demo = parser
-        .parse(buffer)
-        .adjustTicks()
-        .adjustRange();
+      const demo = parser.parse(buffer);
 
-      if (demo.gameDirectory !== 'portal2') {
+      // NOTE: The code here should be similar to autoFixupOldPortal2Demo in src/server/demo.ts
+
+      if (demo.gameDirectory !== 'portal2' && demo.gameDirectory !== 'Portal 2 SpeedrunMod') {
         await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-          content: `❌️ Only old Portal 2 demos can be fixed.`,
+          content: `❌️ Only Portal 2 demos require a fixup.`,
         });
         return;
       }
@@ -87,16 +86,6 @@ createCommand({
         return;
       }
 
-      const pointSurvey = dt.tables
-        .findIndex((table) => table.netTableName === 'DT_PointSurvey');
-
-      if (pointSurvey === -1) {
-        await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-          content: `❌️ This demo does not require a fixup.`,
-        });
-        return;
-      }
-
       const mapsWhichUsePointSurvey = [
         'sp_a2_bts2',
         'sp_a2_bts3',
@@ -104,6 +93,34 @@ createCommand({
         'sp_a2_core',
         'sp_a2_bts4',
       ];
+
+      const pointCameraClasses = dt.serverClasses.filter((table) => table.className === 'CPointCamera');
+
+      // Fixup not needed for already fixed demos.
+      if (pointCameraClasses.length === 2) {
+        if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
+          await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+            content: '❌️ This demo has been corrupted by demofixup.',
+          });
+          return;
+        }
+
+        await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+          content: `❌️ This demo has been fixed already.`,
+        });
+        return;
+      }
+
+      const pointSurvey = dt.tables
+        .findIndex((table) => table.netTableName === 'DT_PointSurvey');
+
+      // Fixup not needed for new demos.
+      if (pointSurvey === -1) {
+        await bot.helpers.editOriginalInteractionResponse(interaction.token, {
+          content: `❌️ This demo does not require a fixup because it was played on the latest version.`,
+        });
+        return;
+      }
 
       if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
         await bot.helpers.editOriginalInteractionResponse(
