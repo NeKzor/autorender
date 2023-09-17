@@ -79,7 +79,7 @@ export const supportedGameMods: { [gameDir: string]: SupportedGame } = {
     autoFixup: false,
   },
   [GameMod.Portal2SpeedrunMod]: {
-    name: 'Portal 2 SpeedrunMod',
+    name: 'Portal 2 Speedrun Mod',
     workshopAppId: WorkshopSteamAppId.None,
     tickrate: 60,
     autoFixup: true,

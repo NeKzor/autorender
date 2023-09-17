@@ -70,7 +70,7 @@ createCommand({
 
       // NOTE: The code here should be similar to autoFixupOldPortal2Demo in src/server/demo.ts
 
-      if (demo.gameDirectory !== 'portal2' && demo.gameDirectory !== 'Portal 2 SpeedrunMod') {
+      if (demo.gameDirectory !== 'portal2' && demo.gameDirectory !== 'Portal 2 Speedrun Mod') {
         await bot.helpers.editOriginalInteractionResponse(interaction.token, {
           content: `❌️ Only Portal 2 demos require a fixup.`,
         });
