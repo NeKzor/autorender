@@ -123,7 +123,9 @@ INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, cha
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (1, "mp_coop_paint_crazy_box", "Crazier Box", 2, 48287, 48288, 6, 0);
 
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_intro_01", NULL, 1, NULL, NULL, 0, 0);
+INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_training_01b", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_map_01b", NULL, 1, NULL, NULL, 0, 0);
+INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_scene_map-update2", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_map_02b", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_map_03b", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_map_04a", NULL, 1, NULL, NULL, 0, 0);
@@ -132,14 +134,13 @@ INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, cha
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_map_07", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_map_08", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_map_final", NULL, 1, NULL, NULL, 0, 0);
-INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_scene_map-update2", NULL, 1, NULL, NULL, 0, 0);
-INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (2, "tm_training_01b", NULL, 1, NULL, NULL, 0, 0);
 
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_intro_wakeup", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_blue_only", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_blue_only_2", NULL, 1, NULL, NULL, 0, 0);
-INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_a1_intro4", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_blue_only_3", NULL, 1, NULL, NULL, 0, 0);
+INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_blue_only_2_pt2", NULL, 1, NULL, NULL, 0, 0);
+INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_a1_intro4", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_blue_upplatform", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_red_only", NULL, 1, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (3, "gg_red_surf", NULL, 1, NULL, NULL, 0, 0);
