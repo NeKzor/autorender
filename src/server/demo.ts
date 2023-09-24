@@ -130,10 +130,14 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       }
     }
 
+    let disableRenderSkipCoopVideos: boolean;
+
     try {
       demo.readPackets();
     } catch (err) {
       logger.error('readPackets', filePath, err);
+    } finally {
+      disableRenderSkipCoopVideos = !options?.isBoardDemo && isMultiplayer(demo) && !hasTransitionFadeout(demo);
     }
 
     // Fix playback time and negative non-synced ticks.
@@ -183,6 +187,7 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       gameDir: demo.gameDirectory,
       playbackTime: demo.playbackTime,
       useFixedDemo: fixupResult === true,
+      disableRenderSkipCoopVideos,
       tickrate: demo.getTickrate(),
       metadata: getSarData(demo),
       ...getChallengeModeData(demo),
@@ -192,6 +197,16 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
     logger.error(filePath, err);
     return null;
   }
+};
+
+const isMultiplayer = (demo: SourceDemo) => {
+  return (demo.findPacket(NetMessages.SvcServerInfo)?.maxClients ?? 0) !== 0;
+};
+
+const hasTransitionFadeout = (demo: SourceDemo) => {
+  return demo
+    .findPackets(NetMessages.NetStringCmd)
+    .some((packet) => packet.command?.startsWith('stop_transition_videos_fadeout '));
 };
 
 interface WorkshopInfo {

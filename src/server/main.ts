@@ -329,6 +329,7 @@ apiV1
           `mat_ambient_light_b 0.05`,
         ]
         : []),
+      ...(demoInfo.disableRenderSkipCoopVideos ? ['sar_render_skip_coop_videos 0'] : []),
       data.fields.render_options ?? null,
     ];
     const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
