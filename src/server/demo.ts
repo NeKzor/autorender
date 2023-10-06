@@ -137,7 +137,7 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
     } catch (err) {
       logger.error('readPackets', filePath, err);
     } finally {
-      disableRenderSkipCoopVideos = !options?.isBoardDemo && isMultiplayer(demo) && !hasTransitionFadeout(demo);
+      disableRenderSkipCoopVideos = isMultiplayer(demo) && !hasTransitionFadeout(demo);
     }
 
     // Fix playback time and negative non-synced ticks.
