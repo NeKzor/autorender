@@ -75,7 +75,7 @@ export const action: ActionLoader = async ({ params, request, context }) => {
     await request.formData(),
   ) as PostFormData;
 
-  if (!token_name || token_name.length < 3 || token_name.length > 32) {
+  if (!token_name || token_name.length < 3 || token_name.length > 32 || token_name === 'portal2-cm-autorender') {
     badRequest();
   }
 
