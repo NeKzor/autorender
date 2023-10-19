@@ -513,11 +513,17 @@ createCommand({
               },
             );
 
-            const attachment = messages.find((message) => {
-              return (message.attachments ?? []).find((attachment) => {
+            let attachment: Attachment | undefined;
+
+            for (const message of messages) {
+              attachment = (message.attachments ?? []).find((attachment) => {
                 return attachment.filename.endsWith('.dem');
               });
-            })?.attachments?.at(0);
+
+              if (attachment) {
+                break;
+              }
+            }
 
             if (attachment) {
               render(bot, interaction, subCommand, { attachment });
