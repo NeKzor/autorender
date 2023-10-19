@@ -32,7 +32,7 @@ jobs:
         run: deno lint
 
       - name: Type check
-        run: deno check --no-lock --import-map src/import_map.json src/**/*.ts src/**/*.tsx
+        run: deno task check:types
 
       # Disabled until useful tests have been written
       #- name: Test
