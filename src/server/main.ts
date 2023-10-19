@@ -43,7 +43,7 @@ import { db } from './db.ts';
 import { createStaticRouter } from 'react-router-dom/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
 import { getDemoInfo, supportedGameDirs, supportedGameMods } from './demo.ts';
-import { basename } from 'path/mod.ts';
+import { basename, join } from 'path/mod.ts';
 import {
   generateShareId,
   getDemoFilePath,
@@ -707,9 +707,23 @@ apiV1
       return Err(ctx, Status.BadRequest);
     }
 
-    const [video] = await db.query<Pick<Video, 'video_id' | 'share_id'>>(
+    const [video] = await db.query<
+      Pick<
+        Video,
+        | 'video_id'
+        | 'share_id'
+        | 'board_changelog_id'
+        | 'file_name'
+        | 'render_node'
+        | 'full_map_name'
+      >
+    >(
       `select BIN_TO_UUID(video_id) as video_id
             , share_id
+            , board_changelog_id
+            , file_name
+            , render_node
+            , full_map_name
          from videos
         where share_id = ?`,
       [
@@ -719,6 +733,30 @@ apiV1
 
     if (!video) {
       return Err(ctx, Status.NotFound);
+    }
+
+    if (video.board_changelog_id && video.render_node === 'portal2-cm-autorender') {
+      // Prevent specific rerenders because demofixup corrupted the files on these maps.
+      const mapsWhichUsePointSurvey = [
+        'sp_a2_bts2',
+        'sp_a2_bts3',
+        'sp_a3_portal_intro',
+        'sp_a2_core',
+        'sp_a2_bts4',
+      ];
+
+      if (mapsWhichUsePointSurvey.includes(video.full_map_name)) {
+        return Err(ctx, Status.BadRequest);
+      }
+
+      const demoFile = join(Storage.Demos, 'migration', video.file_name);
+
+      try {
+        await Deno.stat(demoFile);
+      } catch (err) {
+        logger.error(err);
+        return Err(ctx, Status.NotFound);
+      }
     }
 
     const { affectedRows } = await db.execute(
@@ -1324,6 +1362,9 @@ router.get('/connect/client', async (ctx) => {
               | 'demo_game_dir'
               | 'demo_playback_time'
               | 'demo_required_fix'
+              | 'board_changelog_id'
+              | 'render_node'
+              | 'file_name'
             >;
 
             const [video] = await db.query<VideoSelect>(
@@ -1335,6 +1376,9 @@ router.get('/connect/client', async (ctx) => {
                      , demo_game_dir
                      , demo_playback_time
                      , demo_required_fix
+                     , board_changelog_id
+                     , render_node
+                     , file_name
                   from videos
                  where video_id = UUID_TO_BIN(?)`,
               [videoId],
@@ -1353,7 +1397,7 @@ router.get('/connect/client', async (ctx) => {
               break;
             }
 
-            const { demo_required_fix, ...videoPayload } = video;
+            const { demo_required_fix, board_changelog_id, render_node, file_name, ...videoPayload } = video;
 
             const buffer = new Buffer();
             const payload = new TextEncoder().encode(JSON.stringify(videoPayload));
@@ -1363,9 +1407,18 @@ router.get('/connect/client', async (ctx) => {
             await buffer.write(length);
             await buffer.write(payload);
 
-            const getFilePath = demo_required_fix === FixedDemoStatus.Required ? getFixedDemoFilePath : getDemoFilePath;
+            let filePath: string;
 
-            const filePath = getFilePath(videoPayload.video_id);
+            // This is part of autorender v1 migration and can only be caused by a rerender.
+            if (board_changelog_id && render_node === 'portal2-cm-autorender') {
+              filePath = join(Storage.Demos, 'migration', file_name);
+            } else {
+              const getFilePath = demo_required_fix === FixedDemoStatus.Required
+                ? getFixedDemoFilePath
+                : getDemoFilePath;
+              filePath = getFilePath(videoPayload.video_id);
+            }
+
             await buffer.write(await Deno.readFile(filePath));
 
             ws.send(buffer.bytes());
