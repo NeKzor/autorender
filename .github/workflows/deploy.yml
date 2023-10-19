@@ -24,6 +24,9 @@ jobs:
       - name: Lint
         run: deno lint
 
+      - name: Type check
+        run: deno check --no-lock --import-map src/import_map.json src/**/*.ts src/**/*.tsx
+
       # Disabled until useful tests have been written
       #- name: Test
       #  run: deno test -A
