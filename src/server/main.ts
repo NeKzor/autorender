@@ -102,10 +102,12 @@ const useSession = Session.initMiddleware(store, {
   cookieSetOptions: cookieOptions,
 });
 
-const _requiresAuth: Middleware<AppState> = (ctx) => {
+const requiresAuth: Middleware<AppState> = async (ctx, next) => {
   if (!ctx.state.session.get('user')) {
     return Err(ctx, Status.Unauthorized);
   }
+
+  await next();
 };
 
 let discordBot: WebSocket | null = null;
@@ -693,6 +695,54 @@ apiV1
     );
 
     Ok(ctx, video);
+  })
+  // Start a rerender of a video.
+  .post('/videos/:share_id/rerender', useSession, requiresAuth, async (ctx) => {
+    console.log(ctx.params.share_id);
+    if (!hasPermission(ctx, UserPermissions.RerenderVideos)) {
+      return Err(ctx, Status.Unauthorized);
+    }
+
+    if (!validateShareId(ctx.params.share_id!)) {
+      return Err(ctx, Status.BadRequest);
+    }
+
+    const [video] = await db.query<Pick<Video, 'video_id' | 'share_id'>>(
+      `select BIN_TO_UUID(video_id) as video_id
+            , share_id
+         from videos
+        where share_id = ?`,
+      [
+        ctx.params.share_id,
+      ],
+    );
+
+    if (!video) {
+      return Err(ctx, Status.NotFound);
+    }
+
+    const { affectedRows } = await db.execute(
+      `update videos
+          set pending = ?
+            , rendered_by = null
+            , rendered_by_token = null
+            , render_node = null
+            , rerender_started_at = CURRENT_TIMESTAMP()
+        where video_id = UUID_TO_BIN(?)
+          and pending = ?
+          and video_url is null`,
+      [
+        PendingStatus.RequiresRender,
+        video.video_id,
+        PendingStatus.FinishedRender,
+      ],
+    );
+
+    if (affectedRows) {
+      logger.info(`Started rerender of ${video.share_id}`);
+    }
+
+    Ok(ctx, { started: (affectedRows ?? 0) > 0 });
   })
   // Get a random rendered videos.
   .get('/videos/random/:count(\\d+)', async (ctx) => {

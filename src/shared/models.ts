@@ -20,6 +20,8 @@ export enum UserPermissions {
   ManageAccessTokens = 1 << 9,
   ViewAuditLogs = 1 << 10,
 
+  RerenderVideos = 1 << 12,
+
   All = UserPermissions.DiscoverVideos |
     UserPermissions.ListVideos |
     UserPermissions.CreateVideos |
@@ -27,6 +29,7 @@ export enum UserPermissions {
     UserPermissions.CreateTokens |
     UserPermissions.ManageUsers |
     UserPermissions.ManageAccessTokens |
+    UserPermissions.RerenderVideos |
     UserPermissions.ViewAuditLogs,
 }
 
@@ -163,6 +166,7 @@ export interface Video {
   requested_in_channel_id: string;
   requested_in_channel_name: string;
   created_at: string;
+  rerender_started_at: string;
   render_quality: RenderQuality;
   render_options: string;
   file_name: string;

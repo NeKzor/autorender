@@ -98,6 +98,7 @@ CREATE TABLE videos (
     requested_in_channel_id VARCHAR(64),
     requested_in_channel_name VARCHAR(128),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    rerender_started_at TIMESTAMP,
     render_quality VARCHAR(16),
     render_options VARCHAR(1024),
     file_name VARCHAR(64),

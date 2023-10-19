@@ -23,10 +23,10 @@ const checkStaleVideos = async () => {
     where (
         (
           pending = ?
-          and TIMESTAMPDIFF(MINUTE, created_at, NOW()) >= ?
+          and TIMESTAMPDIFF(MINUTE, IFNULL(rerender_started_at, created_at), NOW()) >= ?
         ) or (
           pending = ?
-          and TIMESTAMPDIFF(MINUTE, created_at, NOW()) >= ?
+          and TIMESTAMPDIFF(MINUTE, IFNULL(rerender_started_at, created_at), NOW()) >= ?
         )
       )
       and board_changelog_id is null

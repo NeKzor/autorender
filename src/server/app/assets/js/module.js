@@ -310,6 +310,23 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
 
     initShareModal();
   }
+
+  const retryRenderButton = document.querySelector('#video-retry-render-button');
+  if (retryRenderButton) {
+    retryRenderButton.addEventListener('click', () => {
+      retryRenderButton.setAttribute('disabled', '');
+
+      const [refreshSvg, loadingSvg] = [...retryRenderButton.children];
+      refreshSvg.classList.add('hidden');
+      loadingSvg.classList.add('inline');
+      refreshSvg.classList.remove('inline');
+      loadingSvg.classList.remove('hidden');
+
+      fetch(`/api/v1${location.pathname}/rerender`, { method: 'POST' })
+        .catch(console.error)
+        .finally(() => location.reload());
+    });
+  }
 }
 
 // Search
