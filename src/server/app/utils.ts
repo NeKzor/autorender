@@ -6,13 +6,13 @@
 
 import { Temporal } from '@js-temporal/polyfill';
 
-export const toAgo = (date: string | null) => {
+export const toAgo = (date: Date | null) => {
   if (!date) {
     return '';
   }
 
   const now = Temporal.Now.instant();
-  const then = Temporal.Instant.from(date);
+  const then = Temporal.Instant.from(date.toISOString());
   const ago = then.until(now);
 
   const days = Math.floor(ago.seconds / 60 / 60 / 24);

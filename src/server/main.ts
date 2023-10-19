@@ -736,7 +736,7 @@ apiV1
       return Err(ctx, Status.NotFound);
     }
 
-    if (video.board_changelog_id && video.created_at.slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
+    if (video.board_changelog_id && video.created_at.toISOString().slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
       // Prevent specific rerenders because demofixup corrupted the files on these maps.
       const mapsWhichUsePointSurvey = [
         'sp_a2_bts2',
@@ -915,7 +915,7 @@ apiV1
       return {
         comment: video.comment,
         cur_rank: 0,
-        date: video.created_at,
+        date: video.created_at.toISOString(),
         id: video.board_changelog_id,
         map: video.alias,
         map_id: video.best_time_id,
@@ -1411,7 +1411,7 @@ router.get('/connect/client', async (ctx) => {
             let filePath: string;
 
             // This is part of autorender v1 migration and can only be caused by a rerender.
-            if (board_changelog_id && created_at.slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
+            if (board_changelog_id && created_at.toISOString().slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
               filePath = join(Storage.Demos, 'migration', file_name);
             } else {
               const getFilePath = demo_required_fix === FixedDemoStatus.Required

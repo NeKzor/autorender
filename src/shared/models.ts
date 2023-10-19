@@ -47,7 +47,7 @@ export interface User {
   discord_accent_color: number;
   donation_link: string;
   permissions: UserPermissions;
-  created_at: string;
+  created_at: Date;
 }
 
 /**
@@ -70,7 +70,7 @@ export interface AccessToken {
   token_name: string;
   token_key: string;
   permissions: AccessPermission;
-  created_at: string;
+  created_at: Date;
 }
 
 /**
@@ -165,8 +165,8 @@ export interface Video {
   requested_in_guild_name: string;
   requested_in_channel_id: string;
   requested_in_channel_name: string;
-  created_at: string;
-  rerender_started_at: string;
+  created_at: Date;
+  rerender_started_at: Date;
   render_quality: RenderQuality;
   render_options: string;
   file_name: string;
@@ -192,7 +192,7 @@ export interface Video {
   pending: PendingStatus;
   rendered_by: number;
   rendered_by_token: number;
-  rendered_at: string;
+  rendered_at: Date;
   render_time: number;
   render_node: string;
   video_url: string;
@@ -205,7 +205,7 @@ export interface Video {
   views: number;
   visibility: VisibilityState;
   deleted_by: number;
-  deleted_at: string;
+  deleted_at: Date;
 }
 
 /**
@@ -214,7 +214,7 @@ export interface Video {
 export interface Like {
   user_id: number;
   video_id: string;
-  created_at: string;
+  created_at: Date;
 }
 
 /**
@@ -223,7 +223,7 @@ export interface Like {
 export interface Bookmark {
   user_id: number;
   video_id: string;
-  created_at: string;
+  created_at: Date;
 }
 
 /**
@@ -250,7 +250,7 @@ export enum AuditType {
  * Table "audit_logs".
  */
 export interface AuditLog {
-  created_at: string;
+  created_at: Date;
   title: string;
   audit_type: AuditType;
   source: AuditSource;
