@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "check": "deno fmt --check && deno lint",
+    "check": "deno fmt --check && deno lint && deno task check:types",
+    "check:types": "deno check --no-lock --import-map src/import_map.json src/**/*.ts src/**/*.tsx",
     "client": "deno task --cwd src/client dev",
     "client:test": "deno task --cwd src/client test",
     "compile": "deno run --allow-run=deno compile.ts",
