@@ -58,6 +58,7 @@ import {
   validateShareId,
 } from './utils.ts';
 import { rateLimits } from './rate_limits.ts';
+import { BOARD_INTEGRATION_START_DATE } from './tasks/board.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -714,7 +715,7 @@ apiV1
         | 'share_id'
         | 'board_changelog_id'
         | 'file_name'
-        | 'render_node'
+        | 'created_at'
         | 'full_map_name'
       >
     >(
@@ -722,7 +723,7 @@ apiV1
             , share_id
             , board_changelog_id
             , file_name
-            , render_node
+            , created_at
             , full_map_name
          from videos
         where share_id = ?`,
@@ -735,7 +736,7 @@ apiV1
       return Err(ctx, Status.NotFound);
     }
 
-    if (video.board_changelog_id && video.render_node === 'portal2-cm-autorender') {
+    if (video.board_changelog_id && video.created_at.slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
       // Prevent specific rerenders because demofixup corrupted the files on these maps.
       const mapsWhichUsePointSurvey = [
         'sp_a2_bts2',
@@ -1363,7 +1364,7 @@ router.get('/connect/client', async (ctx) => {
               | 'demo_playback_time'
               | 'demo_required_fix'
               | 'board_changelog_id'
-              | 'render_node'
+              | 'created_at'
               | 'file_name'
             >;
 
@@ -1377,7 +1378,7 @@ router.get('/connect/client', async (ctx) => {
                      , demo_playback_time
                      , demo_required_fix
                      , board_changelog_id
-                     , render_node
+                     , created_at
                      , file_name
                   from videos
                  where video_id = UUID_TO_BIN(?)`,
@@ -1397,7 +1398,7 @@ router.get('/connect/client', async (ctx) => {
               break;
             }
 
-            const { demo_required_fix, board_changelog_id, render_node, file_name, ...videoPayload } = video;
+            const { demo_required_fix, board_changelog_id, created_at, file_name, ...videoPayload } = video;
 
             const buffer = new Buffer();
             const payload = new TextEncoder().encode(JSON.stringify(videoPayload));
@@ -1410,7 +1411,7 @@ router.get('/connect/client', async (ctx) => {
             let filePath: string;
 
             // This is part of autorender v1 migration and can only be caused by a rerender.
-            if (board_changelog_id && render_node === 'portal2-cm-autorender') {
+            if (board_changelog_id && created_at.slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
               filePath = join(Storage.Demos, 'migration', file_name);
             } else {
               const getFilePath = demo_required_fix === FixedDemoStatus.Required

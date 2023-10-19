@@ -25,7 +25,7 @@ import { logger } from '../logger.ts';
 import { BOARD_BASE_API, fetchDemo, formatCmTime, getChangelog } from './portal2_sr.ts';
 
 const BOARD_INTEGRATION_UPDATE_INTERVAL = 60 * 1_000;
-const BOARD_INTEGRATION_START_DATE = '2023-08-25';
+export const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 
 const FAILED_RENDER_MIN_RETRY_MINUTES = 15;
 const FAILED_RENDER_MAX_RETRY_MINUTES = 60;
