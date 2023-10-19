@@ -12,7 +12,7 @@ export const toAgo = (date: Date | null) => {
   }
 
   const now = Temporal.Now.instant();
-  const then = Temporal.Instant.from(date.toISOString());
+  const then = Temporal.Instant.from(date.toString());
   const ago = then.until(now);
 
   const days = Math.floor(ago.seconds / 60 / 60 / 24);
