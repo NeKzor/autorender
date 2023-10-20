@@ -58,7 +58,6 @@ import {
   validateShareId,
 } from './utils.ts';
 import { rateLimits } from './rate_limits.ts';
-import { BOARD_INTEGRATION_START_DATE } from './tasks/board.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -88,6 +87,7 @@ const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
 const DISCORD_BOARD_INTEGRATION_WEBHOOK_URL = Deno.env.get('DISCORD_BOARD_INTEGRATION_WEBHOOK_URL')!;
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
+const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 
 const cookieOptions: CookiesSetDeleteOptions = {
   expires: new Date(Date.now() + 86_400_000 * 30),
@@ -771,6 +771,7 @@ apiV1
             , rendered_by_token = null
             , render_node = null
             , rerender_started_at = CURRENT_TIMESTAMP()
+            , processed = 0
         where video_id = UUID_TO_BIN(?)
           and pending = ?
           and video_url is null`,
