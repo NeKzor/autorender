@@ -211,6 +211,8 @@ The project contains convenient tasks which can be executed with `deno task <nam
 
 | Task                     | Description                                                         |
 | ------------------------ | ------------------------------------------------------------------- |
+| `check`                  | Checks for format/lint/type errors.                                 |
+| `check:types`            | Checks for type errors only.                                        |
 | `client`                 | Starts the client.                                                  |
 | `client:test`            | Runs all client tests.                                              |
 | `client:compile:linux`   | Compiles client code for Linux.                                     |
@@ -424,7 +426,7 @@ server {
   - Pages
     - ~~Generate video preview + thumbnails~~
     - Video
-      - Retry button for failed auto renders
+      - ~~Retry button for failed auto renders~~
       - Delete button
     - Demo upload
       - Bulk render
