@@ -20,7 +20,6 @@ const POST_PROCESS_UPDATE_INTERVAL = 60 * 1_000;
 const MIN_SECONDS_FOR_VIDEO_PREVIEW = 8;
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
-const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 
 type VideoSelect = Pick<Video, 'video_id' | 'share_id' | 'created_at'>;
 
@@ -197,10 +196,6 @@ const processVideos = async () => {
     );
 
     if (B2_ENABLED) {
-      if (video.created_at.toISOString().slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
-        return;
-      }
-
       const filePath = getVideoFilePath(video.video_id);
       try {
         await Deno.remove(filePath);
