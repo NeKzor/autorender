@@ -587,6 +587,10 @@ apiV1
 
       Ok(ctx, { video_id: video.video_id });
 
+      if (video.created_at.toISOString().slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
+        return;
+      }
+
       try {
         if (video.board_changelog_id !== null) {
           if (video.board_rank === 1) {
