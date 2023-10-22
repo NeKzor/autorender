@@ -108,6 +108,8 @@ const checkChangelogUpdates = async () => {
 
       const demoInfo = await getDemoInfo(filePath, { isBoardDemo: true });
 
+      console.dir({ demoInfo });
+
       if (demoInfo === null || typeof demoInfo === 'string') {
         logger.error('Invalid demo', demoInfo);
         await fileCleanup();
