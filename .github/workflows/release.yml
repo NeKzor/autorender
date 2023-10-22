@@ -49,7 +49,7 @@ jobs:
           name: Autorender Client ${{ github.ref_name }}
           prerelease: ${{ contains(github.ref, 'pre') }}
           body: |
-            For render clients of [autorender.nekz.me](https://autorender.nekz.me).
+            For render clients of [autorender.portal2.sr](https://autorender.portal2.sr).
             Windows: [Download autorender-${{ github.ref_name }}-windows.zip](https://github.com/NeKzor/autorender/releases/download/${{ github.ref_name }}/autorender-${{ github.ref_name }}-windows.zip)
             Linux: [Download autorender-${{ github.ref_name }}-linux.zip](https://github.com/NeKzor/autorender/releases/download/${{ github.ref_name }}/autorender-${{ github.ref_name }}-linux.zip)
           files: |

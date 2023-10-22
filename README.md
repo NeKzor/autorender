@@ -74,7 +74,7 @@ sequenceDiagram
     Discord->>Bot: Upload demo file
     Bot->>Discord: Send status message
 
-    Note right of Bot: autorender.nekz.me
+    Note right of Bot: autorender.portal2.sr
     Bot->>+Server: Create video
     Server->>Server: Process demo file
     Server->>-Bot: Send video data

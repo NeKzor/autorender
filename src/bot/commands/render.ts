@@ -56,8 +56,8 @@ const validateUrl = (urlString: string) => {
       return isNaN(id) ? null : `https://board.portal2.sr/getDemo?id=${id}`;
     }
 
-    // Input:  https://autorender.nekz.me/queue/ScDd_mkTzZs
-    // Input:  https://autorender.nekz.me/videos/ScDd_mkTzZs
+    // Input:  https://autorender.portal2.sr/queue/ScDd_mkTzZs
+    // Input:  https://autorender.portal2.sr/videos/ScDd_mkTzZs
     // Output: {AUTORENDER_BASE_API}/storage/demos/ScDd_mkTzZs
 
     const queueUrl = getPublicUrl('/queue/');

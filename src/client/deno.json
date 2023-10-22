@@ -2,7 +2,7 @@
   "tasks": {
     "dev": "deno run --no-prompt --allow-hrtime --allow-env --allow-read=\"autorender.yaml,autorender.cfg,log,worker.ts\" --allow-write=\"autorender.yaml,log\" --allow-run --allow-net=deno.land,autorender.portal2.local,steamusercontent-a.akamaihd.net,api.github.com,github.com,objects.githubusercontent.com --unsafely-ignore-certificate-errors=autorender.portal2.local --watch main.ts --dev",
     "test": "deno test --allow-net --allow-read --allow-env",
-    "compile": "deno compile --output bin/$COMPILATION_BINARY_NAME --target $COMPILATION_TARGET --include ./worker.ts --include ./upload.ts --no-prompt --allow-hrtime --allow-env --allow-read=\"autorender.yaml,autorender.cfg,log,worker.ts$COMPILATION_READ_WRITE_GAME_PATHS\" --allow-write=\"autorender.yaml,log$COMPILATION_READ_WRITE_GAME_PATHS\" --allow-run --allow-net=deno.land,autorender.portal2.local,autorender.nekz.me,steamusercontent-a.akamaihd.net,api.github.com,github.com,objects.githubusercontent.com $COMPILATION_DEVELOPER_FLAGS main.ts"
+    "compile": "deno compile --output bin/$COMPILATION_BINARY_NAME --target $COMPILATION_TARGET --include ./worker.ts --include ./upload.ts --no-prompt --allow-hrtime --allow-env --allow-read=\"autorender.yaml,autorender.cfg,log,worker.ts$COMPILATION_READ_WRITE_GAME_PATHS\" --allow-write=\"autorender.yaml,log$COMPILATION_READ_WRITE_GAME_PATHS\" --allow-run --allow-net=deno.land,autorender.portal2.local,autorender.portal2.sr,steamusercontent-a.akamaihd.net,api.github.com,github.com,objects.githubusercontent.com $COMPILATION_DEVELOPER_FLAGS main.ts"
   },
   "fmt": {
     "useTabs": false,

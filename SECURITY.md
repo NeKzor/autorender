@@ -9,7 +9,7 @@
 
 ## What NOT to do
 
-- Do NOT attack the production system (autorender.nekz.me)
+- Do NOT attack the production system (autorender.portal2.sr)
 - Do NOT publish your report before the deadlines, see below
 - Do NOT report useless attack surfaces like
   - Social engineering

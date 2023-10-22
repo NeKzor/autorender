@@ -13,7 +13,7 @@ services:
       - autorender.server:127.0.0.1
     volumes:
       - ./logs/server:/logs/server:rw
-      - ./storage:/storage:rw
+      - /mnt/autorender-content:/storage:rw
       - ./.env.server:/app/.env:rw
       - ./entrypoint.server.sh:/app/entrypoint.sh:rw
   bot:
@@ -42,4 +42,4 @@ services:
     volumes:
       - ./initdb:/docker-entrypoint-initdb.d
       - ./mysql:/var/lib/mysql
-      - ./backups:/backups
+      - /mnt/autorender-content/backups:/backups

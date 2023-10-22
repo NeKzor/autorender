@@ -22,7 +22,7 @@ export const getOptions = () => options;
 const cli = new Command()
   .name('autorender')
   .version(AutorenderVersion)
-  .description('Command line app for rendering and uploading videos to autorender.nekz.me.')
+  .description('Command line app for rendering and uploading videos to autorender.portal2.sr.')
   .globalOption('-v, --verbose', 'Turn on verbose error logging.')
   .globalOption('-d, --dev', 'Switch into developer mode.', { hidden: true })
   .globalAction(({ verbose, dev }) => {
