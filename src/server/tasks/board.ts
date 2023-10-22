@@ -106,7 +106,7 @@ const checkChangelogUpdates = async () => {
         // deno-lint-ignore no-empty
       } catch {}
 
-      const demoInfo = await getDemoInfo(filePath);
+      const demoInfo = await getDemoInfo(filePath, { isBoardDemo: true });
 
       if (demoInfo === null || typeof demoInfo === 'string') {
         logger.error('Invalid demo', demoInfo);
