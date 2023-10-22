@@ -7,13 +7,12 @@ services:
     links:
       - database:autorender.database
     ports:
-      - "127.0.0.1:8824:8001"
-      - "127.0.0.1:8834:8001"
+      - "127.0.0.1:8000:8001"
     extra_hosts:
       - autorender.server:127.0.0.1
     volumes:
       - ./logs/server:/logs/server:rw
-      - /mnt/autorender-content:/storage:rw
+      - /mnt/autorender-content/storage:/storage:rw
       - ./.env.server:/app/.env:rw
       - ./entrypoint.server.sh:/app/entrypoint.sh:rw
   bot:
