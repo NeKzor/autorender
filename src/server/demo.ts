@@ -173,9 +173,12 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       logger.error('readStringTables', filePath, err);
     }
 
+    const canTrustServerInfo = demo.gameDirectory === info.gameDir;
+    console.log({ canTrustServerInfo });
+
     // TODO: More strict validation
-    const isWorkshopMap = !options?.isBoardDemo && demo.mapName !== info.mapName;
-    const fullMapName = info.mapName.replaceAll('\\', '/');
+    const isWorkshopMap = !options?.isBoardDemo && canTrustServerInfo && demo.mapName !== info.mapName;
+    const fullMapName = canTrustServerInfo ? info.mapName.replaceAll('\\', '/') : demo.mapName;
 
     return {
       size: buffer.byteLength,
@@ -183,7 +186,7 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       fullMapName,
       mapCrc: info.mapCrc,
       isWorkshopMap,
-      workshopInfo: isWorkshopMap ? await getWorkshopInfo(supportedGame.workshopAppId, fullMapName) : null,
+      workshopInfo: isWorkshopMap ? await getWorkshopInfo(supportedGame.workshopAppId, fullMapName!) : null,
       gameDir: demo.gameDirectory,
       playbackTime: demo.playbackTime,
       useFixedDemo: fixupResult === true,
