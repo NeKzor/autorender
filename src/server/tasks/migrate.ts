@@ -124,7 +124,7 @@ const insertVideo = async (entry: MirrorEntry, mapId: number) => {
     const boardChangelogId = entry.id;
     const boardProfileNumber = entry.profile_number;
     const boardRank = entry.post_rank;
-    // FIXME: These URLs should be imported from autorender v1
+    // NOTE: I've verified that all URLs from autorender v1 are the same
     const videoUrl = isRendered ? `https://f002.backblazeb2.com/file/portal2-boards-autorender/${entry.id}.mp4` : null;
     const thumbnailUrlLarge = isRendered
       ? `https://f002.backblazeb2.com/file/portal2-boards-autorender/${entry.id}.jpg`

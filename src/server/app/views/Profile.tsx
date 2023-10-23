@@ -117,7 +117,7 @@ export const loader: DataLoader = async ({ params, context }) => {
     [user.user_id],
   );
 
-  // TODO: Also create ranking views these statistics.
+  // TODO: Also create ranking views for these statistics.
 
   const [rendererRankStat] = await context.db.query<{ renderer_rank: number }>(
     `select renderer_rank from (
