@@ -124,10 +124,11 @@ export const loader: DataLoader = async ({ params, context }) => {
       select requested_by_id
            , rank() over (order by count(1) desc) renderer_rank
         from (
-          select *
+          select requested_by_id
             from videos
-          where videos.video_url is not null
-            and videos.deleted_at is null
+           where video_url is not null
+             and deleted_at is null
+             and requested_by_id is not null
         ) t1
       group by requested_by_id
     ) t2
@@ -140,10 +141,12 @@ export const loader: DataLoader = async ({ params, context }) => {
       select requested_by_id
            , rank() over (order by sum(views) desc) views_rank
         from (
-          select *
+          select requested_by_id
+               , views
             from videos
-          where videos.video_url is not null
-            and videos.deleted_at is null
+           where video_url is not null
+             and deleted_at is null
+             and requested_by_id is not null
         ) t1
       group by requested_by_id
     ) t2
@@ -156,10 +159,11 @@ export const loader: DataLoader = async ({ params, context }) => {
       select rendered_by
            , rank() over (order by count(1) desc) provider_rank
         from (
-          select *
+          select rendered_by
             from videos
-          where videos.video_url is not null
-            and videos.deleted_at is null
+           where video_url is not null
+             and deleted_at is null
+             and rendered_by is not null
         ) t1
       group by rendered_by
     ) t2
