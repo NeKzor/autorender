@@ -1826,21 +1826,24 @@ const routeToApp = async (ctx: Context) => {
 
 if (!B2_ENABLED) {
   router.get('/storage/videos/:share_id', async (ctx) => {
-    if (!validateShareId(ctx.params.share_id!)) {
+    const shareId = ctx.params.share_id.endsWith('.mp4') ? ctx.params.share_id.slice(0, -4) : ctx.params.share_id;
+
+    if (!validateShareId(shareId)) {
       await routeToApp(ctx);
       return;
     }
 
     try {
       const [video] = await db.query<
-        Pick<Video, 'video_id' | 'file_name' | 'title'>
+        Pick<Video, 'video_id' | 'file_name' | 'title' | 'video_size'>
       >(
         `select BIN_TO_UUID(video_id) as video_id
               , file_name
               , title
+              , video_size
            from videos
           where share_id = ?`,
-        [ctx.params.share_id],
+        [shareId],
       );
 
       if (!video) {

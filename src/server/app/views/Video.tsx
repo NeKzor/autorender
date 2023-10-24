@@ -28,7 +28,11 @@ export const meta: PageMeta<Data> = ({ data, context }) => {
     'og:title': data?.title,
     'og:description': data?.comment,
     'og:type': isQueueRoute ? undefined : 'video',
-    'og:video': isQueueRoute ? undefined : data?.video_url,
+    'og:video': isQueueRoute
+      ? undefined
+      : data?.video_url
+      ? data.video_url.endsWith('.mp4') ? data.video_url : data.video_url + '.mp4'
+      : undefined,
   };
 };
 
