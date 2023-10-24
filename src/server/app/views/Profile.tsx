@@ -9,6 +9,7 @@ import { tw } from 'twind';
 import { DataLoader, json, PageMeta, useLoaderData } from '../Routes.ts';
 import { PendingStatus, User, Video } from '~/shared/models.ts';
 import { VideoCard } from '../components/VideoCard.tsx';
+import { AppStateContext } from '../AppState.ts';
 
 type JoinedVideo =
   & Pick<
@@ -192,10 +193,11 @@ const formatRank = (rank: number | undefined) => {
 const getProfileColor = (user: Exclude<Data['user'], undefined>) => {
   return user.discord_accent_color !== null
     ? `bg-[#${user.discord_accent_color.toString(16).padStart(6, '0')}]`
-    : 'dark:bg-gray-800';
+    : 'bg-white dark:bg-gray-800';
 };
 
 export const Profile = () => {
+  const state = React.useContext(AppStateContext);
   const { user, videos, stats } = useLoaderData<Data>();
 
   const renderedVideos = videos.filter(
@@ -207,84 +209,98 @@ export const Profile = () => {
       <div>
         {!user && 'Profile not found'}
         {user && (
-          <div>
-            <div
-              className={tw`w-full bg-white rounded-lg shadow dark:bg-gray-900`}
-            >
-              <div
-                className={tw`max-w ${getProfileColor(user)} rounded-t-lg rounded-t-lg shadow dark:border-gray-700`}
+          <div
+            className={tw`grid grid-cols grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 2xl:grid-cols-4 gap-y-4`}
+          >
+            {user.discord_banner && (
+              <style
+                nonce={state?.nonce}
+                dangerouslySetInnerHTML={{
+                  __html: `.profile-bg {
+                  background: url('${user.discord_banner_url}?size=4096');
+                  background-repeat: no-repeat;
+                  background-size: cover;
+                }`,
+                }}
               >
-                <div className={tw`flex flex-col items-center`}>
-                  <img
-                    className={tw`w-24 h-24 mt-3 mb-3 rounded-full shadow-lg`}
-                    src={user.discord_avatar_url}
-                    alt='avatar'
-                  />
-                  <div
-                    className={tw`pl-2 pr-2 bg-white dark:bg-gray-900 mb-3 border border-gray-200 rounded-full shadow dark:border-gray-700`}
-                  >
-                    <div className={tw`flex flex-col items-center p-2`}>
-                      <h5 className={tw`text-xl font-medium text-gray-900 dark:text-white`}>
-                        {user.username}
-                      </h5>
-                    </div>
-                  </div>
-                </div>
+              </style>
+            )}
+            {/* TODO: This shouldn't be rounded on all sides for 2xl but max-* does not work in twind */}
+            <div
+              className={tw`p-4 flex rounded profile-bg ${
+                !user.discord_banner ? getProfileColor(user) : ''
+              } dark:text-white col-span-1 justify-center items-center gap-2`}
+            >
+              <img
+                className={tw`w-24 h-24 mt-3 rounded-full shadow-lg`}
+                src={user.discord_avatar_url}
+                alt='avatar'
+              />
+              <div className={tw`pl-3 pr-3 py-1 bg-white dark:bg-gray-900 rounded-full shadow-lg`}>
+                <span className={tw`p-6 text-4xl font-medium`}>
+                  {user.username}
+                </span>
               </div>
-              <div className={tw`border-gray-200 dark:border-gray-600`}>
-                <div className={tw`bg-white rounded-lg dark:bg-gray-900`}>
-                  <dl
-                    className={tw`grid max-w-screen-xl grid-cols-2 gap-8 mx-auto text-gray-900 sm:grid-cols-3 xl:grid-cols-6 dark:text-white p-8`}
-                  >
-                    <div className={tw`flex flex-col items-center justify-center`}>
-                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                        {stats.rendered_videos}
-                      </dt>
-                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                        Rendered Videos
-                      </dd>
-                    </div>
-                    <div className={tw`flex flex-col items-center justify-center`}>
-                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                        {stats.total_views}
-                      </dt>
-                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                        Total Views
-                      </dd>
-                    </div>
-                    <div className={tw`flex flex-col items-center justify-center`}>
-                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                        {stats.provided_videos}
-                      </dt>
-                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                        Provided Videos
-                      </dd>
-                    </div>
-                    <div className={tw`flex flex-col items-center justify-center`}>
-                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                        {formatRank(stats.renderer_rank)}
-                      </dt>
-                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                        Renderer Rank
-                      </dd>
-                    </div>
-                    <div className={tw`flex flex-col items-center justify-center`}>
-                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                        {formatRank(stats.views_rank)}
-                      </dt>
-                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                        Views Rank
-                      </dd>
-                    </div>
-                    <div className={tw`flex flex-col items-center justify-center`}>
-                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                        {formatRank(stats.provider_rank)}
-                      </dt>
-                      <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                        Provider Rank
-                      </dd>
-                    </div>
-                  </dl>
+            </div>
+            <div
+              className={tw`p-4 rounded bg-white dark:bg-gray-900 dark:text-white col-span-3`}
+            >
+              <div className={tw`flex flex-col`}>
+                <div className={tw`border-gray-200 dark:border-gray-600`}>
+                  <div>
+                    <dl
+                      className={tw`grid max-w-screen-xl grid-cols-2 gap-8 mx-auto text-gray-900 sm:grid-cols-3 xl:grid-cols-6 dark:text-white p-8`}
+                    >
+                      <div className={tw`flex flex-col items-center justify-center`}>
+                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                          {stats.rendered_videos}
+                        </dt>
+                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                          Rendered Videos
+                        </dd>
+                      </div>
+                      <div className={tw`flex flex-col items-center justify-center`}>
+                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                          {stats.total_views}
+                        </dt>
+                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                          Total Views
+                        </dd>
+                      </div>
+                      <div className={tw`flex flex-col items-center justify-center`}>
+                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                          {stats.provided_videos}
+                        </dt>
+                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                          Provided Videos
+                        </dd>
+                      </div>
+                      <div className={tw`flex flex-col items-center justify-center`}>
+                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                          {formatRank(stats.renderer_rank)}
+                        </dt>
+                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                          Renderer Rank
+                        </dd>
+                      </div>
+                      <div className={tw`flex flex-col items-center justify-center`}>
+                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                          {formatRank(stats.views_rank)}
+                        </dt>
+                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                          Views Rank
+                        </dd>
+                      </div>
+                      <div className={tw`flex flex-col items-center justify-center`}>
+                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                          {formatRank(stats.provider_rank)}
+                        </dt>
+                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
+                          Provider Rank
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
                 </div>
               </div>
             </div>
