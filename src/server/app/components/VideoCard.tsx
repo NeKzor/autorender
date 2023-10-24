@@ -31,7 +31,7 @@ type VideoCardData =
 export const VideoCard = ({ video }: { video: VideoCardData }) => {
   return (
     <div
-      className={tw`p-4 rounded shadow bg-white dark:bg-gray-900 dark:text-white`}
+      className={tw`p-4 rounded shadow bg-white dark:bg-gray-900 dark:text-white max-w-[378px]`}
     >
       <a href={`/videos/${video.share_id}`}>
         <div
@@ -71,7 +71,7 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
             )}
         </div>
         <div className={tw`flex items-center space-x-3`}>
-          <div>
+          <div className={tw`min-w-[40px]`}>
             {video.requested_by_discord_avatar_url
               ? (
                 <img
@@ -98,8 +98,8 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
                 </svg>
               )}
           </div>
-          <div className={tw`flex-shrink items-center truncate`}>
-            <div className={tw`text-sm font-bold`}>
+          <div className={tw`flex-shrink items-center overflow-hidden`}>
+            <div className={tw`text-sm font-bold truncate`} title={video.title}>
               {video.title}
             </div>
             <div className={tw`h-2 mb-3 text-sm`}>
