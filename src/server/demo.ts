@@ -104,7 +104,11 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       return 'Corrupted demo.';
     }
 
-    const supportedGame = supportedGameMods[demo.gameDirectory!];
+    const isSillyP2SMRelease = demo.gameDirectory === 'Portal 2 Speedrun mod';
+
+    const supportedGame = supportedGameMods[demo.gameDirectory!] ||
+      (isSillyP2SMRelease ? supportedGameMods[GameMod.Portal2SpeedrunMod] : undefined);
+
     if (supportedGame === undefined) {
       return 'Game is not supported.';
     }
@@ -187,7 +191,7 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       mapCrc: info.mapCrc,
       isWorkshopMap,
       workshopInfo: isWorkshopMap ? await getWorkshopInfo(supportedGame.workshopAppId, fullMapName!) : null,
-      gameDir: demo.gameDirectory,
+      gameDir: isSillyP2SMRelease ? GameMod.Portal2SpeedrunMod : demo.gameDirectory,
       playbackTime: demo.playbackTime,
       useFixedDemo: fixupResult === true,
       disableRenderSkipCoopVideos,
