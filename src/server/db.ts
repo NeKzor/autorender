@@ -24,4 +24,5 @@ export const db = await (new Client() as Database).connect({
   username: Deno.env.get('DB_USER')!,
   password: Deno.env.get('DB_PASS')!,
   db: Deno.env.get('DB_NAME')!,
+  charset: 'utf8mb4',
 });
