@@ -2000,21 +2000,27 @@ router.get('/storage/files/portal2_benchmark.dem', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('portal2_benchmark.dem')), 'application/octet-stream');
 });
 
-const routeToImages = async (ctx: Context, file: string) => {
+const routeToImages = async (ctx: Context, file: string, contentType: string) => {
   try {
     const image = await Deno.readFile(`./app/assets/images/${file}`);
 
     ctx.response.headers.set('Cache-Control', 'public, max-age=300');
 
-    Ok(ctx, image, 'image/png');
+    Ok(ctx, image, contentType);
   } catch (err) {
     logger.error(err);
     Err(ctx, Status.NotFound);
   }
 };
 
-router.get('/assets/images/:file([\\w]+\\.png)', async (ctx) => await routeToImages(ctx, ctx.params.file!));
-router.get('/assets/images/:file([\\w]+\\.jpg)', async (ctx) => await routeToImages(ctx, ctx.params.file!));
+router.get(
+  '/assets/images/:file([\\w]+\\.png)',
+  async (ctx) => await routeToImages(ctx, ctx.params.file!, 'image/png'),
+);
+router.get(
+  '/assets/images/:file([\\w]+\\.jpg)',
+  async (ctx) => await routeToImages(ctx, ctx.params.file!, 'image/jpeg'),
+);
 router.get('/assets/js/:file([\\w]+\\.js)', async (ctx) => {
   try {
     const js = await Deno.readFile(`./app/assets/js/${ctx.params.file}`);
