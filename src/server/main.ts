@@ -2049,8 +2049,16 @@ router.get('/video.html', async (ctx) => {
 
   ctx.response.redirect(`/videos/${video.share_id}`);
 });
+router.get('/favicon.ico', async (ctx) => {
+  try {
+    const image = await Deno.readFile('./app/assets/images/favicon.ico');
+    Ok(ctx, image, 'image/x-icon');
+  } catch (err) {
+    logger.error(err);
+    Err(ctx, Status.NotFound);
+  }
+});
 
-router.get('/favicon.ico', (ctx) => (ctx.response.status = Status.NotFound));
 router.post('/tokens/:access_token_id(\\d+)', useSession, routeToApp);
 router.post('/tokens/:access_token_id(\\d+/delete)', useSession, routeToApp);
 router.post('/tokens/new', useSession, routeToApp);

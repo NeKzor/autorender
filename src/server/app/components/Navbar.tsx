@@ -19,7 +19,10 @@ const Navbar = () => {
     >
       <div className={tw`max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4`}>
         <div id='nav-items-left' className={tw`flex items-center`}>
-          <a href='/' className={tw`self-center text-2xl font-semibold whitespace-nowrap dark:text-white`}>
+          <a href='/'>
+            <img height='30px' width='30px' src='/assets/images/logo.png' />
+          </a>
+          <a href='/' className={tw`self-center pl-1 pt-1 text-2xl font-semibold whitespace-nowrap dark:text-white`}>
             Autorender
           </a>
         </div>

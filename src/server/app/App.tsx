@@ -70,6 +70,7 @@ export const Head = ({ initialState }: HeadProps) => {
           return <meta name={name} content={meta[name]} />;
         })}
       <title>{title}</title>
+      <link rel='icon' type='image/x-icon' href='/favicon.ico' />
       <link
         rel='stylesheet'
         href='https://fonts.googleapis.com/css?family=Roboto:300,400,500'
