@@ -836,7 +836,7 @@ apiV1
     }
 
     const body = await ctx.request.body({ type: 'json' }).value as { ids?: number[] } | null;
-    if (!body || !Array.isArray(body.ids) || body.ids.length > 4096) {
+    if (!body || !Array.isArray(body.ids)) {
       return Err(ctx, Status.BadRequest);
     }
 
@@ -853,9 +853,7 @@ apiV1
          from videos
         where board_changelog_id in (${ids.map(() => '?')})
           and video_url is not null`,
-      [
-        ...ids,
-      ],
+      ids,
     );
 
     Ok(ctx, {
