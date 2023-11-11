@@ -17,7 +17,7 @@
     "cliffy/prompt/": "https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/",
     "cliffy/table/": "https://deno.land/x/cliffy@v1.0.0-rc.2/table/",
     "cors/": "https://deno.land/x/cors@v1.2.2/",
-    "logger/": "https://deno.land/x/logger@v1.1.2/",
+    "logger/": "https://deno.land/x/logger@v1.1.3/",
     "mysql/": "https://deno.land/x/mysql@v2.12.1/",
     "oak_sessions/": "https://deno.land/x/oak_sessions@v4.1.4/",
     "oak/": "https://deno.land/x/oak@v12.2.0/",

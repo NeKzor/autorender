@@ -1,5 +1,5 @@
 {
-  "version": "2",
+  "version": "3",
   "remote": {
     "https://deno.land/std@0.162.0/_util/assert.ts": "e94f2eb37cebd7f199952e242c77654e43333c1ac4c5c700e929ea3aa5489f74",
     "https://deno.land/std@0.162.0/bytes/bytes_list.ts": "aba5e2369e77d426b10af1de0dcc4531acecec27f9b9056f4f7bfbf8ac147ab4",
@@ -252,6 +252,16 @@
     "https://deno.land/x/logger@v1.1.2/types.ts": "ff4fcb574d926f0189b6cba89194c369ad037a9d219ea76085619d18e7b31cd9",
     "https://deno.land/x/logger@v1.1.2/writable.ts": "bb60ba4a798a10ac1649e30598c0c346055c0dcacb8f1e9452e4f66ea6680a45",
     "https://deno.land/x/logger@v1.1.2/writer.ts": "539ff3a1bdefef897ca1d13d387ee4d84d6491f460020454e9158076f5e09221",
+    "https://deno.land/x/logger@v1.1.3/date.ts": "09041dc83c9cddb489b875f45b07336dd894c23b9dd5b47235b94180571a2efa",
+    "https://deno.land/x/logger@v1.1.3/deps.ts": "1b09212250f8023edd69efb798874ca19bf90c4ed7cdcc1a292dc16c5bb2cf6d",
+    "https://deno.land/x/logger@v1.1.3/eol.ts": "493acd048c546fd48bcd26365d4dadf3db81ce32c4611ca5b0b19e6de9f9826a",
+    "https://deno.land/x/logger@v1.1.3/fs.ts": "7d1c7261e9f15d25c6c09df43169a4665bd9da7e2413534aa294f4b184f3fa4e",
+    "https://deno.land/x/logger@v1.1.3/interface.ts": "7bca0b861b894e914508aab1afdd7e42e598695a50a3efe9db54be8ba4ab3b0e",
+    "https://deno.land/x/logger@v1.1.3/logger.ts": "fc7a84305b4b8e711b5d7d51ab3cef796900effffd3e85c730291aa339efbb98",
+    "https://deno.land/x/logger@v1.1.3/stdout.ts": "364b6ca8c016c9e67d457d12aa028a448e4b8af7a78965e42de824fb969a9ccb",
+    "https://deno.land/x/logger@v1.1.3/types.ts": "8835d0d56f500112f92b36d8f241f95bccef93f73de203f7cd86de3ab4383d80",
+    "https://deno.land/x/logger@v1.1.3/writable.ts": "bb60ba4a798a10ac1649e30598c0c346055c0dcacb8f1e9452e4f66ea6680a45",
+    "https://deno.land/x/logger@v1.1.3/writer.ts": "539ff3a1bdefef897ca1d13d387ee4d84d6491f460020454e9158076f5e09221",
     "https://deno.land/x/progress@v1.3.8/deps.ts": "83050e627263931d853ba28b7c15c80bf4be912bea7e0d3d13da2bc0aaf7889d",
     "https://deno.land/x/progress@v1.3.8/mod.ts": "ee152d6e97c0d6ed71e4299b230b66d197f23315a9efb826695b9f77f1a38937",
     "https://deno.land/x/progress@v1.3.8/multi.ts": "670712f0705ecb9b9e5f38d9770f4a5492171cf0f1b268ed55535cbf7d1789a1",
