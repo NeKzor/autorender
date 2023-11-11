@@ -71,7 +71,7 @@ self.addEventListener(
 
             const stat = await Deno.stat(videoFile);
             if (stat.size > AUTORENDER_MAX_VIDEO_FILE_SIZE) {
-              throw new Error(`Video file ${videoFile} is too big.`);
+              throw new Error(`Video file ${videoFile} is too big (${stat.size} bytes)`);
             }
 
             // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
