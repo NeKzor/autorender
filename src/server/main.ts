@@ -42,7 +42,7 @@ import { AppState as ReactAppState } from './app/AppState.ts';
 import { db } from './db.ts';
 import { createStaticRouter } from 'react-router-dom/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
-import { getDemoInfo, supportedGameDirs, supportedGameMods } from './demo.ts';
+import { DemoMetadata, getDemoInfo, supportedGameDirs, supportedGameMods } from './demo.ts';
 import { basename, join } from 'path/mod.ts';
 import {
   generateShareId,
@@ -1071,6 +1071,124 @@ apiV1
         results: videos.map(searchResult),
       } satisfies SearchResponse,
     );
+  })
+  // Get the video of a leaderboard run.
+  .get('/mtriggers/search', async (ctx) => {
+    const params = ctx.request.url.searchParams;
+
+    const game_dir = params.get('game_dir');
+    const map_name = params.get('map_name');
+    const board_rank = params.get('board_rank') !== null ? Number(params.get('board_rank')) : NaN;
+    const include_pb_of = params.get('include_pb_of');
+
+    if (game_dir === null || map_name === null || isNaN(board_rank)) {
+      return Err(ctx, Status.BadRequest);
+    }
+
+    const [game] = await db.query<Pick<Game, 'game_id'>>(
+      `select game_id
+         from games
+        where game_mod = ?`,
+      [
+        game_dir,
+      ],
+    );
+
+    if (!game) {
+      return Err(ctx, Status.BadRequest, 'Game not found.');
+    }
+
+    const [map] = await db.query<Pick<MapModel, 'map_id'>>(
+      `select map_id
+         from maps
+        where game_id = ?
+          and name = ?`,
+      [
+        game!.game_id,
+        map_name,
+      ],
+    );
+
+    if (!map) {
+      return Err(ctx, Status.BadRequest, 'Map not found.');
+    }
+
+    type Select = Pick<Video, 'board_changelog_id' | 'board_profile_number' | 'board_rank' | 'demo_metadata'>;
+
+    const mtriggers = include_pb_of !== undefined
+      ? await db.query<Select>(
+        `(select board_changelog_id
+               , board_profile_number
+               , board_rank
+               , demo_metadata
+            from videos
+           where map_id = ?
+             and board_rank = ?
+             and board_changelog_id is not null
+             and deleted_at is null
+        order by created_at desc
+           limit 1
+          )
+          union
+          (select board_changelog_id
+                , board_profile_number
+                , board_rank
+                , demo_metadata
+             from videos
+            where map_id = ?
+              and board_profile_number = ?
+              and board_changelog_id is not null
+              and deleted_at is null
+         order by created_at desc
+            limit 1
+          )
+        `,
+        [
+          map.map_id,
+          board_rank,
+          map.map_id,
+          include_pb_of,
+        ],
+      )
+      : await db.query<Select>(
+        `select board_changelog_id
+              , board_profile_number
+              , board_rank
+              , demo_metadata
+           from videos
+          where map_id = ?
+            and board_rank = ?
+            and board_changelog_id is not null
+            and deleted_at is null
+          order by created_at desc
+          limit 1`,
+        [
+          map.map_id,
+          board_rank,
+        ],
+      );
+
+    type Metdata = {
+      segments: DemoMetadata['segments'];
+    };
+
+    mtriggers.forEach((mtrigger) => {
+      try {
+        const metadata = JSON.parse(mtrigger.demo_metadata) as DemoMetadata;
+        (mtrigger.demo_metadata as unknown as Metdata) = {
+          segments: metadata.segments,
+        };
+      } catch {
+        (mtrigger.demo_metadata as unknown as Metdata) = {
+          segments: [],
+        };
+      }
+    });
+
+    Ok(ctx, {
+      data: mtriggers,
+      count: mtriggers.length,
+    });
   })
   .get('/(.*)', (ctx) => {
     Err(ctx, Status.NotFound, 'Route not found :(');

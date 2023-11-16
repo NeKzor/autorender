@@ -7,6 +7,7 @@
 import 'dotenv/load.ts';
 
 import { assertEquals } from 'testing/asserts.ts';
+import { DemoMetadata } from '../demo.ts';
 
 const testChangelogId = 123;
 const hostUri = `http://${Deno.env.get('SERVER_HOST')}:${Deno.env.get('SERVER_PORT')}`;
@@ -169,5 +170,62 @@ Deno.test('Search videos', async () => {
 
     assertEquals(Array.isArray(search.results), true);
     assertEquals(search.results.length, 20);
+  }
+});
+
+Deno.test('Search mtriggers', async () => {
+  // TODO: Refactor
+  interface SearchResponse {
+    data: {
+      board_changelog_id: string;
+      board_profile_number: string;
+      board_rank: number;
+      demo_metadata: {
+        segments: DemoMetadata['segments'];
+      };
+    };
+    count: number;
+  }
+
+  {
+    const params = '?game_dir=portal2&map_name=mp_coop_doors&board_rank=1';
+    const url = `${hostUri}/api/v1/mtriggers/search${params}`;
+
+    console.info(`[GET] ${url}`);
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': Deno.env.get('USER_AGENT')!,
+      },
+    });
+
+    assertEquals(res.status, 200);
+
+    const search = await res.json() as SearchResponse;
+
+    assertEquals(Array.isArray(search.data), true);
+    assertEquals(search.count, 0);
+  }
+
+  {
+    const params = '?game_dir=portal2&map_name=mp_coop_doors&board_rank=1&include_pb_of=76561198823602829';
+    const url = `${hostUri}/api/v1/mtriggers/search${params}`;
+
+    console.info(`[GET] ${url}`);
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': Deno.env.get('USER_AGENT')!,
+      },
+    });
+
+    assertEquals(res.status, 200);
+
+    const search = await res.json() as SearchResponse;
+
+    assertEquals(Array.isArray(search.data), true);
+    assertEquals(search.count, 0);
   }
 });
