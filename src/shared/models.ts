@@ -156,6 +156,8 @@ export enum RenderQuality {
  */
 export interface Video {
   video_id: string;
+  game_id: number;
+  map_id: number;
   share_id: string;
   title: string;
   comment: string;
