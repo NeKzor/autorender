@@ -17,8 +17,6 @@ import { VideoPayload } from './protocol.ts';
 import { UserAgent } from './constants.ts';
 import { realGameModFolder } from './utils.ts';
 
-const AUTORENDER_MAX_VIDEO_FILE_SIZE = 150_000_000;
-
 export enum UploadWorkerDataType {
   Config = 'config',
   Upload = 'upload',
@@ -68,11 +66,6 @@ self.addEventListener(
             const game = config.games.find((game) => game.mod === demo_game_dir)!;
 
             const videoFile = realGameModFolder(game, config.autorender['folder-name'], `${video_id}.dem.mp4`);
-
-            const stat = await Deno.stat(videoFile);
-            if (stat.size > AUTORENDER_MAX_VIDEO_FILE_SIZE) {
-              throw new Error(`Video file ${videoFile} is too big (${stat.size} bytes)`);
-            }
 
             // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
             //       https://github.com/oakserver/oak/issues/581
