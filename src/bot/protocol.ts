@@ -11,6 +11,7 @@ import { Video } from '~/shared/models.ts';
 export enum BotDataType {
   Upload = 'upload',
   Error = 'error',
+  Config = 'config',
 }
 
 export type VideoUpload = Pick<
@@ -31,6 +32,10 @@ export interface ErrorStatus {
   requested_in_channel_id: string;
 }
 
+export interface ServerConfig {
+  maxDemoFileSize: number;
+}
+
 export type BotMessage<T extends BotDataType, P> = {
   type: T;
   data: P;
@@ -38,4 +43,5 @@ export type BotMessage<T extends BotDataType, P> = {
 
 export type BotMessageUpload = BotMessage<BotDataType.Upload, VideoUpload>;
 export type BotMessageError = BotMessage<BotDataType.Error, ErrorStatus>;
-export type BotMessages = BotMessageUpload | BotMessageError;
+export type BotMessageConfig = BotMessage<BotDataType.Config, ServerConfig>;
+export type BotMessages = BotMessageUpload | BotMessageError | BotMessageConfig;

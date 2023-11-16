@@ -13,8 +13,7 @@ import {
 } from '@discordeno/bot';
 import { Messages, SourceDemoParser } from '@nekz/sdp';
 import { createCommand } from './mod.ts';
-
-const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
+import { Server } from '../services/server.ts';
 
 createCommand({
   name: 'fixup',
@@ -31,7 +30,7 @@ createCommand({
   ],
   execute: async (bot: Bot, interaction: Interaction) => {
     const attachment = interaction.data?.resolved?.attachments?.first()!;
-    const warnFileIsTooBigForRender = attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE;
+    const warnFileIsTooBigForRender = attachment.size > Server.config.maxDemoFileSize;
 
     await bot.helpers.sendInteractionResponse(
       interaction.id,

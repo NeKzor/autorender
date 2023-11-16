@@ -16,6 +16,7 @@ import { escapeMaskedLink, getPublicUrl, updateCommands } from './utils/helpers.
 import { BotDataType, BotMessages } from './protocol.ts';
 import { bot } from './bot.ts';
 import { Queue } from './services/queue.ts';
+import { Server } from './services/server.ts';
 
 // TODO: file logging
 const log = logger({ name: 'Main' });
@@ -95,6 +96,10 @@ worker.addEventListener('message', async (message) => {
             await bot.helpers.sendMessage(channel.id, { content });
           }
         }
+        break;
+      }
+      case BotDataType.Config: {
+        Server.config = data;
         break;
       }
       default: {

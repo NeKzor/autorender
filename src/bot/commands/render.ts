@@ -25,9 +25,9 @@ import { Queue } from '../services/queue.ts';
 import { escapeMaskedLink, getPublicUrl } from '../utils/helpers.ts';
 import { createCommand } from './mod.ts';
 import { Video } from '~/shared/models.ts';
+import { Server } from '../services/server.ts';
 
 const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
-const AUTORENDER_MAX_DEMO_FILE_SIZE = 6_000_000;
 
 const validateUrl = (urlString: string) => {
   try {
@@ -89,14 +89,16 @@ const render = async (
   const attachment = source?.attachment ?? interaction.data?.resolved?.attachments?.first();
 
   if (attachment) {
-    if (attachment.size > AUTORENDER_MAX_DEMO_FILE_SIZE) {
+    if (attachment.size > Server.config.maxDemoFileSize) {
       await bot.helpers.sendInteractionResponse(
         interaction.id,
         interaction.token,
         {
           type: InteractionResponseTypes.ChannelMessageWithSource,
           data: {
-            content: `❌️ File is too big. Uploads are limited to 6 MB.`,
+            content: `❌️ File is too big. Uploads are limited to ${
+              Math.trunc(Server.config.maxDemoFileSize / 1_000_000)
+            } MB.`,
           },
         },
       );

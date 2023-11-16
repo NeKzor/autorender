@@ -1128,6 +1128,15 @@ router.get('/connect/bot', async (ctx) => {
 
   discordBot.onopen = () => {
     logger.info('Bot connected');
+
+    discordBot!.send(
+      JSON.stringify({
+        type: 'config',
+        data: {
+          maxDemoFileSize: AUTORENDER_MAX_DEMO_FILE_SIZE,
+        },
+      }),
+    );
   };
 
   discordBot.onmessage = (message) => {
