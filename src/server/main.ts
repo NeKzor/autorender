@@ -12,7 +12,7 @@
 import 'dotenv/load.ts';
 import * as uuid from 'uuid/mod.ts';
 import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status, STATUS_TEXT } from 'oak/mod.ts';
-import { ResponseBody, ResponseBodyFunction } from 'oak/response.ts';
+import { Response, ResponseBody, ResponseBodyFunction } from 'oak/response.ts';
 import Session from 'oak_sessions/src/Session.ts';
 import CookieStore from 'oak_sessions/src/stores/CookieStore.ts';
 import { oakCors } from 'cors/mod.ts';
@@ -88,6 +88,13 @@ const DISCORD_BOARD_INTEGRATION_WEBHOOK_URL = Deno.env.get('DISCORD_BOARD_INTEGR
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
+
+(() => {
+  const originalDestroy = Response.prototype.destroy;
+  Response.prototype.destroy = function () {
+    originalDestroy.bind(this)(true); // Always close resources
+  };
+})();
 
 const cookieOptions: CookiesSetDeleteOptions = {
   expires: new Date(Date.now() + 86_400_000 * 30),
