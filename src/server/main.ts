@@ -40,7 +40,7 @@ import * as _bcrypt_worker from 'bcrypt/src/worker.ts';
 import { Buffer } from 'io/buffer.ts';
 import { AppState as ReactAppState } from './app/AppState.ts';
 import { db } from './db.ts';
-import { createStaticRouter } from 'react-router-dom/server';
+import { createStaticRouter, StaticHandlerContext } from 'react-router-dom/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
 import { DemoMetadata, getDemoInfo, supportedGameDirs, supportedGameMods } from './demo.ts';
 import { basename, join } from 'path/mod.ts';
@@ -1898,13 +1898,14 @@ const routeToApp = async (ctx: Context) => {
   const context = await routeHandler.query(request, { requestContext });
 
   // NOTE: This only handles redirect responses in async loaders/actions
+  // TODO: Does globalThis.Response work here?
   if (context instanceof Response) {
     const location = context.headers.get('Location') ?? '/';
     ctx.response.status = context.status;
     return ctx.response.redirect(location);
   }
 
-  const [match] = context.matches;
+  const [match] = (context as StaticHandlerContext).matches;
   const matchedPath = match?.route?.path;
   const matchedRoute = routes.find((route) => route.path === matchedPath);
   const meta = (() => {
@@ -1912,7 +1913,7 @@ const routeToApp = async (ctx: Context) => {
       return {};
     }
 
-    const [_, loadersData] = Object.entries(context.loaderData)
+    const [_, loadersData] = Object.entries((context as StaticHandlerContext).loaderData)
       .find(([id]) => id === match.route.id) ?? [];
 
     if (loadersData === undefined) {
@@ -1950,9 +1951,9 @@ const routeToApp = async (ctx: Context) => {
     discordAuthorizeLink: DISCORD_AUTHORIZE_LINK,
   };
 
-  const router = createStaticRouter(routeHandler.dataRoutes, context);
+  const router = createStaticRouter(routeHandler.dataRoutes, context as StaticHandlerContext);
 
-  ctx.response.body = index(router, context, initialState);
+  ctx.response.body = index(router, context as StaticHandlerContext, initialState);
   ctx.response.headers.set('content-type', 'text/html');
 };
 

@@ -3,6 +3,8 @@
 
 /// <reference lib="dom" />
 
+// deno-lint-ignore-file no-window
+
 const minWidthBreakpoints = {
   md: 768,
 };

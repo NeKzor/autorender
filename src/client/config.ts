@@ -72,10 +72,10 @@ export const configExplanation: {
   },
   games: [
     {
-      exe: 'Name of the games\'s executable file.',
-      proc: 'Name of the game\'s process.',
+      exe: "Name of the games's executable file.",
+      proc: "Name of the game's process.",
       cfg: 'Name of the installed autorender cfg file for the game.',
-      mod: 'Name of the game\'s mod directory.',
+      mod: "Name of the game's mod directory.",
       dir: 'Path where the game is installed.',
       sourcemod: 'If the game is a sourcemod.',
     },
@@ -452,7 +452,7 @@ const createConfig = async () => {
     },
     {
       name: 'steam_common',
-      message: '📂️ Please enter your Steam\'s common directory path where all games are installed.',
+      message: "📂️ Please enter your Steam's common directory path where all games are installed.",
       suggestions: [
         isWindows
           ? 'C:\\Program Files (x86)\\Steam\\steamapps\\common'
@@ -468,7 +468,7 @@ const createConfig = async () => {
             });
 
             if (state !== 'granted') {
-              console.log(colors.red('❌️ Access denied for Steam\'s common folder.'));
+              console.log(colors.red("❌️ Access denied for Steam's common folder."));
               Deno.exit(1);
             }
 
@@ -487,7 +487,7 @@ const createConfig = async () => {
                   });
 
                   if (state !== 'granted') {
-                    console.log(colors.red('❌️ Access denied for Steam\'s sourcemods folder.'));
+                    console.log(colors.red("❌️ Access denied for Steam's sourcemods folder."));
                     Deno.exit(1);
                   }
                 }

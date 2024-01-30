@@ -428,7 +428,7 @@ export const addNewGame = async (
       },
       {
         name: 'steam_common',
-        message: '📂️ Please enter your Steam\'s common directory path where all games are installed.',
+        message: "📂️ Please enter your Steam's common directory path where all games are installed.",
         type: Input,
         suggestions: [
           isWindows
@@ -444,7 +444,7 @@ export const addNewGame = async (
               });
 
               if (state !== 'granted') {
-                console.log(colors.red('❌️ Access denied for Steam\'s common folder.'));
+                console.log(colors.red("❌️ Access denied for Steam's common folder."));
                 Deno.exit(1);
               }
 
@@ -463,7 +463,7 @@ export const addNewGame = async (
                     });
 
                     if (state !== 'granted') {
-                      console.log(colors.red('❌️ Access denied for Steam\'s sourcemods folder.'));
+                      console.log(colors.red("❌️ Access denied for Steam's sourcemods folder."));
                       Deno.exit(1);
                     }
                   }
