@@ -12,7 +12,7 @@
 import 'dotenv/load.ts';
 import * as uuid from 'uuid/mod.ts';
 import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status, STATUS_TEXT } from 'oak/mod.ts';
-import { Response, ResponseBody, ResponseBodyFunction } from 'oak/response.ts';
+import { Response as OakResponse, ResponseBody, ResponseBodyFunction } from 'oak/response.ts';
 import Session from 'oak_sessions/src/Session.ts';
 import CookieStore from 'oak_sessions/src/stores/CookieStore.ts';
 import { oakCors } from 'cors/mod.ts';
@@ -40,7 +40,7 @@ import * as _bcrypt_worker from 'bcrypt/src/worker.ts';
 import { Buffer } from 'io/buffer.ts';
 import { AppState as ReactAppState } from './app/AppState.ts';
 import { db } from './db.ts';
-import { createStaticRouter, StaticHandlerContext } from 'react-router-dom/server';
+import { createStaticRouter } from 'react-router-dom/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
 import { DemoMetadata, getDemoInfo, supportedGameDirs, supportedGameMods } from './demo.ts';
 import { basename, join } from 'path/mod.ts';
@@ -90,8 +90,8 @@ const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 
 (() => {
-  const originalDestroy = Response.prototype.destroy;
-  Response.prototype.destroy = function () {
+  const originalDestroy = OakResponse.prototype.destroy;
+  OakResponse.prototype.destroy = function () {
     originalDestroy.bind(this)(true); // Always close resources
   };
 })();
@@ -1898,14 +1898,13 @@ const routeToApp = async (ctx: Context) => {
   const context = await routeHandler.query(request, { requestContext });
 
   // NOTE: This only handles redirect responses in async loaders/actions
-  // TODO: Does globalThis.Response work here?
   if (context instanceof Response) {
     const location = context.headers.get('Location') ?? '/';
     ctx.response.status = context.status;
     return ctx.response.redirect(location);
   }
 
-  const [match] = (context as StaticHandlerContext).matches;
+  const [match] = context.matches;
   const matchedPath = match?.route?.path;
   const matchedRoute = routes.find((route) => route.path === matchedPath);
   const meta = (() => {
@@ -1913,7 +1912,7 @@ const routeToApp = async (ctx: Context) => {
       return {};
     }
 
-    const [_, loadersData] = Object.entries((context as StaticHandlerContext).loaderData)
+    const [_, loadersData] = Object.entries(context.loaderData)
       .find(([id]) => id === match.route.id) ?? [];
 
     if (loadersData === undefined) {
@@ -1951,9 +1950,9 @@ const routeToApp = async (ctx: Context) => {
     discordAuthorizeLink: DISCORD_AUTHORIZE_LINK,
   };
 
-  const router = createStaticRouter(routeHandler.dataRoutes, context as StaticHandlerContext);
+  const router = createStaticRouter(routeHandler.dataRoutes, context);
 
-  ctx.response.body = index(router, context as StaticHandlerContext, initialState);
+  ctx.response.body = index(router, context, initialState);
   ctx.response.headers.set('content-type', 'text/html');
 };
 
