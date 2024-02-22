@@ -73,6 +73,7 @@ INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, cha
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (1, "sp_a4_finale4", "Finale 4", 1, 47456, 47457, 15, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (1, "mp_coop_start", "Start", 2, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (1, "mp_coop_lobby_2", "Lobby", 2, NULL, NULL, 0, 0);
+INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (1, "mp_coop_lobby_3", "Lobby", 2, NULL, NULL, 0, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (1, "mp_coop_doors", "Doors", 2, 47741, 47740, 1, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (1, "mp_coop_race_2", "Buttons", 2, 47825, 47826, 1, 0);
 INSERT INTO maps (game_id, name, alias, type, best_time_id, best_portals_id, chapter, auto_fullbright) VALUES (1, "mp_coop_laser_2", "Lasers", 2, 47828, 47827, 1, 0);
