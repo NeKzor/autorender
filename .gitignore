@@ -7,6 +7,7 @@ log/
 autorender.yaml
 docker-compose.yml
 entrypoint.sh
+src/app/
 
 # Logs
 logs

@@ -17,6 +17,7 @@
     "proxy:stop": "docker container stop autorender-proxy",
     "stale": "docker exec -ti autorender-server deno task stale",
     "perm": "docker exec -ti autorender-server deno task perm",
+    "id": "docker exec -ti autorender-server deno task id",
     "board": "docker exec -ti autorender-server deno task board",
     "processing": "docker exec -ti autorender-server deno task processing",
     "migrate": "docker exec -ti autorender-server deno task migrate",
@@ -49,6 +50,9 @@
       "docker"
     ]
   },
+  "exclude": [
+    "src/app"
+  ],
   "compilerOptions": {
     "noUncheckedIndexedAccess": true
   }
