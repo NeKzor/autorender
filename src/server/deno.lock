@@ -1,5 +1,16 @@
 {
-  "version": "2",
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "npm:@nekz/sdp@0.9.0": "npm:@nekz/sdp@0.9.0"
+    },
+    "npm": {
+      "@nekz/sdp@0.9.0": {
+        "integrity": "sha512-ndg3Ze/RZxsyX0QRhZ0HnkHUIth7/3jpTcABhzQzsXV0Y4MzpoZ0dj6KRqiBz+O3acZdk0/9gr40Smqc7S4ikg==",
+        "dependencies": {}
+      }
+    }
+  },
   "remote": {
     "https://deno.land/std@0.104.0/_util/assert.ts": "2f868145a042a11d5ad0a3c748dcf580add8a0dbc0e876eaa0026303a5488f58",
     "https://deno.land/std@0.104.0/async/deadline.ts": "1d6ac7aeaee22f75eb86e4e105d6161118aad7b41ae2dd14f4cfd3bf97472b93",
@@ -582,42 +593,5 @@
     "https://esm.sh/v131/twind@0.16.16/denonext/sheets.js": "aff2004484fdf713c8d39492ce89ffd0d8f1fabf48fdb44e19d78948fecfa9aa",
     "https://esm.sh/v131/twind@0.16.16/denonext/twind.mjs": "da59286ec21545fe326d0e04d5c92e5abf70cfcf14d6285a32fc0c4f1a6eb1d6",
     "https://esm.sh/v131/twind@0.16.16/sheets": "31f5a3dc8d22a175e9c6a41f1b9a96a2ee8076433b61d87e11858683aa847c86"
-  },
-  "npm": {
-    "specifiers": {
-      "@nekz/sdp": "@nekz/sdp@0.4.0",
-      "@nekz/sdp@0.4.0": "@nekz/sdp@0.4.0",
-      "@nekz/sdp@0.5.0": "@nekz/sdp@0.5.0",
-      "@nekz/sdp@0.6.0": "@nekz/sdp@0.6.0",
-      "@nekz/sdp@0.7.0": "@nekz/sdp@0.7.0",
-      "@nekz/sdp@0.8.0": "@nekz/sdp@0.8.0",
-      "@nekz/sdp@0.9.0": "@nekz/sdp@0.9.0"
-    },
-    "packages": {
-      "@nekz/sdp@0.4.0": {
-        "integrity": "sha512-zbTEWQOmWPn5ZFKfwlghoJfdjQR9RJLI/OjpfIN4PWxIBBzdbVH0T7QA+NfpQztDhHjWekLIjg+s6lRyg2PPmw==",
-        "dependencies": {}
-      },
-      "@nekz/sdp@0.5.0": {
-        "integrity": "sha512-DbBd9XBl7ibKob8TP7OfFJa3ZE2fgvMZbvrtggLf48Rgv8BeOCiQlnk9ZG6odKq7Pr9Ocz3FE1reQymbNDP+Jw==",
-        "dependencies": {}
-      },
-      "@nekz/sdp@0.6.0": {
-        "integrity": "sha512-1qZpl37/trX9hvQKby8TJPiHTwUtBAQCe9DrYheJ4w6aa568qnoirUXbht6t5zowgQjt3PEnIgBZ6UaMWl0kCA==",
-        "dependencies": {}
-      },
-      "@nekz/sdp@0.7.0": {
-        "integrity": "sha512-51nNXemcnpvyQdPQrg/sFb+R0TcUuHKjyvy2pBEAx6OHaDdtFojA7vKE4BsJ9O7ekWSnuHLgHBYDlB+be2zKVw==",
-        "dependencies": {}
-      },
-      "@nekz/sdp@0.8.0": {
-        "integrity": "sha512-K4UcrUgmeqkGqSP3lk5TzTLruTu3YEhKkyGi1R5c1NE8qAD0VEosim0v6ClwaHQQLsrR85060ugtPI+uxtG1GQ==",
-        "dependencies": {}
-      },
-      "@nekz/sdp@0.9.0": {
-        "integrity": "sha512-ndg3Ze/RZxsyX0QRhZ0HnkHUIth7/3jpTcABhzQzsXV0Y4MzpoZ0dj6KRqiBz+O3acZdk0/9gr40Smqc7S4ikg==",
-        "dependencies": {}
-      }
-    }
   }
 }

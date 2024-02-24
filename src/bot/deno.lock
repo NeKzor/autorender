@@ -1,47 +1,11 @@
 {
-  "version": "2",
-  "remote": {
-    "https://deno.land/std@0.190.0/async/delay.ts": "73aa04cec034c84fc748c7be49bb15cac3dd43a57174bfdb7a4aec22c248f0dd",
-    "https://deno.land/std@0.190.0/collections/filter_values.ts": "5b9feaf17b9a6e5ffccdd36cf6f38fa4ffa94cff2602d381c2ad0c2a97929652",
-    "https://deno.land/std@0.190.0/collections/without_all.ts": "a89f5da0b5830defed4f59666e188df411d8fece35a5f6ca69be6ca71a95c185",
-    "https://deno.land/std@0.190.0/dotenv/load.ts": "0636983549b98f29ab75c9a22a42d9723f0a389ece5498fe971e7bb2556a12e2",
-    "https://deno.land/std@0.190.0/dotenv/mod.ts": "f5a8123741d1561ae8184a7f043bc097b15132c5171c651142b804b6dbc21853",
-    "https://deno.land/std@0.198.0/async/delay.ts": "a6142eb44cdd856b645086af2b811b1fcce08ec06bb7d50969e6a872ee9b8659",
-    "https://deno.land/std@0.198.0/collections/filter_values.ts": "16e1fc456a7969e770ec5b89edf5ac97b295ca534b47c1a83f061b409aad7814",
-    "https://deno.land/std@0.198.0/collections/without_all.ts": "1e3cccb1ed0659455b473c0766d9414b7710d8cef48862c899f445178f66b779",
-    "https://deno.land/std@0.198.0/dotenv/load.ts": "0636983549b98f29ab75c9a22a42d9723f0a389ece5498fe971e7bb2556a12e2",
-    "https://deno.land/std@0.198.0/dotenv/mod.ts": "ff7acf1c97ba57af512ecb6f9094fa96e1f63cca1960a7687616fa86bab7e356"
-  },
-  "npm": {
+  "version": "3",
+  "packages": {
     "specifiers": {
-      "@discordeno/bot": "@discordeno/bot@19.0.0-next.2d0f76e",
-      "@discordeno/bot@19.0.0-next.2d0f76e": "@discordeno/bot@19.0.0-next.2d0f76e",
-      "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.2d0f76e",
-      "@discordeno/gateway@19.0.0-next.2d0f76e": "@discordeno/gateway@19.0.0-next.2d0f76e",
-      "@discordeno/rest": "@discordeno/rest@19.0.0-next.2d0f76e",
-      "@discordeno/rest@19.0.0-next.2d0f76e": "@discordeno/rest@19.0.0-next.2d0f76e",
-      "@discordeno/types": "@discordeno/types@19.0.0-next.2d0f76e",
-      "@discordeno/types@19.0.0-next.2d0f76e": "@discordeno/types@19.0.0-next.2d0f76e",
-      "@discordeno/utils": "@discordeno/utils@19.0.0-next.2d0f76e",
-      "@discordeno/utils@19.0.0-next.2d0f76e": "@discordeno/utils@19.0.0-next.2d0f76e",
-      "@nekz/sdp": "@nekz/sdp@0.4.0",
-      "@nekz/sdp@0.4.0": "@nekz/sdp@0.4.0",
-      "@nekz/sdp@0.5.0": "@nekz/sdp@0.5.0",
-      "@nekz/sdp@0.6.0": "@nekz/sdp@0.6.0",
-      "@nekz/sdp@0.7.0": "@nekz/sdp@0.7.0",
-      "@nekz/sdp@0.8.0": "@nekz/sdp@0.8.0",
-      "@nekz/sdp@0.9.0": "@nekz/sdp@0.9.0"
+      "npm:@discordeno/bot@19.0.0-next.2d0f76e": "npm:@discordeno/bot@19.0.0-next.2d0f76e",
+      "npm:@nekz/sdp@0.9.0": "npm:@nekz/sdp@0.9.0"
     },
-    "packages": {
-      "@discordeno/bot@19.0.0-next.0aeadbb": {
-        "integrity": "sha512-3Fd72gRHHVDvdzqHVMAttzjRYJXocof9cejPrZi3B52E9dt+80q7m5Cj7oiCKsSVRV5PiIZuEFdTVLs5tBcblA==",
-        "dependencies": {
-          "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.0aeadbb",
-          "@discordeno/rest": "@discordeno/rest@19.0.0-next.0aeadbb",
-          "@discordeno/types": "@discordeno/types@19.0.0-next.0aeadbb",
-          "@discordeno/utils": "@discordeno/utils@19.0.0-next.0aeadbb"
-        }
-      },
+    "npm": {
       "@discordeno/bot@19.0.0-next.2d0f76e": {
         "integrity": "sha512-ei4+hkW87QkB0ENEwLf3pweaLf3IoxQC3R5DBiBW1B5qRnUDaZnJTa1B1MyDOA4btqEv7DITj1Us1Y9N6CuuQQ==",
         "dependencies": {
@@ -51,45 +15,12 @@
           "@discordeno/utils": "@discordeno/utils@19.0.0-next.2d0f76e"
         }
       },
-      "@discordeno/bot@19.0.0-next.3445211": {
-        "integrity": "sha512-b8RpLfp+/pUthaA5EjXiu8sAPCw+psJ6QNkWG+zsM7efRpOgnSR+U21Dy33YbTa5S4f8V6hLqT0HhrPlvTE1XQ==",
-        "dependencies": {
-          "@discordeno/gateway": "@discordeno/gateway@19.0.0-next.3445211",
-          "@discordeno/rest": "@discordeno/rest@19.0.0-next.3445211",
-          "@discordeno/types": "@discordeno/types@19.0.0-next.3445211",
-          "@discordeno/utils": "@discordeno/utils@19.0.0-next.3445211"
-        }
-      },
-      "@discordeno/gateway@19.0.0-next.0aeadbb": {
-        "integrity": "sha512-UfHWR+6aBCT/uOXnP0p5prZmL2ihxYP1g0AJLhUEYGL2/YQMz3ut2fmLNc1FFdyMYSBUvSFCqHQOHYiluEGfzQ==",
-        "dependencies": {
-          "@discordeno/types": "@discordeno/types@19.0.0-next.0aeadbb",
-          "@discordeno/utils": "@discordeno/utils@19.0.0-next.0aeadbb",
-          "ws": "ws@8.13.0"
-        }
-      },
       "@discordeno/gateway@19.0.0-next.2d0f76e": {
         "integrity": "sha512-Linhr33cQiF0cRd6XGCnWLWX5ERfF4kp0TKIRp4Uj+9y52Qq33s2Ziytrm3lt3H4WqE14ltZtrJv+0xfwB4eAg==",
         "dependencies": {
           "@discordeno/types": "@discordeno/types@19.0.0-next.2d0f76e",
           "@discordeno/utils": "@discordeno/utils@19.0.0-next.2d0f76e",
-          "ws": "ws@8.13.0"
-        }
-      },
-      "@discordeno/gateway@19.0.0-next.3445211": {
-        "integrity": "sha512-XEIThjK4VAI7TwmCPKCQE9sOPtEtAb+Ah1bzdSDDXEje7Nag1mDsA4HcnAJ8TASBue0dtWT0VAB5LnY1ghSuzQ==",
-        "dependencies": {
-          "@discordeno/types": "@discordeno/types@19.0.0-next.3445211",
-          "@discordeno/utils": "@discordeno/utils@19.0.0-next.3445211",
-          "ws": "ws@8.13.0"
-        }
-      },
-      "@discordeno/rest@19.0.0-next.0aeadbb": {
-        "integrity": "sha512-If0/FrpQkqSu01geR3QXelD3S0MM9kyVUOMW2Ls5C0rlolQEoC0ScCLI3hmPjLCc5cUMqoY9q7eBq+Idp2zUrQ==",
-        "dependencies": {
-          "@discordeno/types": "@discordeno/types@19.0.0-next.0aeadbb",
-          "@discordeno/utils": "@discordeno/utils@19.0.0-next.0aeadbb",
-          "dotenv": "dotenv@16.3.1"
+          "ws": "ws@8.14.2"
         }
       },
       "@discordeno/rest@19.0.0-next.2d0f76e": {
@@ -100,32 +31,9 @@
           "dotenv": "dotenv@16.3.1"
         }
       },
-      "@discordeno/rest@19.0.0-next.3445211": {
-        "integrity": "sha512-mY7VKAryic4nrAUBEc7FvuktUkbgDw76bVzz7VcvcD5yydiqvAxGLKa7yHvmlW9Bf7sBlRpUe7SbMK8rCbNP2A==",
-        "dependencies": {
-          "@discordeno/types": "@discordeno/types@19.0.0-next.3445211",
-          "@discordeno/utils": "@discordeno/utils@19.0.0-next.3445211",
-          "dotenv": "dotenv@16.3.1"
-        }
-      },
-      "@discordeno/types@19.0.0-next.0aeadbb": {
-        "integrity": "sha512-MTc2E/aZBDfMB1weJaajfCsB2lnqPA5dB4tQaFaijrEEnZvfkdsbNNBkVcN0YsaCYl+LdeTPhdihStsNO+6Tmw==",
-        "dependencies": {}
-      },
       "@discordeno/types@19.0.0-next.2d0f76e": {
         "integrity": "sha512-fW40w3/il4QGK4c9VbpXIECaCo+46oY7Bi1eY2OOk9X/b1HKo9YUNI1ehpbBE8EERepphiyaqzbx3us5gY2cOg==",
         "dependencies": {}
-      },
-      "@discordeno/types@19.0.0-next.3445211": {
-        "integrity": "sha512-zEt7XZUb/hG/sRijhYAt7pzmuX/LcuYv+xUFdMUhQlWiAUXSLgE9u3gjCWzfzdFhjwyuOzZtUD7LISzaWkli0Q==",
-        "dependencies": {}
-      },
-      "@discordeno/utils@19.0.0-next.0aeadbb": {
-        "integrity": "sha512-Lb6qteT1G+gsZkvkq8zKZ4zCBPX94KTxMR3zNi7mdRSJYuB3hV7aodti6ZhUx37uqk+Uki05ZMOwnJauRc/UxA==",
-        "dependencies": {
-          "@discordeno/types": "@discordeno/types@19.0.0-next.0aeadbb",
-          "tweetnacl": "tweetnacl@1.0.3"
-        }
       },
       "@discordeno/utils@19.0.0-next.2d0f76e": {
         "integrity": "sha512-4y7n7E63OD4XFkmCoxPnx37dsS8TWtkQhfhtgb68mFUixA3FAioaJrBNtBGvS0n6RcmiZrDQxtx7Kz3WMcCUKQ==",
@@ -133,33 +41,6 @@
           "@discordeno/types": "@discordeno/types@19.0.0-next.2d0f76e",
           "tweetnacl": "tweetnacl@1.0.3"
         }
-      },
-      "@discordeno/utils@19.0.0-next.3445211": {
-        "integrity": "sha512-Dfkhm5KntKLVpLEVVgJLL1UTlqOR0nihcspH5ycq80/FH4XnmtQEczcuCiE7hM/HVL9IIbGd+GhAT0yXe5PxiA==",
-        "dependencies": {
-          "@discordeno/types": "@discordeno/types@19.0.0-next.3445211",
-          "tweetnacl": "tweetnacl@1.0.3"
-        }
-      },
-      "@nekz/sdp@0.4.0": {
-        "integrity": "sha512-zbTEWQOmWPn5ZFKfwlghoJfdjQR9RJLI/OjpfIN4PWxIBBzdbVH0T7QA+NfpQztDhHjWekLIjg+s6lRyg2PPmw==",
-        "dependencies": {}
-      },
-      "@nekz/sdp@0.5.0": {
-        "integrity": "sha512-DbBd9XBl7ibKob8TP7OfFJa3ZE2fgvMZbvrtggLf48Rgv8BeOCiQlnk9ZG6odKq7Pr9Ocz3FE1reQymbNDP+Jw==",
-        "dependencies": {}
-      },
-      "@nekz/sdp@0.6.0": {
-        "integrity": "sha512-1qZpl37/trX9hvQKby8TJPiHTwUtBAQCe9DrYheJ4w6aa568qnoirUXbht6t5zowgQjt3PEnIgBZ6UaMWl0kCA==",
-        "dependencies": {}
-      },
-      "@nekz/sdp@0.7.0": {
-        "integrity": "sha512-51nNXemcnpvyQdPQrg/sFb+R0TcUuHKjyvy2pBEAx6OHaDdtFojA7vKE4BsJ9O7ekWSnuHLgHBYDlB+be2zKVw==",
-        "dependencies": {}
-      },
-      "@nekz/sdp@0.8.0": {
-        "integrity": "sha512-K4UcrUgmeqkGqSP3lk5TzTLruTu3YEhKkyGi1R5c1NE8qAD0VEosim0v6ClwaHQQLsrR85060ugtPI+uxtG1GQ==",
-        "dependencies": {}
       },
       "@nekz/sdp@0.9.0": {
         "integrity": "sha512-ndg3Ze/RZxsyX0QRhZ0HnkHUIth7/3jpTcABhzQzsXV0Y4MzpoZ0dj6KRqiBz+O3acZdk0/9gr40Smqc7S4ikg==",
@@ -173,10 +54,22 @@
         "integrity": "sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==",
         "dependencies": {}
       },
-      "ws@8.13.0": {
-        "integrity": "sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==",
+      "ws@8.14.2": {
+        "integrity": "sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==",
         "dependencies": {}
       }
     }
+  },
+  "remote": {
+    "https://deno.land/std@0.190.0/async/delay.ts": "73aa04cec034c84fc748c7be49bb15cac3dd43a57174bfdb7a4aec22c248f0dd",
+    "https://deno.land/std@0.190.0/collections/filter_values.ts": "5b9feaf17b9a6e5ffccdd36cf6f38fa4ffa94cff2602d381c2ad0c2a97929652",
+    "https://deno.land/std@0.190.0/collections/without_all.ts": "a89f5da0b5830defed4f59666e188df411d8fece35a5f6ca69be6ca71a95c185",
+    "https://deno.land/std@0.190.0/dotenv/load.ts": "0636983549b98f29ab75c9a22a42d9723f0a389ece5498fe971e7bb2556a12e2",
+    "https://deno.land/std@0.190.0/dotenv/mod.ts": "f5a8123741d1561ae8184a7f043bc097b15132c5171c651142b804b6dbc21853",
+    "https://deno.land/std@0.198.0/async/delay.ts": "a6142eb44cdd856b645086af2b811b1fcce08ec06bb7d50969e6a872ee9b8659",
+    "https://deno.land/std@0.198.0/collections/filter_values.ts": "16e1fc456a7969e770ec5b89edf5ac97b295ca534b47c1a83f061b409aad7814",
+    "https://deno.land/std@0.198.0/collections/without_all.ts": "1e3cccb1ed0659455b473c0766d9414b7710d8cef48862c899f445178f66b779",
+    "https://deno.land/std@0.198.0/dotenv/load.ts": "0636983549b98f29ab75c9a22a42d9723f0a389ece5498fe971e7bb2556a12e2",
+    "https://deno.land/std@0.198.0/dotenv/mod.ts": "ff7acf1c97ba57af512ecb6f9094fa96e1f63cca1960a7687616fa86bab7e356"
   }
 }
