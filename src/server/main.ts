@@ -990,11 +990,43 @@ apiV1
     const time = (Number(min ?? 0) * 60 * 100) + (Number(sec ?? 0) * 100) + Number(cs ?? 0);
 
     const words = query.split(' ');
-    const lastIndex = (isWr && words.at(-2) === 'world') || (!isNaN(rank) && words.at(-2) === 'rank')
+    let lastIndex = (isWr && words.at(-2) === 'world') || (!isNaN(rank) && words.at(-2) === 'rank')
       ? -2
       : isWr || matchedRank || time
       ? -1
       : 0;
+
+    let mapTypes: MapType[] = [];
+    let hostOnly: boolean | undefined = undefined;
+
+    if (words.length >= 2) {
+      const hint = words.at(lastIndex - 1)?.toLocaleLowerCase();
+      switch (hint) {
+        case 'sp':
+          lastIndex -= 1;
+
+          mapTypes = [
+            MapType.SinglePlayer,
+            MapType.WorkshopSinglePlayer,
+          ];
+          break;
+        case 'coop':
+        case 'mp':
+        case 'blue':
+        case 'orange': {
+          lastIndex -= 1;
+          hostOnly = hint === 'blue' ? true : hint === 'orange' ? false : undefined;
+
+          mapTypes = [
+            MapType.Cooperative,
+            MapType.WorkshopCooperative,
+          ];
+          break;
+        }
+        default:
+          break;
+      }
+    }
 
     lastIndex && words.splice(lastIndex, -lastIndex);
 
@@ -1012,8 +1044,12 @@ apiV1
               , alias
            from maps
           where best_time_id is not null
-            and (${mapNames.map(() => `maps.alias like ?`).join(' or ')})`,
-        mapNames,
+                and (${mapNames.map(() => `maps.alias like ?`).join(' or ')})
+                ${mapTypes.length ? `and maps.type in (${mapTypes.map(() => '?').join(',')})` : ''}`,
+        [
+          ...mapNames,
+          ...mapTypes,
+        ],
       )
       : [];
 
@@ -1071,6 +1107,7 @@ apiV1
           ${time === 0 && isNaN(rank) && playerName.length ? `and videos.demo_player_name sounds like ?` : ''}
           ${time !== 0 ? ' and demo_time_score = ?' : ''}
           ${!isNaN(rank) ? ' and board_rank = ?' : ''}
+          ${hostOnly !== undefined ? ` and demo_is_host = ${hostOnly ? 1 : 0}` : ''}
      order by created_at desc
         limit 21`,
       [
