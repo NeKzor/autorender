@@ -11,6 +11,10 @@
       }
     }
   },
+  "redirects": {
+    "https://esm.sh/v128/@types/react@~18.2/index.d.ts": "https://esm.sh/v128/@types/react@18.2.37/index.d.ts",
+    "https://esm.sh/v131/@types/react-dom@~18.2/X-ZS8q/server~.d.ts": "https://esm.sh/v131/@types/react-dom@18.2.15/X-ZS8q/server~.d.ts"
+  },
   "remote": {
     "https://deno.land/std@0.104.0/_util/assert.ts": "2f868145a042a11d5ad0a3c748dcf580add8a0dbc0e876eaa0026303a5488f58",
     "https://deno.land/std@0.104.0/async/deadline.ts": "1d6ac7aeaee22f75eb86e4e105d6161118aad7b41ae2dd14f4cfd3bf97472b93",

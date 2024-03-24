@@ -1,5 +1,5 @@
 {
-  "version": "2",
+  "version": "3",
   "remote": {
     "https://deno.land/std@0.192.0/_util/asserts.ts": "178dfc49a464aee693a7e285567b3d0b555dc805ff490505a8aae34f9cfb1462",
     "https://deno.land/std@0.192.0/_util/os.ts": "d932f56d41e4f6a6093d56044e29ce637f8dcc43c5a90af43504a889cf1775e3",
@@ -19,6 +19,7 @@
     "https://deno.land/std@0.192.0/path/win32.ts": "d186344e5583bcbf8b18af416d13d82b35a317116e6460a5a3953508c3de5bba",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/_utils/distance.ts": "02af166952c7c358ac83beae397aa2fbca4ad630aecfcd38d92edb1ea429f004",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/ansi_escapes.ts": "193b3c3a4e520274bd8322ca4cab1c3ce38070bed1898cb2ade12a585dddd7c9",
+    "https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/chain.ts": "eca61b1b64cad7b9799490c12c7aa5538d0f63ac65a73ddb6acac8b35f0a5323",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts": "be0ede6dfd6399db7767f4e194d818e63be8dd8105d5fe24a61265115d7cf00c",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/cursor_position.ts": "caa008d29f7a904908bda514f9839bfbb7a93f2d5f5580501675b646d26a87ff",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/deps.ts": "d3fe54715ec4dbd4140ba4285510b0d458e160a67c27559086a99f93fd63f8e3",
@@ -74,6 +75,7 @@
     "https://deno.land/x/cliffy@v1.0.0-rc.2/flags/types/string.ts": "e89b6a5ce322f65a894edecdc48b44956ec246a1d881f03e97bbda90dd8638c5",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/keycode/_key_codes.ts": "917f0a2da0dbace08cf29bcfdaaa2257da9fe7e705fff8867d86ed69dfb08cfe",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/keycode/key_code.ts": "730fa675ca12fc2a99ba718aa8dbebb1f2c89afd47484e30ef3cb705ddfca367",
+    "https://deno.land/x/cliffy@v1.0.0-rc.2/keycode/mod.ts": "981b828bddada634e62a2a067b9d1592986180c4e920eb55e0a43cc085eb98ab",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/_figures.ts": "e22413ddd51bb271b6b861a058742e83aaa3f62c14e8162cb73ae6f047062f51",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/_generic_input.ts": "870dad97077582439cee26cb19aec123b4850376331338abdc64a91224733cdc",
     "https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/_generic_list.ts": "f1b45da75584b7c9c3001ae0f586b4efd4eaf37c850d1979fe6e83f5d702839b",
