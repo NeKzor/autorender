@@ -12,7 +12,7 @@ const Footer = () => {
     <footer className={tw`bg-white shadow dark:bg-gray-900`}>
       <div className={tw`w-full mx-auto max-w-screen-xl p-4 flex items-center justify-between`}>
         <span className={tw`text-sm text-gray-500 text-center dark:text-gray-400`}>
-          © 2023{' '}
+          © 2024{' '}
           <a href='https://github.com/NeKzor' className={tw`hover:underline`}>
             NeKz
           </a>
