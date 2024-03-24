@@ -1,6 +1,6 @@
 # src/bot
 
-FROM denoland/deno:alpine-1.35.3 AS bot
+FROM denoland/deno:alpine-1.41.0 AS bot
 
 ADD src/import_map.json .
 
@@ -16,7 +16,7 @@ CMD ./entrypoint.sh
 
 # src/server
 
-FROM denoland/deno:alpine-1.35.3 AS server
+FROM denoland/deno:alpine-1.41.0 AS server
 
 RUN apk update
 RUN apk upgrade
