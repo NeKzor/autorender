@@ -1,4 +1,4 @@
-// Copyright (c) 2023, NeKz
+// Copyright (c) 2023-2024, NeKz
 // SPDX-License-Identifier: MIT
 
 /// <reference lib="dom" />
