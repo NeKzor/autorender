@@ -1006,7 +1006,7 @@ apiV1
       ]),
     ].filter((name) => name.length > 0);
 
-    const [map] = mapNames.length
+    const maps = mapNames.length
       ? await db.query<Pick<MapModel, 'map_id' | 'alias'>>(
         `select map_id
               , alias
@@ -1016,6 +1016,21 @@ apiV1
         mapNames,
       )
       : [];
+
+    const map = (() => {
+      const [map] = maps;
+      if (!map || maps.length === 1) {
+        return map;
+      }
+
+      for (const mapName of mapNames) {
+        for (const map of maps) {
+          if (mapName.toLocaleLowerCase() === map.alias.toLocaleLowerCase()) {
+            return map;
+          }
+        }
+      }
+    })();
 
     if (!map) {
       return Ok(
