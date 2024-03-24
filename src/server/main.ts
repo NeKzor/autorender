@@ -1026,6 +1026,24 @@ apiV1
         default:
           break;
       }
+
+      words
+        .slice(0, 2)
+        .forEach((word, index) => {
+          const abbreviation = word.toLocaleLowerCase();
+          switch (abbreviation) {
+            case 'coop': {
+              words[index] = 'Cooperative';
+              break;
+            }
+            case 'prop': {
+              words[index] = 'Propulsion';
+              break;
+            }
+            default:
+              break;
+          }
+        });
     }
 
     lastIndex && words.splice(lastIndex, -lastIndex);
