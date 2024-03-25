@@ -260,6 +260,7 @@ export const Status = () => {
             </thead>
             <tbody>
               {queuedVideos.map((video) => {
+                const createdAt = new Date(video.created_at);
                 return (
                   <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
                     <th
@@ -289,7 +290,9 @@ export const Status = () => {
                         : <>{video.requested_by_name}</>}
                     </td>
                     <td className={tw`px-6 py-4`}>
-                      {new Date(video.created_at).toLocaleDateString()}
+                      <span title={createdAt.toLocaleTimeString()}>
+                        {createdAt.toLocaleDateString()}
+                      </span>
                     </td>
                     <td className={tw`px-6 py-4`}>
                       {video.rendered_by_username !== null
@@ -327,9 +330,6 @@ export const Status = () => {
                   Title
                 </th>
                 <th scope='col' className={tw`px-6 py-3`}>
-                  Status
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
                   Changelog ID
                 </th>
                 <th scope='col' className={tw`px-6 py-3`}>
@@ -342,6 +342,7 @@ export const Status = () => {
             </thead>
             <tbody>
               {failedAutorenderVideos.map((video) => {
+                const createdAt = new Date(video.created_at);
                 return (
                   <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
                     <th
@@ -356,9 +357,6 @@ export const Status = () => {
                       </a>
                     </th>
                     <td className={tw`px-6 py-4`}>
-                      {formatPendingStatus(video.pending)}
-                    </td>
-                    <td className={tw`px-6 py-4`}>
                       <a
                         className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
                         href={`https://board.portal2.sr/changelog?id=${video.board_changelog_id}`}
@@ -368,7 +366,9 @@ export const Status = () => {
                       </a>
                     </td>
                     <td className={tw`px-6 py-4`}>
-                      {new Date(video.created_at).toLocaleDateString()}
+                      <span title={createdAt.toLocaleTimeString()}>
+                        {createdAt.toLocaleDateString()}
+                      </span>
                     </td>
                     <td className={tw`px-6 py-4`}>
                       {video.rendered_by_username !== null
