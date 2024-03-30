@@ -60,9 +60,7 @@ interface DataFunctionArgs<Context> {
   params: Params;
   context: Context;
 }
-// deno-lint-ignore no-empty-interface
 interface LoaderFunctionArgs<Context> extends DataFunctionArgs<Context> {}
-// deno-lint-ignore no-empty-interface
 interface ActionFunctionArgs<Context> extends DataFunctionArgs<Context> {}
 interface LoaderFunction<Context> {
   (args: LoaderFunctionArgs<Context>): ReturnType<RemixLoaderFunction>;
