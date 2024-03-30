@@ -6,11 +6,8 @@
 
 import * as React from 'react';
 import { tw } from 'twind';
-import { AppStateContext } from '../AppState.ts';
 
 export const NotFound = () => {
-  const state = React.useContext(AppStateContext);
-
   return (
     <>
       <div className={tw`container md:flex items-center px-6 py-12 mx-auto`}>
