@@ -315,7 +315,7 @@ const resetFailedAutorenders = async () => {
           , rendered_by = null
           , rendered_by_token = null
           , render_node = null
-      where pending = ?
+      where pending in (?, ?)
         and video_url is null
         and board_changelog_id is not null
         and rendered_by_token is not null
@@ -324,6 +324,7 @@ const resetFailedAutorenders = async () => {
     [
       PendingStatus.RequiresRender,
       PendingStatus.FinishedRender,
+      PendingStatus.StartedRender,
       FAILED_RENDER_MIN_RETRY_MINUTES,
       FAILED_RENDER_MAX_RETRY_MINUTES,
     ],
