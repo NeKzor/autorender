@@ -128,6 +128,7 @@ CREATE TABLE videos (
     render_time INT AS (TIMESTAMPDIFF(SECOND, IFNULL(rerender_started_at, created_at), rendered_at)),
     render_node VARCHAR(64),
     video_url VARCHAR(1024),
+    video_external_id VARCHAR(256),
     video_size INT,
     video_length INT,
     video_preview_url VARCHAR(1024),

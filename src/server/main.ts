@@ -43,7 +43,7 @@ import { db } from './db.ts';
 import { createStaticRouter } from 'react-router-dom/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
 import { DemoMetadata, getDemoInfo, repairDemo, supportedGameDirs, supportedGameMods } from './demo.ts';
-import { basename, join } from 'path/mod.ts';
+import { basename } from 'path/mod.ts';
 import {
   generateShareId,
   getDemoFilePath,
@@ -58,6 +58,7 @@ import {
   validateShareId,
 } from './utils.ts';
 import { rateLimits } from './rate_limits.ts';
+import { fetchDemo } from './tasks/portal2_sr.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -556,11 +557,18 @@ apiV1
 
       logger.info('Uploading video file', filePath);
 
-      const fileContents = await Deno.readFile(filePath);
-
       let videoUrl = '';
+      let videoExternalId = null;
+      let videoSize = 0;
 
       if (B2_ENABLED) {
+        // TODO: Use implementation from jsr:@nekz/b2
+        // if (video.video_external_id) {
+        //   await b2.deleteFileVersion({ fileId: video.video_external_id });
+        // }
+
+        const fileContents = await Deno.readFile(filePath);
+
         const upload = await b2.uploadFile({
           bucketId: B2_BUCKET_ID,
           fileName,
@@ -570,23 +578,28 @@ apiV1
         });
 
         videoUrl = b2.getDownloadUrl(upload.fileName);
+        videoSize = fileContents.byteLength;
+        videoExternalId = upload.fileId;
 
         logger.info('Uploaded', filePath, upload, videoUrl);
       } else {
         videoUrl = `${AUTORENDER_PUBLIC_URI}/storage/videos/${video.share_id}`;
+        videoSize = (await Deno.stat(filePath)).size;
       }
 
       const { affectedRows } = await db.execute(
         `update videos
             set pending = ?
               , video_url = ?
+              , video_external_id = ?
               , video_size = ?
               , rendered_at = current_timestamp()
            where video_id = UUID_TO_BIN(?)`,
         [
           PendingStatus.FinishedRender,
           videoUrl,
-          fileContents.byteLength,
+          videoExternalId,
+          videoSize,
           video.video_id,
         ],
       );
@@ -711,7 +724,6 @@ apiV1
   })
   // Start a rerender of a video.
   .post('/videos/:share_id/rerender', useSession, requiresAuth, async (ctx) => {
-    console.log(ctx.params.share_id);
     if (!hasPermission(ctx, UserPermissions.RerenderVideos)) {
       return Err(ctx, Status.Unauthorized);
     }
@@ -748,27 +760,21 @@ apiV1
       return Err(ctx, Status.NotFound);
     }
 
-    if (video.board_changelog_id && video.created_at.toISOString().slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
-      // Prevent specific rerenders because demofixup corrupted the files on these maps.
-      const mapsWhichUsePointSurvey = [
-        'sp_a2_bts2',
-        'sp_a2_bts3',
-        'sp_a3_portal_intro',
-        'sp_a2_core',
-        'sp_a2_bts4',
-      ];
+    if (video.board_changelog_id) {
+      // Board demos are only stored temporarily when rendering.
+      // Here we also assume that board demos never change so
+      // we don't have to parse it again and update its info.
 
-      if (mapsWhichUsePointSurvey.includes(video.full_map_name)) {
-        return Err(ctx, Status.BadRequest);
-      }
+      const { demo } = await fetchDemo(video.board_changelog_id);
 
-      const demoFile = join(Storage.Demos, 'migration', video.file_name);
+      const filePath = getDemoFilePath(video.video_id);
+      const file = await Deno.open(filePath, { create: true, write: true, truncate: true });
+      await demo.body?.pipeTo(file.writable);
 
       try {
-        await Deno.stat(demoFile);
-      } catch (err) {
-        logger.error(err);
-        return Err(ctx, Status.NotFound);
+        file.close();
+        // deno-lint-ignore no-empty
+      } catch {
       }
     }
 
@@ -781,8 +787,7 @@ apiV1
             , rerender_started_at = CURRENT_TIMESTAMP()
             , processed = 0
         where video_id = UUID_TO_BIN(?)
-          and pending = ?
-          and video_url is null`,
+          and pending = ?`,
       [
         PendingStatus.RequiresRender,
         video.video_id,
@@ -1606,7 +1611,7 @@ router.get('/connect/client', async (ctx) => {
               break;
             }
 
-            const { demo_required_fix, board_changelog_id, created_at, file_name, ...videoPayload } = video;
+            const { demo_required_fix, ...videoPayload } = video;
 
             const buffer = new Buffer();
             const payload = new TextEncoder().encode(JSON.stringify(videoPayload));
@@ -1616,17 +1621,8 @@ router.get('/connect/client', async (ctx) => {
             await buffer.write(length);
             await buffer.write(payload);
 
-            let filePath: string;
-
-            // This is part of autorender v1 migration and can only be caused by a rerender.
-            if (board_changelog_id && created_at.toISOString().slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
-              filePath = join(Storage.Demos, 'migration', file_name);
-            } else {
-              const getFilePath = demo_required_fix === FixedDemoStatus.Required
-                ? getFixedDemoFilePath
-                : getDemoFilePath;
-              filePath = getFilePath(videoPayload.video_id);
-            }
+            const getFilePath = demo_required_fix === FixedDemoStatus.Required ? getFixedDemoFilePath : getDemoFilePath;
+            const filePath = getFilePath(videoPayload.video_id);
 
             const file = await Deno.readFile(filePath);
 
@@ -2071,6 +2067,7 @@ if (!B2_ENABLED) {
 
       ctx.response.headers.set('Accept-Ranges', 'bytes');
       ctx.response.headers.set('Content-Disposition', `filename="${encodeURIComponent(filename)}"`);
+      ctx.response.headers.set('Cache-Control', 'max-age=0, no-cache, no-store');
 
       await ctx.send({
         path: `${video.video_id}.mp4`,

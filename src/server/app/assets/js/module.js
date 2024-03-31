@@ -329,6 +329,27 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
         .finally(() => location.reload());
     });
   }
+
+  const rerenderButton = document.querySelector('#video-rerender-button');
+  if (rerenderButton) {
+    rerenderButton.addEventListener('click', () => {
+      if (!confirm('This will trigger a rerender and delete the current video. Are you sure?')) {
+        return;
+      }
+
+      rerenderButton.setAttribute('disabled', '');
+
+      const [refreshSvg, loadingSvg] = [...rerenderButton.children];
+      refreshSvg.classList.add('hidden');
+      loadingSvg.classList.add('inline');
+      refreshSvg.classList.remove('inline');
+      loadingSvg.classList.remove('hidden');
+
+      fetch(`/api/v1${location.pathname}/rerender`, { method: 'POST' })
+        .catch(console.error)
+        .finally(() => location.reload());
+    });
+  }
 }
 
 // Search

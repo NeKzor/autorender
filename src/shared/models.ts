@@ -198,6 +198,7 @@ export interface Video {
   render_time: number;
   render_node: string;
   video_url: string;
+  video_external_id: string;
   video_size: number;
   video_length: number;
   video_preview_url: string;

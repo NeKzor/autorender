@@ -99,8 +99,8 @@ export const formatCmTime = (time: number) => {
     : `${sec}.${cs < 10 ? `0${cs}` : `${cs}`}`;
 };
 
-export const fetchDemo = async (url: string) => {
-  const res = await fetch(url, {
+export const fetchDemo = async (id: string | number) => {
+  const res = await fetch(`${BOARD_BASE_API}/getDemo?id=${id}`, {
     method: 'GET',
     headers: {
       'User-Agent': Deno.env.get('USER_AGENT')!,

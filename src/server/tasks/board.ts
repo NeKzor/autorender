@@ -22,7 +22,7 @@ import * as uuid from 'uuid/mod.ts';
 import { generateShareId, getDemoFilePath, getFixedDemoFilePath } from '../utils.ts';
 import { getDemoInfo } from '../demo.ts';
 import { logger } from '../logger.ts';
-import { BOARD_BASE_API, fetchDemo, formatCmTime, getChangelog } from './portal2_sr.ts';
+import { fetchDemo, formatCmTime, getChangelog } from './portal2_sr.ts';
 
 const BOARD_INTEGRATION_UPDATE_INTERVAL = 60 * 1_000;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
@@ -87,7 +87,7 @@ const checkChangelogUpdates = async () => {
     };
 
     try {
-      const { demo, originalFilename } = await fetchDemo(`${BOARD_BASE_API}/getDemo?id=${entry.id}`);
+      const { demo, originalFilename } = await fetchDemo(entry.id);
 
       if (!demo.ok) {
         logger.error(`Unable to download demo`);
