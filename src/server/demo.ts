@@ -534,3 +534,31 @@ export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
     isHost: null,
   };
 };
+
+// Remove all pauses before sending it to a render client
+export const repairDemo = (buffer: Uint8Array): Uint8Array => {
+  const parser = SourceDemoParser.default();
+
+  const demo = parser
+    .setOptions({ packets: true })
+    .parse(buffer);
+
+  const isSvcSetPause = (packet: NetMessages.NetMessage) => packet instanceof NetMessages.SvcSetPause;
+
+  let paused = false;
+
+  demo.messages = demo.messages!.filter((message) => {
+    if (message instanceof Messages.Packet) {
+      const pausePacket = message.findPacket<NetMessages.SvcSetPause>(isSvcSetPause);
+      if (pausePacket) {
+        paused = pausePacket.paused!;
+      }
+    }
+
+    return !paused;
+  });
+
+  return parser
+    .setOptions({ packets: false })
+    .save(demo, buffer.byteLength);
+};

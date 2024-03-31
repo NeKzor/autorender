@@ -42,7 +42,7 @@ import { AppState as ReactAppState } from './app/AppState.ts';
 import { db } from './db.ts';
 import { createStaticRouter } from 'react-router-dom/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
-import { DemoMetadata, getDemoInfo, supportedGameDirs, supportedGameMods } from './demo.ts';
+import { DemoMetadata, getDemoInfo, repairDemo, supportedGameDirs, supportedGameMods } from './demo.ts';
 import { basename, join } from 'path/mod.ts';
 import {
   generateShareId,
@@ -88,6 +88,7 @@ const DISCORD_BOARD_INTEGRATION_WEBHOOK_URL = Deno.env.get('DISCORD_BOARD_INTEGR
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
+const AUTORENDER_RUN_DEMO_REPAIR = Deno.env.get('AUTORENDER_RUN_DEMO_REPAIR')?.toLowerCase() === 'true';
 
 (() => {
   const originalDestroy = OakResponse.prototype.destroy;
@@ -1627,7 +1628,20 @@ router.get('/connect/client', async (ctx) => {
               filePath = getFilePath(videoPayload.video_id);
             }
 
-            await buffer.write(await Deno.readFile(filePath));
+            const file = await Deno.readFile(filePath);
+
+            if (AUTORENDER_RUN_DEMO_REPAIR) {
+              try {
+                await buffer.write(repairDemo(file));
+              } catch (err) {
+                logger.error('Error while running demo repair');
+                logger.error(err);
+              } finally {
+                await buffer.write(file);
+              }
+            } else {
+              await buffer.write(file);
+            }
 
             ws.send(buffer.bytes());
 
