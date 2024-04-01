@@ -543,16 +543,22 @@ export const repairDemo = (buffer: Uint8Array): Uint8Array => {
     .setOptions({ packets: true })
     .parse(buffer);
 
-  const isSvcSetPause = (packet: NetMessages.NetMessage) => packet instanceof NetMessages.SvcSetPause;
-
   let paused = false;
 
   demo.messages = demo.messages!.filter((message) => {
     if (message instanceof Messages.Packet) {
-      const pausePacket = message.findPacket<NetMessages.SvcSetPause>(isSvcSetPause);
-      if (pausePacket) {
-        paused = pausePacket.paused!;
+      let pausePacketCount = 0;
+
+      for (const packet of message.packets!) {
+        if (packet instanceof NetMessages.SvcSetPause) {
+          paused = packet.paused!;
+          pausePacketCount += 1;
+        }
       }
+
+      // Drop the whole message during a pause but only if there aren't any other packets.
+      const dropMessage = paused && (!pausePacketCount || message.packets!.length <= pausePacketCount);
+      return !dropMessage;
     }
 
     return !paused;
