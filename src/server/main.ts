@@ -509,11 +509,22 @@ apiV1
       return Err(ctx, Status.BadRequest);
     }
 
-    const cmd = new Deno.Command('ffprobe', { args: [file.filename] });
+    const command = new Deno.Command('ffprobe', { args: [file.filename], stderr: 'piped' });
+    const proc = command.spawn();
+    const procTimeout = setTimeout(() => {
+      try {
+        proc.kill();
+      } catch (err) {
+        logger.error(err);
+      }
+    }, 5_000);
 
-    const { code } = await cmd.output();
-    if (code !== 0) {
-      logger.error(`Process ffprobe returned: ${code}`);
+    const output = await proc.output();
+    clearTimeout(procTimeout);
+
+    if (output.code !== 0) {
+      const error = new TextDecoder().decode(output.stderr) ?? '';
+      logger.error(`Process ffprobe returned: ${output.code}\nError:${error}`);
       return Err(ctx, Status.UnsupportedMediaType);
     }
 

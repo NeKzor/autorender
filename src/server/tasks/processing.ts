@@ -39,15 +39,24 @@ const getVideoLength = async (video: VideoSelect) => {
 
     logger.info('ffprobe', args.join(' '));
 
-    const command = new Deno.Command('ffprobe', { args });
+    const command = new Deno.Command('ffprobe', { args, stdout: 'piped', stderr: 'piped' });
+    const proc = command.spawn();
+    const procTimeout = setTimeout(() => {
+      try {
+        proc.kill();
+      } catch (err) {
+        logger.error(err);
+      }
+    }, 5_000);
 
-    const { success, code, stdout, stderr } = await command.output();
-    const result = decoder.decode(stdout) ?? '';
-    const error = decoder.decode(stderr) ?? '';
+    const output = await proc.output();
+    clearTimeout(procTimeout);
 
-    if (!success) {
-      logger.error(`Video length command error: ${code}\nResult:${result}\nError:${error}`);
-      return null;
+    const result = decoder.decode(output.stdout) ?? '';
+
+    if (!output.success) {
+      const error = decoder.decode(output.stderr) ?? '';
+      logger.error(`Video length command error: ${output.code}\nResult:${result}\nError:${error}`);
     }
 
     const videoLength = parseFloat(result.split('=').at(1) ?? '');
@@ -83,15 +92,24 @@ const getPreviewUrl = async (video: VideoSelect) => {
 
     logger.info('ffmpeg', args.join(' '));
 
-    const command = new Deno.Command('ffmpeg', { args });
+    const command = new Deno.Command('ffmpeg', { args, stdout: 'piped', stderr: 'piped' });
+    const proc = command.spawn();
+    const procTimeout = setTimeout(() => {
+      try {
+        proc.kill();
+      } catch (err) {
+        logger.error(err);
+      }
+    }, 30_000);
 
-    const { success, code, stdout, stderr } = await command.output();
-    const result = decoder.decode(stdout) ?? '';
-    const error = decoder.decode(stderr) ?? '';
+    const output = await proc.output();
+    clearTimeout(procTimeout);
 
-    if (!success) {
-      logger.error(`Video preview command error: ${code}\nResult:${result}\nError:${error}`);
-      return null;
+    const result = decoder.decode(output.stdout) ?? '';
+
+    if (!output.success) {
+      const error = decoder.decode(output.stderr) ?? '';
+      logger.error(`Video preview command error: ${output.code}\nResult:${result}\nError:${error}`);
     }
 
     return `${AUTORENDER_PUBLIC_URI}/storage/previews/${video.share_id}`;
@@ -126,15 +144,24 @@ const getThumbnailUrl = async (video: VideoSelect, options: { videoLength: numbe
 
     logger.info('ffmpeg', args.join(' '));
 
-    const command = new Deno.Command('ffmpeg', { args });
+    const command = new Deno.Command('ffmpeg', { args, stdout: 'piped', stderr: 'piped' });
+    const proc = command.spawn();
+    const procTimeout = setTimeout(() => {
+      try {
+        proc.kill();
+      } catch (err) {
+        logger.error(err);
+      }
+    }, 10_000);
 
-    const { success, code, stdout, stderr } = await command.output();
-    const result = decoder.decode(stdout) ?? '';
-    const error = decoder.decode(stderr) ?? '';
+    const output = await proc.output();
+    clearTimeout(procTimeout);
 
-    if (!success) {
-      logger.error(`Video thumbnail command error: ${code}\nResult:${result}\nError:${error}`);
-      return null;
+    const result = decoder.decode(output.stdout) ?? '';
+
+    if (!output.success) {
+      const error = decoder.decode(output.stderr) ?? '';
+      logger.error(`Video thumbnail command error: ${output.code}\nResult:${result}\nError:${error}`);
     }
 
     return `${AUTORENDER_PUBLIC_URI}/storage/thumbnails/${video.share_id}${options.small ? '/small' : ''}`;
