@@ -24,6 +24,9 @@ import { getDemoInfo } from '../demo.ts';
 import { logger } from '../logger.ts';
 import { fetchDemo, formatCmTime, getChangelog } from './portal2_sr.ts';
 
+const AUTORENDER_RUN_SKIP_COOP_VIDEOS_CHECK =
+  Deno.env.get('AUTORENDER_RUN_SKIP_COOP_VIDEOS_CHECK')?.toLowerCase() === 'true';
+
 const BOARD_INTEGRATION_UPDATE_INTERVAL = 60 * 1_000;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 
@@ -203,6 +206,11 @@ const checkChangelogUpdates = async () => {
           ]
           : []),
       ];
+
+      if (AUTORENDER_RUN_SKIP_COOP_VIDEOS_CHECK && demoInfo.disableRenderSkipCoopVideos) {
+        renderOptions.push('sar_render_skip_coop_videos 0');
+      }
+
       const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
       const demoMetadata = JSON.stringify(demoInfo.metadata);
       const boardChangelogId = entry.id;
