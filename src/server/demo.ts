@@ -561,7 +561,14 @@ export const repairDemo = (buffer: Uint8Array): Uint8Array => {
       return !dropMessage;
     }
 
-    return !paused;
+    if (
+      message instanceof Messages.UserCmd ||
+      message instanceof Messages.CustomData
+    ) {
+      return !paused;
+    }
+
+    return true;
   });
 
   return parser
