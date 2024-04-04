@@ -17,6 +17,7 @@ import { logger } from '../logger.ts';
 import { getVideoFilePath, getVideoPreviewPath, getVideoThumbnailPath, getVideoThumbnailSmallPath } from '../utils.ts';
 
 const POST_PROCESS_UPDATE_INTERVAL = 60 * 1_000;
+const FFMPEG_PROCESS_TIMEOUT = 5 * 60 * 1_000;
 const MIN_SECONDS_FOR_VIDEO_PREVIEW = 8;
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
 
@@ -47,7 +48,7 @@ const getVideoLength = async (video: VideoSelect) => {
       } catch (err) {
         logger.error(err);
       }
-    }, 5_000);
+    }, FFMPEG_PROCESS_TIMEOUT);
 
     const output = await proc.output();
     clearTimeout(procTimeout);
@@ -57,6 +58,7 @@ const getVideoLength = async (video: VideoSelect) => {
     if (!output.success) {
       const error = decoder.decode(output.stderr) ?? '';
       logger.error(`Video length command error: ${output.code}\nResult:${result}\nError:${error}`);
+      return null;
     }
 
     const videoLength = parseFloat(result.split('=').at(1) ?? '');
@@ -100,7 +102,7 @@ const getPreviewUrl = async (video: VideoSelect) => {
       } catch (err) {
         logger.error(err);
       }
-    }, 30_000);
+    }, FFMPEG_PROCESS_TIMEOUT);
 
     const output = await proc.output();
     clearTimeout(procTimeout);
@@ -110,6 +112,7 @@ const getPreviewUrl = async (video: VideoSelect) => {
     if (!output.success) {
       const error = decoder.decode(output.stderr) ?? '';
       logger.error(`Video preview command error: ${output.code}\nResult:${result}\nError:${error}`);
+      return null;
     }
 
     return `${AUTORENDER_PUBLIC_URI}/storage/previews/${video.share_id}`;
@@ -152,7 +155,7 @@ const getThumbnailUrl = async (video: VideoSelect, options: { videoLength: numbe
       } catch (err) {
         logger.error(err);
       }
-    }, 10_000);
+    }, FFMPEG_PROCESS_TIMEOUT);
 
     const output = await proc.output();
     clearTimeout(procTimeout);
@@ -162,6 +165,7 @@ const getThumbnailUrl = async (video: VideoSelect, options: { videoLength: numbe
     if (!output.success) {
       const error = decoder.decode(output.stderr) ?? '';
       logger.error(`Video thumbnail command error: ${output.code}\nResult:${result}\nError:${error}`);
+      return null;
     }
 
     return `${AUTORENDER_PUBLIC_URI}/storage/thumbnails/${video.share_id}${options.small ? '/small' : ''}`;
