@@ -56,6 +56,14 @@ server {
         alias /storage/files/favicon.ico;
     }
 
+    location ~ "^/storage/avatars/([0-9]+)$" {
+        alias /storage/users/$1/avatar;
+    }
+
+    location ~ "^/storage/banners/([0-9]+)$" {
+        alias /storage/users/$1/banner;
+    }
+
     location ~ "^/storage/demos/([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])$" {
         alias /storage/demos/$1.dem;
         add_header content-type "application/octet-stream";

@@ -13,7 +13,8 @@
     "processing": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-write=/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/processing.ts",
     "optimize": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-write=/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/optimize_images.ts",
     "dev:processing": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-write=/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg --watch tasks/processing.ts",
-    "id": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/storage --allow-net=autorender.database:3307 tasks/id.ts"
+    "id": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/storage --allow-net=autorender.database:3307 tasks/id.ts",
+    "avatars": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/storage --allow-write=/storage/users --allow-net=autorender.database:3307,cdn.discordapp.com tasks/avatars.ts"
   },
   "fmt": {
     "useTabs": false,

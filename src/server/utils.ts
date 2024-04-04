@@ -5,7 +5,7 @@
  */
 
 import { join } from 'path/mod.ts';
-import { Video } from '~/shared/models.ts';
+import { User, Video } from '~/shared/models.ts';
 
 export const Storage = {
   Demos: Deno.realPathSync(Deno.env.get('AUTORENDER_DEMOS_FOLDER')!),
@@ -13,6 +13,7 @@ export const Storage = {
   Videos: Deno.realPathSync(Deno.env.get('AUTORENDER_VIDEOS_FOLDER')!),
   Previews: Deno.realPathSync(Deno.env.get('AUTORENDER_PREVIEWS_FOLDER')!),
   Thumbnails: Deno.realPathSync(Deno.env.get('AUTORENDER_THUMBNAILS_FOLDER')!),
+  Users: Deno.realPathSync(Deno.env.get('AUTORENDER_USERS_FOLDER')!),
 };
 
 export const generateShareId = () => {
@@ -38,3 +39,14 @@ export const getVideoThumbnailPath = (video: Pick<Video, 'share_id'>) =>
 export const getVideoThumbnailSmallPath = (video: Pick<Video, 'share_id'>) =>
   join(Storage.Thumbnails, `${video.share_id}_sm.webp`);
 export const getVideoPreviewPath = (video: Pick<Video, 'share_id'>) => join(Storage.Previews, `${video.share_id}.webp`);
+export const getUserPath = (user: Pick<User, 'discord_id'>) => join(Storage.Users, user.discord_id);
+export const getUserAvatarPath = (user: Pick<User, 'discord_id'>) => join(Storage.Users, user.discord_id, 'avatar');
+export const getUserBannerPath = (user: Pick<User, 'discord_id'>) => join(Storage.Users, user.discord_id, 'banner');
+
+export const tryMakeDir = async (path: string) => {
+  try {
+    await Deno.mkdir(path, { recursive: true });
+    // deno-lint-ignore no-empty
+  } catch {
+  }
+};

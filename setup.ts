@@ -406,6 +406,7 @@ const createDirectories = async () => {
     v`storage/files`,
     v`storage/previews`,
     v`storage/thumbnails`,
+    v`storage/users`,
     v`storage/videos`,
   ];
 

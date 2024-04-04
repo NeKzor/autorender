@@ -23,6 +23,7 @@
     "stale": "docker exec -ti autorender-server deno task stale",
     "perm": "docker exec -ti autorender-server deno task perm",
     "id": "docker exec -ti autorender-server deno task id",
+    "avatars": "docker exec -ti autorender-server deno task avatars",
     "board": "docker exec -ti autorender-server deno task board",
     "processing": "docker exec -ti autorender-server deno task processing",
     "optimize": "docker exec -ti autorender-server deno task optimize",

@@ -50,12 +50,16 @@ import {
   getDemoFilePath,
   getFixedDemoFilePath,
   getStorageFilePath,
+  getUserAvatarPath,
+  getUserBannerPath,
+  getUserPath,
   getVideoDownloadFilename,
   getVideoFilePath,
   getVideoPreviewPath,
   getVideoThumbnailPath,
   getVideoThumbnailSmallPath,
   Storage,
+  tryMakeDir,
   validateShareId,
 } from './utils.ts';
 import { rateLimits } from './rate_limits.ts';
@@ -2185,6 +2189,42 @@ router.get('/login/discord/authorize', rateLimits.authorize, useSession, async (
     return ctx.response.redirect('/');
   }
 
+  if (user.discord_avatar) {
+    const userPath = getUserPath(user);
+    await tryMakeDir(userPath);
+    const avatar = user.discord_avatar + (user.discord_avatar.startsWith('a_') ? '.gif' : '.png');
+    const url = `https://cdn.discordapp.com/avatars/${user.discord_id}/${avatar}`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': Deno.env.get('USER_AGENT')!,
+      },
+    });
+    if (res.ok) {
+      using file = await Deno.open(getUserAvatarPath(user), { create: true, write: true, truncate: true });
+      await res.body?.pipeTo(file.writable);
+    } else {
+      logger.error('Failed to fetch avatar', res.statusText, url);
+    }
+  }
+
+  if (user.discord_banner) {
+    const userPath = getUserPath(user);
+    await tryMakeDir(userPath);
+    const banner = user.discord_banner + (user.discord_banner.startsWith('a_') ? '.gif' : '.png');
+    const url = `https://cdn.discordapp.com/banners/${user.discord_id}/${banner}`;
+    const res = await fetch(url, {
+      headers: {
+        'User-Agent': Deno.env.get('USER_AGENT')!,
+      },
+    });
+    if (res.ok) {
+      using file = await Deno.open(getUserBannerPath(user), { create: true, write: true, truncate: true });
+      await res.body?.pipeTo(file.writable);
+    } else {
+      logger.error('Failed to fetch banner', res.statusText, url);
+    }
+  }
+
   ctx.state.session.set('user', user);
   ctx.response.redirect('/');
 });
@@ -2429,6 +2469,34 @@ AUTORENDER_SERVE_STORAGE && router.get('/storage/thumbnails/:share_id/:small(sma
   } catch (err) {
     if (err instanceof Deno.errors.NotFound) {
       return Err(ctx, Status.NotFound, 'File not found.');
+    } else {
+      logger.error(err);
+    }
+  }
+});
+AUTORENDER_SERVE_STORAGE && router.get('/storage/avatars/:id([0-9]+)', async (ctx) => {
+  try {
+    const avatar = await Deno.readFile(getUserAvatarPath({ discord_id: ctx.params.id! }));
+    const isGif = avatar[0] === 0x47;
+
+    Ok(ctx, avatar, isGif ? 'image/gif' : 'image/png');
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      return Err(ctx, Status.NotFound, 'Avatar not found.');
+    } else {
+      logger.error(err);
+    }
+  }
+});
+AUTORENDER_SERVE_STORAGE && router.get('/storage/banners/:id([0-9]+)', async (ctx) => {
+  try {
+    const banner = await Deno.readFile(getUserBannerPath({ discord_id: ctx.params.id! }));
+    const isGif = banner[0] === 0x47;
+
+    Ok(ctx, banner, isGif ? 'image/gif' : 'image/png');
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      return Err(ctx, Status.NotFound, 'Banner not found.');
     } else {
       logger.error(err);
     }
