@@ -11,7 +11,7 @@
 
 import 'dotenv/load.ts';
 import * as uuid from 'uuid/mod.ts';
-import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status, STATUS_TEXT } from 'oak/mod.ts';
+import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status } from 'oak/mod.ts';
 import { Response as OakResponse, ResponseBody, ResponseBodyFunction } from 'oak/response.ts';
 import Session from 'oak_sessions/src/Session.ts';
 import CookieStore from 'oak_sessions/src/stores/CookieStore.ts';
@@ -114,7 +114,7 @@ const useSession = Session.initMiddleware(store, {
 
 const requiresAuth: Middleware<AppState> = async (ctx, next) => {
   if (!ctx.state.session.get('user')) {
-    return Err(ctx, Status.Unauthorized);
+    return Err(ctx, Status.Unauthorized, 'Not logged in.');
   }
 
   await next();
@@ -175,14 +175,14 @@ const Ok = (
   ctx.response.body = body ?? {};
 };
 
-const Err = (ctx: Context, status?: Status, message?: string) => {
-  ctx.response.status = status ?? Status.InternalServerError;
+const Err = (ctx: Context, status: Status, message: string) => {
+  ctx.response.status = status;
   ctx.response.type = 'application/json';
   ctx.response.body = {
-    status: ctx.response.status,
-    message: message ??
-      (status ? STATUS_TEXT[status] : STATUS_TEXT[Status.InternalServerError]),
+    status,
+    message,
   };
+  logger.error(message);
 };
 
 const apiV1 = new Router<AppState>();
@@ -194,7 +194,7 @@ apiV1
 
     if (authUser) {
       if (!hasPermission(ctx, UserPermissions.CreateVideos)) {
-        return Err(ctx, Status.Unauthorized);
+        return Err(ctx, Status.Unauthorized, 'Missing CreateVideos permission.');
       }
     } else {
       const [authType, authToken] = (
@@ -202,7 +202,7 @@ apiV1
       ).split(' ');
 
       if (authType !== 'Bearer' || authToken === undefined) {
-        return Err(ctx, Status.BadRequest);
+        return Err(ctx, Status.BadRequest, 'Invalid authorization header.');
       }
 
       const decodedAuthToken = decodeURIComponent(authToken);
@@ -213,12 +213,12 @@ apiV1
           AUTORENDER_BOT_TOKEN_HASH,
         ))
       ) {
-        return Err(ctx, Status.Unauthorized);
+        return Err(ctx, Status.Unauthorized, 'Invalid token.');
       }
     }
 
     if (!ctx.request.hasBody) {
-      return Err(ctx, Status.UnsupportedMediaType);
+      return Err(ctx, Status.UnsupportedMediaType, 'Missing body.');
     }
 
     const body = ctx.request.body({ type: 'form-data' });
@@ -236,7 +236,7 @@ apiV1
 
     const file = data.files?.at(0);
     if (!file?.filename) {
-      return Err(ctx, Status.BadRequest);
+      return Err(ctx, Status.BadRequest, 'Missing file.');
     }
 
     const videoId = uuid.v1.generate() as string;
@@ -250,12 +250,12 @@ apiV1
     const demoInfo = await getDemoInfo(filePath);
 
     if (demoInfo === null || typeof demoInfo === 'string') {
-      return Err(ctx, Status.BadRequest, demoInfo ?? undefined);
+      return Err(ctx, Status.BadRequest, demoInfo ?? 'Unknown demo error.');
     }
 
     if (demoInfo.isWorkshopMap && !demoInfo.workshopInfo?.fileUrl) {
       logger.error(`Failed to resolve workshop map`);
-      return Err(ctx, Status.InternalServerError);
+      return Err(ctx, Status.InternalServerError, 'Demo resolve error.');
     }
 
     const [game] = await db.query<Pick<Game, 'game_id'>>(
@@ -463,7 +463,7 @@ apiV1
     ).split(' ');
 
     if (authType !== 'Bearer' || authToken === undefined) {
-      return Err(ctx, Status.BadRequest);
+      return Err(ctx, Status.BadRequest, 'Invalid authorization header.');
     }
 
     type TokenSelect = Pick<
@@ -482,7 +482,7 @@ apiV1
     );
 
     if (!accessToken) {
-      return Err(ctx, Status.Unauthorized);
+      return Err(ctx, Status.Unauthorized, 'Invalid access token.');
     }
 
     if (!(accessToken.permissions & AccessPermission.WriteVideos)) {
@@ -506,7 +506,7 @@ apiV1
 
     const file = data.files?.at(0);
     if (!file?.filename) {
-      return Err(ctx, Status.BadRequest);
+      return Err(ctx, Status.BadRequest, 'Missing file.');
     }
 
     const command = new Deno.Command('ffprobe', { args: [file.filename], stderr: 'piped' });
@@ -525,7 +525,7 @@ apiV1
     if (output.code !== 0) {
       const error = new TextDecoder().decode(output.stderr) ?? '';
       logger.error(`Process ffprobe returned: ${output.code}\nError:${error}`);
-      return Err(ctx, Status.UnsupportedMediaType);
+      return Err(ctx, Status.UnsupportedMediaType, 'Unsupported media type.');
     }
 
     const { affectedRows } = await db.execute(
@@ -543,7 +543,7 @@ apiV1
     );
 
     if (affectedRows !== 1) {
-      return Err(ctx, Status.BadRequest);
+      return Err(ctx, Status.BadRequest, 'Render not started.');
     }
 
     const [video] = await db.query<Video>(
@@ -557,7 +557,7 @@ apiV1
     );
 
     if (!video) {
-      return Err(ctx, Status.NotFound);
+      return Err(ctx, Status.NotFound, 'Video not found.');
     }
 
     const filePath = getVideoFilePath(video.video_id);
@@ -686,7 +686,7 @@ apiV1
     } catch (err) {
       logger.error('Error while uploading video for', video.video_id, ':', err);
 
-      Err(ctx, Status.InternalServerError);
+      Err(ctx, Status.InternalServerError, 'Upload error.');
 
       try {
         const { affectedRows } = await db.execute(
@@ -708,7 +708,7 @@ apiV1
   // Get current video views and increment.
   .post('/videos/:share_id/views', rateLimits.views, async (ctx) => {
     if (!validateShareId(ctx.params.share_id!)) {
-      return Err(ctx, Status.BadRequest);
+      return Err(ctx, Status.BadRequest, 'Invalid share ID.');
     }
 
     const [video] = await db.query<Pick<Video, 'share_id' | 'views'>>(
@@ -721,7 +721,7 @@ apiV1
     );
 
     if (!video) {
-      return Err(ctx, Status.NotFound);
+      return Err(ctx, Status.NotFound, 'Video not found.');
     }
 
     await db.execute(
@@ -736,11 +736,11 @@ apiV1
   // Start a rerender of a video.
   .post('/videos/:share_id/rerender', useSession, requiresAuth, async (ctx) => {
     if (!hasPermission(ctx, UserPermissions.RerenderVideos)) {
-      return Err(ctx, Status.Unauthorized);
+      return Err(ctx, Status.Unauthorized, 'Missing RenderVideos permission.');
     }
 
     if (!validateShareId(ctx.params.share_id!)) {
-      return Err(ctx, Status.BadRequest);
+      return Err(ctx, Status.BadRequest, 'Invalid share ID.');
     }
 
     const [video] = await db.query<
@@ -768,7 +768,7 @@ apiV1
     );
 
     if (!video) {
-      return Err(ctx, Status.NotFound);
+      return Err(ctx, Status.NotFound, 'Video not found.');
     }
 
     if (video.board_changelog_id) {
@@ -856,12 +856,12 @@ apiV1
   // Get back changelog IDs of renders that exist.
   .post('/check-videos-exist', async (ctx) => {
     if (!ctx.request.hasBody) {
-      return Err(ctx, Status.InternalServerError);
+      return Err(ctx, Status.InternalServerError, 'Missing body.');
     }
 
     const body = await ctx.request.body({ type: 'json' }).value as { ids?: number[] } | null;
     if (!body || !Array.isArray(body.ids)) {
-      return Err(ctx, Status.BadRequest);
+      return Err(ctx, Status.BadRequest, 'Missing ids.');
     }
 
     const { ids } = body;
@@ -897,7 +897,7 @@ apiV1
     );
 
     if (!video) {
-      return Err(ctx, Status.NotFound);
+      return Err(ctx, Status.NotFound, 'Video not found.');
     }
 
     ctx.response.redirect(video.video_url);
@@ -1176,7 +1176,7 @@ apiV1
     const include_pb_of = params.get('include_pb_of');
 
     if (game_dir === null || map_name === null || isNaN(board_rank)) {
-      return Err(ctx, Status.BadRequest);
+      return Err(ctx, Status.BadRequest, 'Missing game_dir or map_name or invalid board_rank.');
     }
 
     const [game] = await db.query<Pick<Game, 'game_id'>>(
@@ -1313,13 +1313,13 @@ router.use('/api/v1', apiV1.routes());
 
 router.get('/connect/bot', async (ctx) => {
   if (!ctx.isUpgradable) {
-    return Err(ctx, Status.NotImplemented);
+    return Err(ctx, Status.NotImplemented, 'Unable to upgrade.');
   }
 
   const [version, authToken] = ctx.request.headers.get('sec-websocket-protocol')?.split(', ') ?? [];
 
   if (version !== AUTORENDER_V1 || authToken === undefined) {
-    return Err(ctx, Status.BadRequest);
+    return Err(ctx, Status.BadRequest, 'Invalid protocol.');
   }
 
   if (
@@ -1328,7 +1328,7 @@ router.get('/connect/bot', async (ctx) => {
       AUTORENDER_BOT_TOKEN_HASH,
     ))
   ) {
-    return Err(ctx, Status.Unauthorized);
+    return Err(ctx, Status.Unauthorized, 'Invalid token.');
   }
 
   if (discordBot) {
@@ -1401,13 +1401,13 @@ const clients = new Map<string, ClientState>();
 
 router.get('/connect/client', async (ctx) => {
   if (!ctx.isUpgradable) {
-    return Err(ctx, Status.NotImplemented);
+    return Err(ctx, Status.NotImplemented, 'Unable to upgrade.');
   }
 
   const [version, authToken] = ctx.request.headers.get('sec-websocket-protocol')?.split(', ') ?? [];
 
   if (version !== AUTORENDER_V1 || authToken === undefined) {
-    return Err(ctx, Status.BadRequest);
+    return Err(ctx, Status.BadRequest, 'Invalid protocol.');
   }
 
   type TokenSelect = Pick<
@@ -1426,7 +1426,7 @@ router.get('/connect/client', async (ctx) => {
   );
 
   if (!accessToken) {
-    return Err(ctx, Status.Unauthorized);
+    return Err(ctx, Status.Unauthorized, 'Invalid access token.');
   }
 
   const clientId = `${accessToken.access_token_id}-${accessToken.user_id}-${accessToken.token_name}`;
@@ -2157,7 +2157,7 @@ router.get('/storage/previews/:share_id', async (ctx) => {
   const { share_id } = ctx.params;
 
   if (!validateShareId(share_id)) {
-    return Err(ctx, Status.BadRequest);
+    return Err(ctx, Status.BadRequest, 'Invalid share ID.');
   }
 
   try {
@@ -2174,7 +2174,7 @@ router.get('/storage/previews/:share_id', async (ctx) => {
     Ok(ctx, preview, 'image/webp');
   } catch (err) {
     if (err instanceof Deno.errors.NotFound) {
-      return Err(ctx, Status.NotFound);
+      return Err(ctx, Status.NotFound, 'File not found.');
     } else {
       logger.error(err);
     }
@@ -2185,7 +2185,7 @@ router.get('/storage/thumbnails/:share_id/:small(small)?', async (ctx) => {
   const small = ctx.params.small !== undefined;
 
   if (!validateShareId(share_id)) {
-    return Err(ctx, Status.BadRequest);
+    return Err(ctx, Status.BadRequest, 'Invalid share ID.');
   }
 
   try {
@@ -2202,7 +2202,7 @@ router.get('/storage/thumbnails/:share_id/:small(small)?', async (ctx) => {
     Ok(ctx, preview, 'image/webp');
   } catch (err) {
     if (err instanceof Deno.errors.NotFound) {
-      return Err(ctx, Status.NotFound);
+      return Err(ctx, Status.NotFound, 'File not found.');
     } else {
       logger.error(err);
     }
@@ -2233,7 +2233,7 @@ const routeToImages = async (ctx: Context, file: string, contentType: string) =>
     Ok(ctx, image, contentType);
   } catch (err) {
     logger.error(err);
-    Err(ctx, Status.NotFound);
+    Err(ctx, Status.NotFound, 'File not found.');
   }
 };
 
@@ -2251,7 +2251,7 @@ router.get('/assets/js/:file([\\w]+\\.js)', async (ctx) => {
     Ok(ctx, js, 'text/javascript');
   } catch (err) {
     logger.error(err);
-    Err(ctx, Status.NotFound);
+    Err(ctx, Status.NotFound, 'File not found.');
   }
 });
 router.get('/assets/(.*)', (ctx) => {
@@ -2261,7 +2261,7 @@ router.get('/assets/(.*)', (ctx) => {
 router.get('/video.html', async (ctx) => {
   const changelogId = ctx.request.url.searchParams.get('v') ?? '';
   if (!changelogId.length || parseInt(changelogId, 10).toString() !== changelogId) {
-    return Err(ctx, Status.BadRequest);
+    return Err(ctx, Status.BadRequest, 'Invalid v parameter.');
   }
 
   const [video] = await db.query<Pick<Video, 'share_id'>>(
@@ -2274,7 +2274,7 @@ router.get('/video.html', async (ctx) => {
   );
 
   if (!video) {
-    return Err(ctx, Status.NotFound);
+    return Err(ctx, Status.NotFound, 'Video not found.');
   }
 
   ctx.response.redirect(`/videos/${video.share_id}`);
@@ -2285,7 +2285,7 @@ router.get('/favicon.ico', async (ctx) => {
     Ok(ctx, image, 'image/x-icon');
   } catch (err) {
     logger.error(err);
-    Err(ctx, Status.NotFound);
+    Err(ctx, Status.NotFound, 'File not found.');
   }
 });
 
@@ -2294,12 +2294,12 @@ router.post('/tokens/:access_token_id(\\d+/delete)', useSession, routeToApp);
 router.post('/tokens/new', useSession, routeToApp);
 router.post('/tokens/test', async (ctx) => {
   if (!ctx.request.hasBody) {
-    return Err(ctx, Status.BadRequest);
+    return Err(ctx, Status.BadRequest, 'Missing body.');
   }
 
   const body = await ctx.request.body({ type: 'json' }).value;
   if (!body?.token_key) {
-    return Err(ctx, Status.BadRequest);
+    return Err(ctx, Status.BadRequest, 'Missing token_key.');
   }
 
   const [accessToken] = await db.query(
@@ -2310,7 +2310,7 @@ router.post('/tokens/test', async (ctx) => {
   );
 
   if (!accessToken) {
-    return Err(ctx, Status.Unauthorized);
+    return Err(ctx, Status.Unauthorized, 'Invalid access token.');
   }
 
   Ok(ctx);
