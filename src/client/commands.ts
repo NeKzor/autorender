@@ -21,7 +21,7 @@ import {
   parseAndValidateConfig,
   supportedGames,
 } from './config.ts';
-import { AutorenderVersion, UserAgent } from './constants.ts';
+import { AutorenderVersion, ReleaseTag, UserAgent } from './constants.ts';
 import { YAMLError } from 'yaml/_error.ts';
 import { Checkbox, Confirm, Input, prompt, Select } from 'cliffy/prompt/mod.ts';
 import * as yaml from 'yaml/mod.ts';
@@ -65,11 +65,11 @@ export const runCheck = async (options: Options) => {
       Deno.exit(1);
     }
 
-    if (autorender && autorender.tag_name !== AutorenderVersion) {
+    if (autorender && autorender.tag_name !== ReleaseTag) {
       console.log(
         colors.green(
           `A new release of autorender is available: ${colors.cyan(AutorenderVersion)} ${colors.white('→')} ${
-            colors.cyan(autorender.tag_name)
+            colors.cyan(autorender.tag_name.split('client-')?.at(1) ?? autorender.tag_name)
           }`,
         ),
       );
