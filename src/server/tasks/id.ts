@@ -47,4 +47,5 @@ if (Deno.args.at(1)?.toLowerCase() === '--all') {
 } else {
   console.log(`Share ID: ${video.share_id}`);
   console.log(`Video ID: ${video.video_id}`);
+  console.log(`URL     : ${Deno.env.get('AUTORENDER_PUBLIC_URI')}/videos/${video.share_id}`);
 }
