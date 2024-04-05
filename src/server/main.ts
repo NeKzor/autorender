@@ -9,7 +9,7 @@
  *    - Serving the web platform (`app/`)
  */
 
-import 'dotenv/load.ts';
+import '@std/dotenv/load';
 import * as uuid from 'uuid/mod.ts';
 import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status } from 'oak/mod.ts';
 import { Response as OakResponse, ResponseBody, ResponseBodyFunction } from 'oak/response.ts';
@@ -39,13 +39,13 @@ import {
 } from '~/shared/models.ts';
 import * as bcrypt from 'bcrypt/mod.ts';
 import * as _bcrypt_worker from 'bcrypt/src/worker.ts';
-import { Buffer } from 'io/buffer.ts';
+import { Buffer } from '@std/io/buffer';
 import { AppState as ReactAppState } from './app/AppState.ts';
 import { db } from './db.ts';
 import { createStaticRouter } from 'react-router-dom/server';
 import { createFetchRequest, RequestContext, routeHandler, routes } from './app/Routes.ts';
 import { DemoMetadata, getDemoInfo, repairDemo, supportedGameDirs, supportedGameMods } from './demo.ts';
-import { basename } from 'path/mod.ts';
+import { basename } from '@std/path';
 import {
   generateShareId,
   getDemoFilePath,

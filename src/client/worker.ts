@@ -9,7 +9,7 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
-import { delay } from 'async/delay.ts';
+import { delay } from '@std/async';
 import { logger } from './logger.ts';
 import { AutorenderSendMessages } from './protocol.ts';
 import { Config } from './config.ts';

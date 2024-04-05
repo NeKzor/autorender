@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { dirname, join } from 'path/mod.ts';
+import { dirname, join } from '@std/path';
 import { Config, GameConfig, gameModsWhichSupportWorkshop } from './config.ts';
 import { logger } from './logger.ts';
 import { colors } from 'cliffy/ansi/colors.ts';

@@ -6,7 +6,7 @@
  * Get Video ID by Share ID or vice versa.
  */
 
-import 'dotenv/load.ts';
+import '@std/dotenv/load';
 import * as uuid from 'uuid/mod.ts';
 import { db } from '../db.ts';
 import { Video } from '~/shared/models.ts';

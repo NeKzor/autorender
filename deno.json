@@ -1,7 +1,7 @@
 {
   "tasks": {
     "check": "deno fmt --check && deno lint && deno task check:types",
-    "check:types": "deno check --no-lock --import-map src/import_map.json src/**/*.ts src/**/*.tsx",
+    "check:types": "deno check --no-lock --config=src/bot/deno.json src/bot/**/*.ts && deno check --no-lock --config=src/client/deno.json src/client/**/*.ts && deno check --no-lock --config=src/server/deno.json src/server/**/*.ts src/server/**/*.tsx",
     "client": "deno task --cwd src/client dev",
     "client:test": "deno task --cwd src/client test",
     "compile": "deno run --allow-run=deno compile.ts",
@@ -69,5 +69,8 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "noUncheckedIndexedAccess": true
+  },
+  "imports": {
+    "@std/async": "jsr:@std/async@^0.221.0"
   }
 }

@@ -1,18 +1,18 @@
 {
   "tasks": {
-    "dev": "deno task dev:stale & deno task dev:processing & deno run --import-map=../import_map.json --no-prompt --unstable-temporal --allow-env --allow-read=.env,.env.defaults,.env.example,app/assets,/logs/server,/storage --allow-write=/logs/server,/storage --allow-run=ffprobe --allow-net --unsafely-ignore-certificate-errors=board-server --watch main.ts",
-    "prod": "deno task stale & deno task board & deno task processing & deno run --import-map=../import_map.json --no-prompt --unstable-temporal --allow-env --allow-read=.env,.env.defaults,.env.example,app/assets,/logs/server,/storage --allow-write=/logs/server,/storage --allow-run=ffprobe --allow-net main.ts",
-    "test": "deno test --import-map=../import_map.json --allow-net --allow-read --allow-env --unsafely-ignore-certificate-errors=autorender.portal2.local,board-server",
-    "perm": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=autorender.database:3307 tasks/perm.ts",
-    "stale": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/stale_info.log,/logs/server/stale_error.log --allow-write=/logs/server/stale_info.log,/logs/server/stale_error.log --allow-net=autorender.database:3307 tasks/stale.ts",
-    "dev:stale": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/stale_info.log,/logs/server/stale_error.log --allow-write=/logs/server/stale_info.log,/logs/server/stale_error.log --allow-net=autorender.database:3307 --watch tasks/stale.ts",
-    "board": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/board_info.log,/logs/server/board_error.log,/storage --allow-write=/logs/server/board_info.log,/logs/server/board_error.log,/storage --allow-net=autorender.database:3307,board.portal2.sr,mel.board.portal2.sr tasks/board.ts",
-    "dev:board": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/board_info.log,/logs/server/board_error.log,/storage --allow-write=/logs/server/board_info.log,/logs/server/board_error.log,/storage --allow-net=autorender.database:3307,board.portal2.sr,mel.board.portal2.sr --watch tasks/board.ts",
-    "processing": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-write=/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/processing.ts",
-    "optimize": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-write=/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/optimize_images.ts",
-    "dev:processing": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-write=/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg --watch tasks/processing.ts",
-    "id": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/storage --allow-net=autorender.database:3307 tasks/id.ts",
-    "avatars": "deno run --import-map=../import_map.json --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/storage --allow-write=/storage/users --allow-net=autorender.database:3307,cdn.discordapp.com tasks/avatars.ts"
+    "dev": "deno task dev:stale & deno task dev:processing & deno run --no-prompt --unstable-temporal --allow-env --allow-read=.env,.env.defaults,.env.example,app/assets,/logs/server,/storage --allow-write=/logs/server,/storage --allow-run=ffprobe --allow-net --unsafely-ignore-certificate-errors=board-server --watch main.ts",
+    "prod": "deno task stale & deno task board & deno task processing & deno run --no-prompt --unstable-temporal --allow-env --allow-read=.env,.env.defaults,.env.example,app/assets,/logs/server,/storage --allow-write=/logs/server,/storage --allow-run=ffprobe --allow-net main.ts",
+    "test": "deno test --allow-net --allow-read --allow-env --unsafely-ignore-certificate-errors=autorender.portal2.local,board-server",
+    "perm": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=autorender.database:3307 tasks/perm.ts",
+    "stale": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/stale_info.log,/logs/server/stale_error.log --allow-write=/logs/server/stale_info.log,/logs/server/stale_error.log --allow-net=autorender.database:3307 tasks/stale.ts",
+    "dev:stale": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/stale_info.log,/logs/server/stale_error.log --allow-write=/logs/server/stale_info.log,/logs/server/stale_error.log --allow-net=autorender.database:3307 --watch tasks/stale.ts",
+    "board": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/board_info.log,/logs/server/board_error.log,/storage --allow-write=/logs/server/board_info.log,/logs/server/board_error.log,/storage --allow-net=autorender.database:3307,board.portal2.sr,mel.board.portal2.sr tasks/board.ts",
+    "dev:board": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/board_info.log,/logs/server/board_error.log,/storage --allow-write=/logs/server/board_info.log,/logs/server/board_error.log,/storage --allow-net=autorender.database:3307,board.portal2.sr,mel.board.portal2.sr --watch tasks/board.ts",
+    "processing": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-write=/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/processing.ts",
+    "optimize": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-write=/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg tasks/optimize_images.ts",
+    "dev:processing": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-write=/logs/server/processing_info.log,/logs/server/processing_error.log,/storage --allow-net=autorender.database:3307 --allow-run=ffprobe,ffmpeg --watch tasks/processing.ts",
+    "id": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/storage --allow-net=autorender.database:3307 tasks/id.ts",
+    "avatars": "deno run --no-prompt --allow-env --allow-read=.env,.env.defaults,.env.example,/storage --allow-write=/storage/users --allow-net=autorender.database:3307,cdn.discordapp.com tasks/avatars.ts"
   },
   "fmt": {
     "useTabs": false,
@@ -23,5 +23,44 @@
   },
   "compilerOptions": {
     "noUncheckedIndexedAccess": true
+  },
+  "imports": {
+    "@nekz/sdp": "npm:@nekz/sdp@0.9.0",
+    "@remix-run/router": "https://esm.sh/v131/@remix-run/router@1.6.2",
+    "@std/dotenv": "jsr:@std/dotenv@^0.221.0",
+    "@std/fmt": "jsr:@std/fmt@^0.221.0",
+    "@std/io": "jsr:@std/io@^0.221.0",
+    "@std/log": "jsr:@std/log@^0.221.0",
+    "@std/path": "jsr:@std/path@^0.221.0",
+    "@std/testing": "jsr:@std/testing@^0.221.0",
+    "bcrypt/": "https://deno.land/x/bcrypt@v0.4.1/",
+    "bcrypt/src/": "https://deno.land/x/bcrypt@v0.4.1/src/",
+    "cors/": "https://deno.land/x/cors@v1.2.2/",
+    "mysql/": "https://deno.land/x/mysql@v2.12.1/",
+    "oak/": "https://deno.land/x/oak@v12.2.0/",
+    "oak_sessions/": "https://deno.land/x/oak_sessions@v4.1.4/",
+    "rate-limiter-flexible": "https://esm.sh/v131/rate-limiter-flexible@2.4.2",
+    "react": "https://esm.sh/v131/react@18.2.0",
+    "react-dom/server": "https://esm.sh/v131/*react-dom@18.2.0/server",
+    "react-router-dom": "https://esm.sh/v131/*react-router-dom@6.11.2",
+    "react-router-dom/": "https://esm.sh/v131/*react-router-dom@6.11.2/",
+    "react/": "https://esm.sh/v131/react@18.2.0/",
+    "twind": "https://esm.sh/v131/*twind@0.16.16",
+    "twind/": "https://esm.sh/v131/*twind@0.16.16/",
+    "uuid/": "https://deno.land/std@0.198.0/uuid/",
+    "~/shared/": "../shared/"
+  },
+  "scopes": {
+    "https://esm.sh/v131/": {
+      "@remix-run/router": "https://esm.sh/v131/@remix-run/router@1.6.2",
+      "csstype": "https://esm.sh/v131/csstype@3.1.2",
+      "htmlparser2": "https://esm.sh/v131/htmlparser2@6.1.0",
+      "jsbi": "https://esm.sh/v131/jsbi@4.3.0",
+      "loose-envify": "https://esm.sh/v131/loose-envify@1.4.0",
+      "react-router": "https://esm.sh/v131/react-router@6.11.2",
+      "scheduler": "https://esm.sh/v131/scheduler@0.23.0",
+      "style-vendorizer": "https://esm.sh/v131/style-vendorizer@2.2.3",
+      "tslib": "https://esm.sh/v131/tslib@2.6.1"
+    }
   }
 }

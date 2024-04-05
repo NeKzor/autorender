@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import 'dotenv/load.ts';
+import '@std/dotenv/load';
 
 import { BackblazeClient } from '../b2.ts';
 import { getVideoDownloadFilename } from '../utils.ts';
