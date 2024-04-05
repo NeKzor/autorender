@@ -16,7 +16,7 @@ ADD src/shared .
 WORKDIR /app
 ADD src/bot .
 
-RUN deno cache main.ts bot.ts worker.ts
+RUN deno cache --import-map=../import_map.json main.ts bot.ts worker.ts
 
 CMD ./entrypoint.sh
 
@@ -37,6 +37,6 @@ ADD src/shared .
 WORKDIR /app
 ADD src/server .
 
-RUN deno cache main.ts
+RUN deno cache --import-map=../import_map.json main.ts
 
 CMD ./entrypoint.sh
