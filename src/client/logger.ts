@@ -35,13 +35,29 @@ const formatDatetime = (datetime: Date) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-const consoleFormatter: _log.FormatterFunction = ({ datetime, level, levelName, msg }) => {
-  return `${formatDatetime(datetime)} ${formatLevel(level, levelName)} ${msg}`;
+// deno-lint-ignore no-explicit-any
+const formatArgs = (args: string | any | any[]): string => {
+  if (typeof args === 'string') {
+    return args;
+  }
+  // deno-lint-ignore no-explicit-any
+  return args.map((arg: any) => {
+    if (typeof arg === 'string') {
+      return arg;
+    }
+    return JSON.stringify(arg);
+  }).join(' ');
+};
+
+const consoleFormatter: _log.FormatterFunction = ({ datetime, level, levelName, msg, args }) => {
+  return `${formatDatetime(datetime)} ${formatLevel(level, levelName)} ${msg}${
+    args.length ? ' ' + formatArgs(args) : ''
+  }`;
 };
 
 _log.setup({
   handlers: {
-    default: new _log.ConsoleHandler('DEBUG', {
+    console: new _log.ConsoleHandler('DEBUG', {
       useColors: false,
       formatter: consoleFormatter,
     }),

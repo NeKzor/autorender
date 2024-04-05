@@ -42,12 +42,28 @@ const formatDatetime = (datetime: Date) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-const consoleFormatter: _log.FormatterFunction = ({ datetime, level, levelName, msg }) => {
-  return `${formatDatetime(datetime)} ${formatLevel(level, levelName)} ${msg}`;
+// deno-lint-ignore no-explicit-any
+const formatArgs = (args: string | any | any[]): string => {
+  if (typeof args === 'string') {
+    return args;
+  }
+  // deno-lint-ignore no-explicit-any
+  return args.map((arg: any) => {
+    if (typeof arg === 'string') {
+      return arg;
+    }
+    return JSON.stringify(arg);
+  }).join(' ');
 };
 
-const fileFormatter: _log.FormatterFunction = ({ datetime, levelName, msg }) => {
-  return `${formatDatetime(datetime)} ${levelName} ${msg}`;
+const consoleFormatter: _log.FormatterFunction = ({ datetime, level, levelName, msg, args }) => {
+  return `${formatDatetime(datetime)} ${formatLevel(level, levelName)} ${msg}${
+    args.length ? ' ' + formatArgs(args) : ''
+  }`;
+};
+
+const fileFormatter: _log.FormatterFunction = ({ datetime, levelName, msg, args }) => {
+  return `${formatDatetime(datetime)} ${levelName} ${msg}${args.length ? ' ' + formatArgs(args) : ''}`;
 };
 
 export const installLogger = (moduleName: string) => {
