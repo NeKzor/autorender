@@ -5,11 +5,9 @@
  */
 
 import { BitwisePermissionFlags, Bot, CreateApplicationCommand, Guild } from '@discordeno/bot';
-import { logger } from './logger.ts';
+import { log } from './logger.ts';
 import { commands } from '../commands/mod.ts';
 import { BotWithCache } from '../bot.ts';
-
-const log = logger({ name: 'Helpers' });
 
 /**
  * Update global commands.

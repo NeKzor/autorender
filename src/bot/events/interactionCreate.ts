@@ -7,13 +7,11 @@
 import type { Guild } from '@discordeno/bot';
 import { bgBlack, bgYellow, black, green, InteractionTypes, red, white, yellow } from '@discordeno/bot';
 import { events } from './mod.ts';
-import { logger } from '../utils/logger.ts';
+import { log } from '../utils/logger.ts';
 import { getGuildFromId } from '../utils/helpers.ts';
 import type { Command } from '../commands/mod.ts';
 import { commands } from '../commands/mod.ts';
 import { BotWithCache } from '../bot.ts';
-
-const log = logger({ name: 'Event: InteractionCreate' });
 
 events.interactionCreate = async (interaction) => {
   const bot = interaction.bot as BotWithCache;

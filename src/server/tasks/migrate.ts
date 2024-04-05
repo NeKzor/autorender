@@ -14,12 +14,12 @@ import { FixedDemoStatus, MapModel, PendingStatus, RenderQuality } from '~/share
 import * as uuid from 'uuid/mod.ts';
 import { generateShareId, Storage } from '../utils.ts';
 import { getDemoInfo } from '../demo.ts';
-import { logger } from '../logger.ts';
+import { installLogger, logger } from '../logger.ts';
 import { formatCmTime } from './portal2_sr.ts';
 
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
 
-await logger.initFileLogger('/logs/server/migrate');
+installLogger('migrate');
 
 // rsync: rsync -avvvhrP --stats rsync://board.portal2.sr:/demos demos
 // volume: demos:/storage/demos/migration:ro

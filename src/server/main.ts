@@ -16,7 +16,7 @@ import { Response as OakResponse, ResponseBody, ResponseBodyFunction } from 'oak
 import Session from 'oak_sessions/src/Session.ts';
 import CookieStore from 'oak_sessions/src/stores/CookieStore.ts';
 import { oakCors } from 'cors/mod.ts';
-import { logger } from './logger.ts';
+import { installLogger, logger } from './logger.ts';
 import { index } from './app/index.tsx';
 import { BackblazeClient } from './b2.ts';
 import {
@@ -150,11 +150,7 @@ if (B2_ENABLED) {
   logger.info('⚠️  Connection to b2 disabled. Using directory to store videos.');
 }
 
-await logger.initFileLogger('/logs/server', {
-  rotate: true,
-  maxBytes: 100_000_000,
-  maxBackupCount: 7,
-});
+installLogger('server');
 
 addEventListener('unhandledrejection', (ev) => {
   ev.preventDefault();

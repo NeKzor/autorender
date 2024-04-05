@@ -4,104 +4,75 @@
  * SPDX-License-Identifier: MIT
  */
 
-// deno-lint-ignore-file no-explicit-any
-import { bold, cyan, gray, italic, red, yellow } from '@discordeno/bot';
+import * as _log from 'log/mod.ts';
+import { blue, bold, red, yellow } from 'fmt/colors.ts';
 
-export enum LogLevels {
-  Debug,
-  Info,
-  Warn,
-  Error,
-  Fatal,
+export const log = _log;
+export const logger = _log;
+
+const formatLevel = (level: number, levelName: string): string => {
+  switch (level) {
+    case _log.LogLevels.INFO:
+      return blue(levelName);
+    case _log.LogLevels.WARN:
+      return yellow(levelName);
+    case _log.LogLevels.ERROR:
+      return red(levelName);
+    case _log.LogLevels.CRITICAL:
+      return bold(red(levelName));
+    default:
+      return levelName;
+  }
+};
+
+class FileLogger extends _log.RotatingFileHandler {
+  override handle(logRecord: _log.LogRecord) {
+    super.handle(logRecord);
+    this.flush(); // Always flush
+  }
 }
 
-const prefixes = new Map<LogLevels, string>([
-  [LogLevels.Debug, 'DEBUG'],
-  [LogLevels.Info, 'INFO'],
-  [LogLevels.Warn, 'WARN'],
-  [LogLevels.Error, 'ERROR'],
-  [LogLevels.Fatal, 'FATAL'],
-]);
+const formatDatetime = (datetime: Date) => {
+  const year = datetime.getFullYear();
+  const month = (datetime.getMonth() + 1).toString().padStart(2, '0');
+  const day = datetime.getDate().toString().padStart(2, '0');
+  const hours = datetime.getHours().toString().padStart(2, '0');
+  const minutes = datetime.getMinutes().toString().padStart(2, '0');
+  const seconds = datetime.getSeconds().toString().padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
-const noColor: (str: string) => string = (msg) => msg;
-const colorFunctions = new Map<LogLevels, (str: string) => string>([
-  [LogLevels.Debug, gray],
-  [LogLevels.Info, cyan],
-  [LogLevels.Warn, yellow],
-  [LogLevels.Error, (str: string) => red(str)],
-  [LogLevels.Fatal, (str: string) => red(bold(italic(str)))],
-]);
+const consoleFormatter: _log.FormatterFunction = ({ datetime, level, levelName, msg }) => {
+  return `${formatDatetime(datetime)} ${formatLevel(level, levelName)} ${msg}`;
+};
 
-export function logger({
-  logLevel = LogLevels.Info,
-  name,
-}: {
-  logLevel?: LogLevels;
-  name?: string;
-} = {}) {
-  function log(level: LogLevels, ...args: any[]) {
-    if (level < logLevel) return;
+const fileFormatter: _log.FormatterFunction = ({ datetime, levelName, msg }) => {
+  return `${formatDatetime(datetime)} ${levelName} ${msg}`;
+};
 
-    let color = colorFunctions.get(level);
-    if (!color) color = noColor;
-
-    const date = new Date();
-    const log = [
-      `[${date.toLocaleDateString()} ${date.toLocaleTimeString()}]`,
-      color(prefixes.get(level) || 'DEBUG'),
-      name ? `${name} >` : '>',
-      ...args,
-    ];
-
-    switch (level) {
-      case LogLevels.Debug:
-        return console.debug(...log);
-      case LogLevels.Info:
-        return console.info(...log);
-      case LogLevels.Warn:
-        return console.warn(...log);
-      case LogLevels.Error:
-        return console.error(...log);
-      case LogLevels.Fatal:
-        return console.error(...log);
-      default:
-        return console.log(...log);
-    }
-  }
-
-  function setLevel(level: LogLevels) {
-    logLevel = level;
-  }
-
-  function debug(...args: any[]) {
-    log(LogLevels.Debug, ...args);
-  }
-
-  function info(...args: any[]) {
-    log(LogLevels.Info, ...args);
-  }
-
-  function warn(...args: any[]) {
-    log(LogLevels.Warn, ...args);
-  }
-
-  function error(...args: any[]) {
-    log(LogLevels.Error, ...args);
-  }
-
-  function fatal(...args: any[]) {
-    log(LogLevels.Fatal, ...args);
-  }
-
-  return {
-    log,
-    setLevel,
-    debug,
-    info,
-    warn,
-    error,
-    fatal,
-  };
-}
-
-export const log = logger();
+_log.setup({
+  handlers: {
+    console: new _log.ConsoleHandler('DEBUG', {
+      useColors: false,
+      formatter: consoleFormatter,
+    }),
+    infoLog: new FileLogger('DEBUG', {
+      maxBytes: 100 * 1024 * 1024,
+      maxBackupCount: 7,
+      filename: '/logs/bot/info.log',
+      formatter: fileFormatter,
+    }),
+    errorLog: new FileLogger('ERROR', {
+      maxBytes: 100 * 1024 * 1024,
+      maxBackupCount: 7,
+      filename: '/logs/bot/error.log',
+      formatter: fileFormatter,
+    }),
+  },
+  loggers: {
+    default: {
+      level: 'DEBUG',
+      handlers: ['console', 'infoLog', 'errorLog'],
+    },
+  },
+});

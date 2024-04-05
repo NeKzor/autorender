@@ -11,15 +11,12 @@
 
 import 'dotenv/load.ts';
 
-import { logger } from './utils/logger.ts';
+import { log } from './utils/logger.ts';
 import { escapeMaskedLink, getPublicUrl, updateCommands } from './utils/helpers.ts';
 import { BotDataType, BotMessages } from './protocol.ts';
 import { bot } from './bot.ts';
 import { Queue } from './services/queue.ts';
 import { Server } from './services/server.ts';
-
-// TODO: file logging
-const log = logger({ name: 'Main' });
 
 addEventListener('error', (ev) => {
   console.dir({ error: ev.error }, { depth: 16 });
@@ -58,6 +55,11 @@ const worker = new Worker(new URL('./worker.ts', import.meta.url).href, {
 // Handle all new incoming messages from the server
 worker.addEventListener('message', async (message) => {
   try {
+    if (!message.data.startsWith('{')) {
+      log.info(message.data);
+      return;
+    }
+
     const { type, data } = JSON.parse(message.data) as BotMessages;
 
     switch (type) {

@@ -21,7 +21,7 @@ import {
 import * as uuid from 'uuid/mod.ts';
 import { generateShareId, getDemoFilePath, getFixedDemoFilePath } from '../utils.ts';
 import { getDemoInfo } from '../demo.ts';
-import { logger } from '../logger.ts';
+import { installLogger, logger } from '../logger.ts';
 import { fetchDemo, formatCmTime, getChangelog } from './portal2_sr.ts';
 
 const AUTORENDER_RUN_SKIP_COOP_VIDEOS_CHECK =
@@ -32,6 +32,8 @@ const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 
 const FAILED_RENDER_MIN_RETRY_MINUTES = 15;
 const FAILED_RENDER_MAX_RETRY_MINUTES = 60;
+
+installLogger('board');
 
 addEventListener('unhandledrejection', (ev) => {
   ev.preventDefault();

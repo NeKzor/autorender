@@ -5,11 +5,9 @@
  */
 
 import { events } from './mod.ts';
-import { logger } from '../utils/logger.ts';
+import { log } from '../utils/logger.ts';
 import { bot } from '../bot.ts';
 import { ActivityTypes } from '@discordeno/bot';
-
-const log = logger({ name: 'Event: Ready' });
 
 events.ready = async (payload) => {
   log.info(`[Application: ${payload.applicationId}]`);

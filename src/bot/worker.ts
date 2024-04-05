@@ -15,15 +15,14 @@ import { delay } from 'async/delay.ts';
 const AUTORENDER_CONNECT_URI = Deno.env.get('AUTORENDER_CONNECT_URI')!;
 const AUTORENDER_PROTOCOL = Deno.env.get('AUTORENDER_PROTOCOL')!;
 
-// TODO: file logging
-console.log('Running worker thread...');
+self.postMessage('Running worker thread...');
 
 let ws: WebSocket | null = null;
 let wasConnected = false;
 
 const onOpen = () => {
   wasConnected = true;
-  console.log('Connected to server');
+  self.postMessage('Connected to server');
 };
 
 const onMessage = (message: MessageEvent) => {
@@ -35,7 +34,7 @@ const onClose = async () => {
 
   if (wasConnected) {
     wasConnected = false;
-    console.log('Disconnected from server');
+    self.postMessage('Disconnected from server');
   }
 
   await delay(100);
@@ -49,7 +48,7 @@ const onError = (event: ErrorEvent | Event) => {
     return;
   }
 
-  console.error('Connection error', isErrorEvent ? event.error ?? event.message : event);
+  self.postMessage('Connection error', isErrorEvent ? event.error ?? event.message : event);
 };
 
 const connect = () => {

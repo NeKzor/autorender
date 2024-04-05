@@ -13,13 +13,20 @@
 import 'dotenv/load.ts';
 import { db } from '../db.ts';
 import { PendingStatus, Video } from '~/shared/models.ts';
-import { logger } from '../logger.ts';
+import { installLogger, logger } from '../logger.ts';
 import { getVideoFilePath, getVideoPreviewPath, getVideoThumbnailPath, getVideoThumbnailSmallPath } from '../utils.ts';
 
 const POST_PROCESS_UPDATE_INTERVAL = 60 * 1_000;
 const FFMPEG_PROCESS_TIMEOUT = 5 * 60 * 1_000;
 const MIN_SECONDS_FOR_VIDEO_PREVIEW = 8;
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
+
+installLogger('processing');
+
+addEventListener('unhandledrejection', (ev) => {
+  ev.preventDefault();
+  logger.error('unhandledrejection', { reason: ev.reason });
+});
 
 type VideoSelect = Pick<Video, 'video_id' | 'share_id' | 'created_at' | 'video_external_id'>;
 
