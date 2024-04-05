@@ -79,6 +79,10 @@ const getVideoLength = async (video: VideoSelect) => {
 const getPreviewUrl = async (video: VideoSelect) => {
   try {
     const args = [
+      '-ss',
+      '00:00:02',
+      '-to',
+      '00:00:08',
       '-i',
       getVideoFilePath(video.video_id),
       '-vcodec',
@@ -91,10 +95,6 @@ const getPreviewUrl = async (video: VideoSelect) => {
       'setpts=0.72*PTS,fps=8',
       '-s',
       '320x180',
-      '-ss',
-      '00:00:02',
-      '-to',
-      '00:00:08',
       '-y',
       getVideoPreviewPath(video),
     ];
@@ -132,6 +132,8 @@ const getPreviewUrl = async (video: VideoSelect) => {
 const getThumbnailUrl = async (video: VideoSelect, options: { videoLength: number; small?: boolean }) => {
   try {
     const args = [
+      '-ss',
+      Math.floor(options.videoLength / 2).toString(),
       '-i',
       getVideoFilePath(video.video_id),
       '-vcodec',
@@ -146,8 +148,6 @@ const getThumbnailUrl = async (video: VideoSelect, options: { videoLength: numbe
         : []),
       '-vframes',
       '1',
-      '-ss',
-      Math.floor(options.videoLength / 2).toString(),
       '-y',
       (options.small ? getVideoThumbnailSmallPath : getVideoThumbnailPath)(video),
     ];
