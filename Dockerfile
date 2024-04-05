@@ -1,6 +1,12 @@
+ARG DENO_VERSION=1.42.1
+ARG ALPINE_VERSION=3.18
+
+FROM denoland/deno:bin-$DENO_VERSION AS deno
+
 # src/bot
 
-FROM denoland/deno:alpine-1.40.5 AS bot
+FROM frolvlad/alpine-glibc:alpine-$ALPINE_VERSION AS bot
+COPY --from=deno /deno /usr/local/bin/deno
 
 ADD src/import_map.json .
 
@@ -16,7 +22,8 @@ CMD ./entrypoint.sh
 
 # src/server
 
-FROM denoland/deno:alpine-1.40.5 AS server
+FROM frolvlad/alpine-glibc:alpine-$ALPINE_VERSION AS server
+COPY --from=deno /deno /usr/local/bin/deno
 
 RUN apk update
 RUN apk upgrade
