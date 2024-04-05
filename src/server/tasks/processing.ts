@@ -244,11 +244,20 @@ const processVideos = async () => {
   }
 };
 
+let isProcessing = false;
+
 const update = async () => {
+  if (isProcessing) {
+    return;
+  }
+
   try {
+    isProcessing = true;
     await processVideos();
   } catch (err) {
     logger.error(err);
+  } finally {
+    isProcessing = false;
   }
 };
 
