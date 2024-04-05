@@ -7,7 +7,7 @@
  * A re-login is required after execution.
  */
 
-import 'dotenv/load.ts';
+import '@std/dotenv/load';
 import { db } from '../db.ts';
 import { UserPermissions } from '~/shared/models.ts';
 

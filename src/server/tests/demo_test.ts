@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { assert, assertEquals } from 'testing/asserts.ts';
+import { assert, assertEquals } from '@std/testing/asserts';
 import { SourceDemoParser } from '@nekz/sdp';
 import { getPlayerInfo } from '../demo.ts';
 

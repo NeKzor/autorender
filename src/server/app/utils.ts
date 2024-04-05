@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Temporal } from '@js-temporal/polyfill';
-
 export const toAgo = (date: Date | null) => {
   if (!date) {
     return '';

@@ -6,9 +6,9 @@
  * This migrates all old renders from autorender v1.
  */
 
-import 'dotenv/load.ts';
+import '@std/dotenv/load';
 
-import { join } from 'path/join.ts';
+import { join } from '@std/path';
 import { db } from '../db.ts';
 import { FixedDemoStatus, MapModel, PendingStatus, RenderQuality } from '~/shared/models.ts';
 import * as uuid from 'uuid/mod.ts';

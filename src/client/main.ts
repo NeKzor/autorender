@@ -7,7 +7,7 @@
  * file will be send back to the server once it finished rendering.
  */
 
-import { dirname, join } from 'path/mod.ts';
+import { dirname, join } from '@std/path';
 import { logger } from './logger.ts';
 import {
   AutorenderDataType,

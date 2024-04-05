@@ -6,7 +6,7 @@
  * This checks if there are any videos to render from board.portal2.sr.
  */
 
-import 'dotenv/load.ts';
+import '@std/dotenv/load';
 import { db } from '../db.ts';
 import {
   AuditSource,

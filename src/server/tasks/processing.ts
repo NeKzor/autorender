@@ -10,7 +10,7 @@
  *  - Delete local video file
  */
 
-import 'dotenv/load.ts';
+import '@std/dotenv/load';
 import { db } from '../db.ts';
 import { PendingStatus, Video } from '~/shared/models.ts';
 import { installLogger, logger } from '../logger.ts';

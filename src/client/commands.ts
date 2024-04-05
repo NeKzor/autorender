@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { dirname, join } from 'path/mod.ts';
+import { dirname, join } from '@std/path';
 import { colors } from 'cliffy/ansi/colors.ts';
 import { Cell, Table } from 'cliffy/table/mod.ts';
 import { logger } from './logger.ts';
@@ -22,9 +22,9 @@ import {
   supportedGames,
 } from './config.ts';
 import { AutorenderVersion, ReleaseTag, UserAgent } from './constants.ts';
-import { YAMLError } from 'yaml/_error.ts';
+//import { YAMLError } from '@std/yaml/_error';
 import { Checkbox, Confirm, Input, prompt, Select } from 'cliffy/prompt/mod.ts';
-import * as yaml from 'yaml/mod.ts';
+import * as yaml from '@std/yaml';
 import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
 import { Options } from './cli.ts';
 import { getRelease } from './github.ts';
@@ -214,11 +214,12 @@ export const runValidate = async ({ verboseMode }: Options) => {
   } catch (err) {
     verboseMode && logger.error(err);
 
-    if (err instanceof Deno.errors.NotFound) {
-      console.log(colors.red(`❌️ Config file not found.`));
-    } else if (err instanceof YAMLError) {
-      console.log(colors.red(`❌️ ${err.message}`));
-    }
+    // TODO
+    // if (err instanceof Deno.errors.NotFound) {
+    //   console.log(colors.red(`❌️ Config file not found.`));
+    // } else if (err instanceof YAMLError) {
+    //   console.log(colors.red(`❌️ ${err.message}`));
+    // }
 
     Deno.exit(1);
   }

@@ -4,15 +4,15 @@
  * SPDX-License-Identifier: MIT
  */
 
-import * as yaml from 'yaml/mod.ts';
+import * as yaml from '@std/yaml';
 import { Checkbox, Input, prompt, Secret, Select } from 'cliffy/prompt/mod.ts';
 import { colors } from 'cliffy/ansi/colors.ts';
-import { bgCyan } from 'fmt/colors.ts';
-import { dirname, join } from 'path/mod.ts';
+import { bgCyan } from '@std/fmt/colors';
+import { dirname, join } from '@std/path';
 import { BlobReader, Uint8ArrayWriter, ZipReader } from 'zipjs/index.js';
 import ProgressBar from 'progress/mod.ts';
 import { logger } from './logger.ts';
-import { writeAll } from 'streams/write_all.ts';
+import { writeAll } from '@std/io';
 import { AutorenderBaseApi, AutorenderConnectUri, UserAgent } from './constants.ts';
 import { RenderQuality } from '~/shared/models.ts';
 import { gameFolder, getBinary, realGameModFolder } from './utils.ts';

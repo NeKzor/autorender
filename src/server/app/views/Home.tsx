@@ -5,7 +5,6 @@
  */
 
 import * as React from 'react';
-import { Temporal } from '@js-temporal/polyfill';
 import { Video } from '~/shared/models.ts';
 import { DataLoader, json, PageMeta, useLoaderData } from '../Routes.ts';
 import { tw } from 'twind';

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { dirname, join } from 'path/mod.ts';
+import { dirname, join } from '@std/path';
 import { GameConfig } from './config.ts';
 import { UserAgent } from './constants.ts';
 
