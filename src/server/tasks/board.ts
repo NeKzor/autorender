@@ -84,7 +84,7 @@ const checkChangelogUpdates = async () => {
 
       if (fixedFilePath) {
         try {
-          await Deno.remove(filePath);
+          await Deno.remove(fixedFilePath);
         } catch (err) {
           logger.error(err);
         }
