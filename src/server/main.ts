@@ -58,7 +58,8 @@ import {
   validateShareId,
 } from './utils.ts';
 import { rateLimits } from './rate_limits.ts';
-import { fetchDemo } from './tasks/portal2_sr.ts';
+import { fetchDemo, getChangelog } from './tasks/portal2_sr.ts';
+import { insertVideo } from './tasks/board_insert.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -2248,7 +2249,7 @@ router.get('/assets/(.*)', (ctx) => {
   Err(ctx, Status.NotFound, 'Asset not found :(');
 });
 
-router.get('/video.html', async (ctx) => {
+router.get('/video.html', useSession, async (ctx) => {
   const changelogId = ctx.request.url.searchParams.get('v') ?? '';
   if (!changelogId.length || parseInt(changelogId, 10).toString() !== changelogId) {
     return Err(ctx, Status.BadRequest, 'Invalid v parameter.');
@@ -2264,7 +2265,22 @@ router.get('/video.html', async (ctx) => {
   );
 
   if (!video) {
-    return Err(ctx, Status.NotFound, 'Video not found.');
+    if (!ctx.state.session.get('user') || !hasPermission(ctx, UserPermissions.RerenderVideos)) {
+      return Err(ctx, Status.NotFound, 'Video not found.');
+    }
+
+    const [entry] = await getChangelog({ id: parseInt(changelogId) }) ?? [];
+    if (!entry) {
+      return Err(ctx, Status.NotFound, 'Unable to fetch changelog entry.');
+    }
+
+    const shareId = await insertVideo(entry);
+    if (!shareId) {
+      return Err(ctx, Status.NotFound, 'Unable to create video.');
+    }
+
+    ctx.response.redirect(`/videos/${shareId}`);
+    return;
   }
 
   ctx.response.redirect(`/videos/${video.share_id}`);
