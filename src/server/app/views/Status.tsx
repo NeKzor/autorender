@@ -333,7 +333,7 @@ export const Status = () => {
                   Changelog ID
                 </th>
                 <th scope='col' className={tw`px-6 py-3`}>
-                  Requested at
+                  Submitted at
                 </th>
                 <th scope='col' className={tw`px-6 py-3`}>
                   Render node
