@@ -749,7 +749,7 @@ apiV1
         | 'file_name'
         | 'created_at'
         | 'full_map_name'
-      >
+      > & Pick<MapModel, 'auto_fullbright'>
     >(
       `select BIN_TO_UUID(video_id) as video_id
             , share_id
@@ -757,7 +757,10 @@ apiV1
             , file_name
             , created_at
             , full_map_name
+            , auto_fullbright
          from videos
+         join maps
+           on maps.map_id = videos.map_id 
         where share_id = ?`,
       [
         ctx.params.share_id,
@@ -769,15 +772,103 @@ apiV1
     }
 
     if (video.board_changelog_id) {
-      // Board demos are only stored temporarily when rendering.
-      // Here we also assume that board demos never change so
-      // we don't have to parse it again and update its info.
-
-      const { demo } = await fetchDemo(video.board_changelog_id);
+      const { demo, originalFilename } = await fetchDemo(video.board_changelog_id);
 
       const filePath = getDemoFilePath(video.video_id);
       using file = await Deno.open(filePath, { create: true, write: true, truncate: true });
       await demo.body?.pipeTo(file.writable);
+
+      const fileCleanup = async () => {
+        if (filePath) {
+          try {
+            await Deno.remove(filePath);
+          } catch (err) {
+            logger.error(err);
+          }
+        }
+      };
+
+      const demoInfo = await getDemoInfo(filePath, { isBoardDemo: true });
+
+      if (demoInfo === null || typeof demoInfo === 'string') {
+        logger.error('Invalid demo', demoInfo);
+        await fileCleanup();
+        return Err(ctx, Status.InternalServerError, 'Invalid demo.');
+      }
+
+      const renderOptions = [
+        ...(video.auto_fullbright
+          ? [
+            `mat_ambient_light_r 0.05`,
+            `mat_ambient_light_g 0.05`,
+            `mat_ambient_light_b 0.05`,
+          ]
+          : []),
+      ];
+
+      if (demoInfo.disableRenderSkipCoopVideos) {
+        renderOptions.push('sar_render_skip_coop_videos 0');
+      }
+
+      const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
+      const demoMetadata = JSON.stringify(demoInfo.metadata);
+
+      const { affectedRows } = await db.execute(
+        `update videos
+          set pending = ?
+            , rendered_by = null
+            , rendered_by_token = null
+            , render_node = null
+            , rerender_started_at = CURRENT_TIMESTAMP()
+            , processed = 0
+            , render_options = ?
+            , file_name = ?
+            , full_map_name = ?
+            , demo_size = ?
+            , demo_map_crc = ?
+            , demo_game_dir = ?
+            , demo_playback_time = ?
+            , demo_required_fix = ?
+            , demo_tickrate = ?
+            , demo_portal_score = ?
+            , demo_time_score = ?
+            , demo_player_name = ?
+            , demo_steam_id = ?
+            , demo_partner_player_name = ?
+            , demo_partner_steam_id = ?
+            , demo_is_host = ?
+            , demo_metadata = ?
+        where video_id = UUID_TO_BIN(?)
+          and pending = ?`,
+        [
+          PendingStatus.RequiresRender,
+          renderOptions.filter((command) => command !== null).join('\n'),
+          originalFilename,
+          demoInfo.fullMapName,
+          demoInfo.size,
+          demoInfo.mapCrc,
+          demoInfo.gameDir,
+          demoInfo.playbackTime,
+          requiredDemoFix,
+          demoInfo.tickrate,
+          demoInfo.portalScore,
+          demoInfo.timeScore,
+          demoInfo.playerName,
+          demoInfo.steamId,
+          demoInfo.partnerPlayerName,
+          demoInfo.partnerSteamId,
+          demoInfo.isHost,
+          demoMetadata,
+          video.video_id,
+          PendingStatus.FinishedRender,
+        ],
+      );
+
+      if (affectedRows) {
+        logger.info(`Started rerender of ${video.share_id}`);
+      }
+
+      return Ok(ctx, { started: (affectedRows ?? 0) > 0 });
     }
 
     const { affectedRows } = await db.execute(
