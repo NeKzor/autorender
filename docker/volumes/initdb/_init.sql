@@ -125,7 +125,20 @@ CREATE TABLE videos (
     rendered_by BIGINT,
     rendered_by_token BIGINT,
     rendered_at TIMESTAMP,
-    render_time INT AS (TIMESTAMPDIFF(SECOND, IFNULL(rerender_started_at, created_at), rendered_at)),
+    render_time INT AS (
+        TIMESTAMPDIFF(
+            SECOND,
+            IFNULL(
+                IF(
+                    video_url IS NULL,
+                    NULL,
+                    rerender_started_at
+                ),
+                created_at
+            ),
+            rendered_at
+        )
+    ),
     render_node VARCHAR(64),
     video_url VARCHAR(1024),
     video_external_id VARCHAR(256),
