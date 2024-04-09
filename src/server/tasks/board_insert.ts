@@ -77,7 +77,7 @@ export const insertVideo = async (entry: ChangelogEntry) => {
 
     const demoInfo = await getDemoInfo(filePath, { isBoardDemo: true });
 
-    console.dir({ demoInfo });
+    logger.info({ demoInfo });
 
     if (demoInfo === null || typeof demoInfo === 'string') {
       logger.error('Invalid demo', demoInfo);
