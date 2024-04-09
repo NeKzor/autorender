@@ -104,12 +104,8 @@ const checkChangelogUpdates = async () => {
 
       filePath = getDemoFilePath(videoId);
 
-      const demoFile = await Deno.open(filePath, { write: true, create: true });
+      using demoFile = await Deno.open(filePath, { write: true, create: true });
       await demo.body?.pipeTo(demoFile.writable);
-      try {
-        demoFile.close();
-        // deno-lint-ignore no-empty
-      } catch {}
 
       const demoInfo = await getDemoInfo(filePath, { isBoardDemo: true });
 

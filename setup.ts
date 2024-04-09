@@ -155,7 +155,7 @@ const downloadFromRepository = async (remote: string, local: string, skipIfExist
   }
 
   try {
-    const file = await Deno.open(local, { create: true, write: true, truncate: true });
+    using file = await Deno.open(local, { create: true, write: true, truncate: true });
     await res.body.pipeTo(file.writable);
     console.log(colors.bold('[+]'), `    File written to ${local}`);
   } catch (err) {

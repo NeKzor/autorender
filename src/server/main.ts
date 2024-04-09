@@ -775,14 +775,8 @@ apiV1
       const { demo } = await fetchDemo(video.board_changelog_id);
 
       const filePath = getDemoFilePath(video.video_id);
-      const file = await Deno.open(filePath, { create: true, write: true, truncate: true });
+      using file = await Deno.open(filePath, { create: true, write: true, truncate: true });
       await demo.body?.pipeTo(file.writable);
-
-      try {
-        file.close();
-        // deno-lint-ignore no-empty
-      } catch {
-      }
     }
 
     const { affectedRows } = await db.execute(
