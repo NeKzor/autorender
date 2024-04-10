@@ -283,16 +283,20 @@ const initRerenderModal = () => {
   const rerenderModalQueueButton = document.getElementById('rerender-modal-queue-button');
   /** @type {HTMLInputElement} */
   const rerenderModalRepairCheckbox = document.getElementById('rerender-modal-repair-checkbox');
+  const tryRerenderButton = document.getElementById('video-try-rerender-button');
+  const rerenderButton = document.getElementById('video-rerender-button');
 
-  const rerenderButton = document.querySelector('#video-rerender-button');
-  rerenderButton?.addEventListener('click', () => {
+  const openModal = () => {
     rerenderModal.classList.remove('hidden');
     rerenderModal.classList.add('flex');
 
     if (rerenderModalRepairCheckbox) {
       rerenderModalRepairCheckbox.checked = false;
     }
-  });
+  };
+
+  tryRerenderButton?.addEventListener('click', openModal);
+  rerenderButton?.addEventListener('click', openModal);
 
   rerenderModalCloseButton?.addEventListener('click', () => {
     rerenderModal.classList.add('hidden');
@@ -373,7 +377,7 @@ if (location.pathname.startsWith('/search') && location.search.length !== 0) {
 
 // Page Not Found
 
-const goBackButton = document.querySelector('#not-found-go-back');
+const goBackButton = document.getElementById('not-found-go-back');
 if (goBackButton) {
   goBackButton.addEventListener('click', () => history.back());
 }
