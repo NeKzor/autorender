@@ -118,6 +118,7 @@ CREATE TABLE videos (
     demo_partner_steam_id VARCHAR(64),
     demo_is_host INT,
     demo_metadata TEXT,
+    demo_requires_repair INT NOT NULL DEFAULT 0,
     board_changelog_id INT,
     board_profile_number VARCHAR(32),
     board_rank INT,

@@ -270,6 +270,51 @@ const initShareModal = () => {
   });
 };
 
+// Rerender Modal
+
+const initRerenderModal = () => {
+  const rerenderModal = document.getElementById('rerender-modal');
+  if (!rerenderModal) {
+    return;
+  }
+
+  /** @type {HTMLInputElement} */
+  const rerenderModalCloseButton = document.getElementById('rerender-modal-close-button');
+  const rerenderModalQueueButton = document.getElementById('rerender-modal-queue-button');
+  /** @type {HTMLInputElement} */
+  const rerenderModalRepairCheckbox = document.getElementById('rerender-modal-repair-checkbox');
+
+  const rerenderButton = document.querySelector('#video-rerender-button');
+  rerenderButton?.addEventListener('click', () => {
+    rerenderModal.classList.remove('hidden');
+    rerenderModal.classList.add('flex');
+
+    if (rerenderModalRepairCheckbox) {
+      rerenderModalRepairCheckbox.checked = false;
+    }
+  });
+
+  rerenderModalCloseButton?.addEventListener('click', () => {
+    rerenderModal.classList.add('hidden');
+  });
+
+  rerenderModalQueueButton?.addEventListener('click', () => {
+    rerenderModalRepairCheckbox.setAttribute('disabled', '');
+    rerenderModalQueueButton.setAttribute('disabled', '');
+    rerenderModalQueueButton.textContent = 'Adding to queue...';
+
+    fetch(`/api/v1${location.pathname}/rerender`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ demoRepair: rerenderModalRepairCheckbox?.checked ?? false }),
+    })
+      .catch(console.error)
+      .finally(() => location.replace(location.href));
+  });
+};
+
 // Videos
 
 if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
@@ -313,43 +358,7 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
     initShareModal();
   }
 
-  const retryRenderButton = document.querySelector('#video-retry-render-button');
-  if (retryRenderButton) {
-    retryRenderButton.addEventListener('click', () => {
-      retryRenderButton.setAttribute('disabled', '');
-
-      const [refreshSvg, loadingSvg] = [...retryRenderButton.children];
-      refreshSvg.classList.add('hidden');
-      loadingSvg.classList.add('inline');
-      refreshSvg.classList.remove('inline');
-      loadingSvg.classList.remove('hidden');
-
-      fetch(`/api/v1${location.pathname}/rerender`, { method: 'POST' })
-        .catch(console.error)
-        .finally(() => location.reload());
-    });
-  }
-
-  const rerenderButton = document.querySelector('#video-rerender-button');
-  if (rerenderButton) {
-    rerenderButton.addEventListener('click', () => {
-      if (!confirm('This will trigger a rerender and delete the current video. Are you sure?')) {
-        return;
-      }
-
-      rerenderButton.setAttribute('disabled', '');
-
-      const [refreshSvg, loadingSvg] = [...rerenderButton.children];
-      refreshSvg.classList.add('hidden');
-      loadingSvg.classList.add('inline');
-      refreshSvg.classList.remove('inline');
-      loadingSvg.classList.remove('hidden');
-
-      fetch(`/api/v1${location.pathname}/rerender`, { method: 'POST' })
-        .catch(console.error)
-        .finally(() => location.reload());
-    });
-  }
+  initRerenderModal();
 }
 
 // Search

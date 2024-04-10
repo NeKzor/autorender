@@ -740,6 +740,12 @@ apiV1
       return Err(ctx, Status.BadRequest, 'Invalid share ID.');
     }
 
+    if (!ctx.request.hasBody) {
+      return Err(ctx, Status.BadRequest, 'Missing body.');
+    }
+
+    const { demoRepair } = await ctx.request.body({ type: 'json' }).value as { demoRepair: boolean };
+
     const [video] = await db.query<
       Pick<
         Video,
@@ -773,10 +779,12 @@ apiV1
 
     if (video.board_changelog_id) {
       const { demo, originalFilename } = await fetchDemo(video.board_changelog_id);
-
       const filePath = getDemoFilePath(video.video_id);
-      using file = await Deno.open(filePath, { create: true, write: true, truncate: true });
-      await demo.body?.pipeTo(file.writable);
+
+      {
+        using file = await Deno.open(filePath, { create: true, write: true, truncate: true });
+        await demo.body?.pipeTo(file.writable);
+      }
 
       const fileCleanup = async () => {
         if (filePath) {
@@ -838,6 +846,7 @@ apiV1
             , demo_partner_steam_id = ?
             , demo_is_host = ?
             , demo_metadata = ?
+            , demo_requires_repair = ?
         where video_id = UUID_TO_BIN(?)
           and pending = ?`,
         [
@@ -859,6 +868,7 @@ apiV1
           demoInfo.partnerSteamId,
           demoInfo.isHost,
           demoMetadata,
+          demoRepair ? 1 : 0,
           video.video_id,
           PendingStatus.FinishedRender,
         ],
@@ -879,10 +889,12 @@ apiV1
             , render_node = null
             , rerender_started_at = CURRENT_TIMESTAMP()
             , processed = 0
+            , demo_requires_repair = ?
         where video_id = UUID_TO_BIN(?)
           and pending = ?`,
       [
         PendingStatus.RequiresRender,
+        demoRepair ? 1 : 0,
         video.video_id,
         PendingStatus.FinishedRender,
       ],
@@ -1672,6 +1684,7 @@ router.get('/connect/client', async (ctx) => {
               | 'board_changelog_id'
               | 'created_at'
               | 'file_name'
+              | 'demo_requires_repair'
             >;
 
             const [video] = await db.query<VideoSelect>(
@@ -1686,6 +1699,7 @@ router.get('/connect/client', async (ctx) => {
                      , board_changelog_id
                      , created_at
                      , file_name
+                     , demo_requires_repair
                   from videos
                  where video_id = UUID_TO_BIN(?)`,
               [videoId],
@@ -1704,7 +1718,7 @@ router.get('/connect/client', async (ctx) => {
               break;
             }
 
-            const { demo_required_fix, ...videoPayload } = video;
+            const { demo_required_fix, demo_requires_repair, ...videoPayload } = video;
 
             const buffer = new Buffer();
             const payload = new TextEncoder().encode(JSON.stringify(videoPayload));
@@ -1719,7 +1733,7 @@ router.get('/connect/client', async (ctx) => {
 
             const file = await Deno.readFile(filePath);
 
-            if (AUTORENDER_RUN_DEMO_REPAIR) {
+            if (AUTORENDER_RUN_DEMO_REPAIR && demo_requires_repair) {
               try {
                 await buffer.write(repairDemo(file));
               } catch (err) {
