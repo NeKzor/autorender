@@ -303,7 +303,10 @@ const initRerenderModal = () => {
   });
 
   rerenderModalQueueButton?.addEventListener('click', () => {
-    rerenderModalRepairCheckbox.setAttribute('disabled', '');
+    if (rerenderModalRepairCheckbox) {
+      rerenderModalRepairCheckbox.setAttribute('disabled', '');
+    }
+
     rerenderModalQueueButton.setAttribute('disabled', '');
     rerenderModalQueueButton.textContent = 'Adding to queue...';
 
