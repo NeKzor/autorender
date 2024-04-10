@@ -27,6 +27,7 @@ const checkStaleVideos = async () => {
   const { affectedRows } = await db.execute<Video>(
     `update videos
       set pending = ?
+        , processed = 1
     where (
         (
           pending = ?
