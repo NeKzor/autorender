@@ -535,7 +535,7 @@ export const VideoView = () => {
         </div>
       </div>
       <ShareModal />
-      <RerenderModal showDemoRepair={data.type === MapType.SinglePlayer} />
+      <RerenderModal showDemoRepair />
     </>
   );
 };
