@@ -8,6 +8,8 @@ autorender.yaml
 docker-compose.yml
 entrypoint.sh
 src/app/
+.test/
+docker/volumes/storage/users/
 
 # Logs
 logs
