@@ -535,7 +535,10 @@ export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
   };
 };
 
-// Remove all pauses before sending it to a render client
+// Remove all pauses before sending it to a render client.
+// Also try to end the demo when a coop cm run has finished.
+// This should be kept as close as possible to sdp's demo repair example:
+//    https://github.com/NeKzor/sdp/blob/master/examples/repair.ts
 export const repairDemo = (buffer: Uint8Array): Uint8Array => {
   const parser = SourceDemoParser.default();
 
@@ -544,15 +547,40 @@ export const repairDemo = (buffer: Uint8Array): Uint8Array => {
     .parse(buffer);
 
   let paused = false;
+  let coop = false;
+  let coopCmFlagsTouchCount = 0;
+  let coopCmEndTick = -1;
+
+  const didCoopChallengeModeFinish = (message: Messages.Message) => {
+    // Start dropping messages on the next tick
+    const drop = coopCmEndTick !== -1 && message.tick! > coopCmEndTick;
+    return drop;
+  };
 
   demo.messages = demo.messages!.filter((message) => {
     if (message instanceof Messages.Packet) {
+      if (didCoopChallengeModeFinish(message)) {
+        return false;
+      }
+
       let pausePacketCount = 0;
 
       for (const packet of message.packets!) {
-        if (packet instanceof NetMessages.SvcSetPause) {
+        if (packet instanceof NetMessages.SvcServerInfo) {
+          coop = (packet.maxClients ?? 0) !== 0;
+        } else if (packet instanceof NetMessages.SvcSetPause) {
           paused = packet.paused!;
           pausePacketCount += 1;
+        } else if (
+          coop &&
+          packet instanceof NetMessages.SvcUserMessage &&
+          packet.userMessage instanceof ScoreboardTempUpdate
+        ) {
+          coopCmFlagsTouchCount += 1;
+
+          if (coopCmFlagsTouchCount > 1) {
+            coopCmEndTick = message.tick!;
+          }
         }
       }
 
@@ -565,7 +593,17 @@ export const repairDemo = (buffer: Uint8Array): Uint8Array => {
       message instanceof Messages.UserCmd ||
       message instanceof Messages.CustomData
     ) {
+      if (didCoopChallengeModeFinish(message)) {
+        return false;
+      }
+
       return !paused;
+    }
+
+    if (message instanceof Messages.ConsoleCmd) {
+      if (didCoopChallengeModeFinish(message)) {
+        return false;
+      }
     }
 
     return true;
