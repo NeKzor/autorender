@@ -99,7 +99,8 @@ createCommand({
       if (pointCameraClasses.length === 2) {
         if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
           await bot.helpers.editOriginalInteractionResponse(interaction.token, {
-            content: '❌️ This demo has been corrupted by demofixup.',
+            content:
+              '❌️ This demo has been corrupted by demofixup.\nSee [p2sr/demofixup#2](https://github.com/p2sr/demofixup/issues/2)',
           });
           return;
         }
@@ -125,7 +126,8 @@ createCommand({
         await bot.helpers.editOriginalInteractionResponse(
           interaction.token,
           {
-            content: `❌️ Unfortunately this demo cannot be fixed.`,
+            content:
+              `❌️ Unfortunately this demo cannot be fixed.\nSee [p2sr/demofixup#2](https://github.com/p2sr/demofixup/issues/2)`,
           },
         );
         return;

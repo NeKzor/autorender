@@ -310,7 +310,7 @@ const autoFixupOldPortal2Demo = async (
     // Fixup not needed for already fixed demos.
     if (pointCameraClasses.length === 2) {
       if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
-        return 'This demo has been corrupted by demofixup.';
+        return 'This demo has been corrupted by demofixup.\nSee [p2sr/demofixup#2](https://github.com/p2sr/demofixup/issues/2)';
       }
 
       return false;
@@ -325,7 +325,7 @@ const autoFixupOldPortal2Demo = async (
     }
 
     if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
-      return 'This demo cannot be fixed.';
+      return 'This demo cannot be fixed.\nSee [p2sr/demofixup#2](https://github.com/p2sr/demofixup/issues/2)';
     }
 
     dt.tables.splice(pointSurvey, 1);
