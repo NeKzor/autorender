@@ -447,6 +447,119 @@ const initRerenderModal = () => {
   });
 };
 
+// Delete Modal
+
+const initDeleteModal = () => {
+  const deleteModal = document.getElementById('delete-modal');
+  if (!deleteModal) {
+    return;
+  }
+
+  const deleteModalCloseButton = document.getElementById('delete-modal-close-button');
+  const deleteModalDeleteButton = document.getElementById('delete-modal-delete-button');
+  /** @type {HTMLInputElement} */
+  const deleteReasonBanned = document.getElementById('delete-reason-banned');
+  /** @type {HTMLInputElement} */
+  const deleteReasonMistake = document.getElementById('delete-reason-mistake');
+  /** @type {HTMLInputElement} */
+  const deleteReasonDuplicate = document.getElementById('delete-reason-duplicate');
+  /** @type {HTMLInputElement} */
+  const deleteReasonOther = document.getElementById('delete-reason-other');
+  /** @type {HTMLInputElement} */
+  const deleteReasonInput = document.getElementById('delete-reason-input');
+  const deleteButton = document.getElementById('video-delete-button');
+
+  const onOpen = () => {
+    deleteModal.classList.remove('hidden');
+    deleteModal.classList.add('flex');
+    deleteModalDeleteButton.classList.add('disabled:opacity-75', 'disabled:pointer-events-none');
+    deleteModalDeleteButton.setAttribute('disabled', '');
+    deleteModalDeleteButton.textContent = 'Delete Video';
+    deleteReasonInput.parentElement.classList.add('hidden');
+    deleteReasonInput.value = '';
+    deleteReasons.forEach((element) => {
+      element.removeAttribute('disabled');
+      element.checked = false;
+    });
+    deleteReasonInput.removeAttribute('disabled');
+  };
+
+  const onClose = () => {
+    deleteModal.classList.add('hidden');
+  };
+
+  const deleteReasons = [
+    deleteReasonBanned,
+    deleteReasonMistake,
+    deleteReasonDuplicate,
+    deleteReasonOther,
+  ];
+
+  const reasonTypes = {
+    [deleteReasonBanned.id]: 1,
+    [deleteReasonMistake.id]: 2,
+    [deleteReasonDuplicate.id]: 3,
+    [deleteReasonOther.id]: 4,
+  };
+
+  let selectedId = '';
+
+  const onSelect = () => {
+    selectedId = deleteReasons.find((element) => element.checked).id;
+
+    if (selectedId === 'delete-reason-other') {
+      deleteReasonInput.parentElement.classList.remove('hidden');
+      onInput();
+    } else {
+      deleteReasonInput.parentElement.classList.add('hidden');
+      deleteModalDeleteButton.classList.remove('disabled:opacity-75', 'disabled:pointer-events-none');
+      deleteModalDeleteButton.removeAttribute('disabled');
+    }
+  };
+
+  const onInput = () => {
+    if (deleteReasonInput.value.trim().length) {
+      deleteModalDeleteButton.classList.remove('disabled:opacity-75', 'disabled:pointer-events-none');
+      deleteModalDeleteButton.removeAttribute('disabled');
+    } else {
+      deleteModalDeleteButton.classList.add('disabled:opacity-75', 'disabled:pointer-events-none');
+      deleteModalDeleteButton.setAttribute('disabled', '');
+    }
+  };
+
+  const onSubmit = () => {
+    deleteModalDeleteButton.classList.add('disabled:opacity-75', 'disabled:pointer-events-none');
+    deleteModalDeleteButton.setAttribute('disabled', '');
+    deleteModalDeleteButton.textContent = 'Deleting Video...';
+    deleteReasons.forEach((element) => element.setAttribute('disabled', ''));
+    deleteReasonInput.setAttribute('disabled', '');
+
+    const reason_type = reasonTypes[selectedId];
+
+    fetch(`/api/v1${location.pathname}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        reason: reason_type === 4 ? deleteReasonInput?.value?.trim() ?? null : null,
+        reason_type: reason_type,
+      }),
+    })
+      .catch(console.error)
+      .finally(() => location.replace(location.href));
+  };
+
+  deleteReasonBanned?.addEventListener('click', onSelect);
+  deleteReasonMistake?.addEventListener('click', onSelect);
+  deleteReasonDuplicate?.addEventListener('click', onSelect);
+  deleteReasonOther?.addEventListener('click', onSelect);
+  deleteReasonInput?.addEventListener('input', onInput);
+  deleteButton?.addEventListener('click', onOpen);
+  deleteModalCloseButton?.addEventListener('click', onClose);
+  deleteModalDeleteButton?.addEventListener('click', onSubmit);
+};
+
 // Videos
 
 if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
@@ -488,6 +601,7 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
     fetch(`/api/v1${location.pathname}/views`, { method: 'POST' });
 
     initShareModal();
+    initDeleteModal();
   }
 
   initRerenderModal();

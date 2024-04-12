@@ -25,6 +25,7 @@ import {
   AuditSource,
   AuditType,
   BoardSource,
+  DeleteReason,
   DiscordUser,
   FixedDemoStatus,
   Game,
@@ -982,7 +983,8 @@ apiV1
       `select share_id
             , title
          from videos
-        where video_url IS NOT NULL
+        where video_url is not null
+          and deleted_at is null
      order by RAND()
         limit ?`,
       [Math.min(1, Math.max(10, Number(ctx.params.count)))],
@@ -1006,6 +1008,7 @@ apiV1
             , IF(video_url IS NOT NULL, TRUE, FALSE) as rendered
          from videos
         where requested_by_id = ?
+          and deleted_at is null
      order by created_at desc
         limit 5`,
       [
@@ -1016,6 +1019,97 @@ apiV1
     );
 
     Ok(ctx, videos);
+  })
+  // Mark a video as deleted.
+  .delete('/videos/:share_id', useSession, requiresAuth, async (ctx) => {
+    if (!validateShareId(ctx.params.share_id!)) {
+      return Err(ctx, Status.BadRequest, 'Invalid share ID.');
+    }
+
+    if (!ctx.request.hasBody) {
+      return Err(ctx, Status.BadRequest, 'Missing body.');
+    }
+
+    const { reason, reason_type } = await ctx.request.body({ type: 'json' }).value as {
+      reason?: string;
+      reason_type?: DeleteReason;
+    };
+
+    if (
+      !reason_type ||
+      ![DeleteReason.Banned, DeleteReason.Mistake, DeleteReason.Duplicate, DeleteReason.Other]
+        .includes(reason_type)
+    ) {
+      return Err(ctx, Status.BadRequest, 'Missing reason_type.');
+    }
+
+    const [video] = await db.query<Pick<Video, 'video_id' | 'share_id' | 'requested_by_id'>>(
+      `select BIN_TO_UUID(video_id) as video_id
+            , share_id
+            , requested_by_id
+         from videos
+        where share_id = ?`,
+      [
+        ctx.params.share_id,
+      ],
+    );
+
+    if (!video) {
+      return Err(ctx, Status.NotFound, 'Video not found.');
+    }
+
+    const authUser = ctx.state.session.get('user')!;
+
+    if (video.requested_by_id !== authUser.discord_id || !hasPermission(ctx, UserPermissions.DeleteVideos)) {
+      return Err(ctx, Status.Unauthorized, 'You are not allowed to delete this resource.');
+    }
+
+    const { affectedRows } = await db.execute(
+      `update videos
+          set deleted_at = current_timestamp()
+            , deleted_by = ?
+            , deleted_reason = ?
+            , deleted_reason_type = ?
+            , deleted_video_url = video_url
+            , video_url = null
+        where video_id = UUID_TO_BIN(?)`,
+      [
+        authUser.user_id,
+        reason_type === DeleteReason.Other ? reason ?? null : null,
+        reason_type,
+        video.video_id,
+      ],
+    );
+
+    if (affectedRows === 0) {
+      return Err(ctx, Status.NotFound, 'Video not found.');
+    }
+
+    try {
+      await db.execute(
+        `insert into audit_logs (
+                title
+              , audit_type
+              , source
+              , source_user_id
+              ) values (
+                  ?
+                , ?
+                , ?
+                , ?
+              )`,
+        [
+          `Deleted video ${video.video_id} ${video.share_id}`,
+          AuditType.Info,
+          AuditSource.User,
+          authUser.user_id,
+        ],
+      );
+    } catch (err) {
+      logger.error(err);
+    }
+
+    return Ok(ctx);
   })
   // Get back changelog IDs of renders that exist.
   .post('/check-videos-exist', async (ctx) => {
@@ -1152,6 +1246,7 @@ apiV1
              on maps.map_id = videos.map_id
           where board_changelog_id is not null
             and video_url is not null
+            and deleted_at is null
           order by created_at desc
           limit 30`,
       );
@@ -1315,6 +1410,7 @@ apiV1
            on maps.map_id = videos.map_id
         where board_changelog_id is not null
           and video_url is not null
+          and deleted_at is null
           and videos.map_id = ?
           ${time === 0 && isNaN(rank) && playerName.length ? `and videos.demo_player_name sounds like ?` : ''}
           ${time !== 0 ? ' and demo_time_score = ?' : ''}

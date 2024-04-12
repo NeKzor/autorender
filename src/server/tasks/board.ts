@@ -86,6 +86,7 @@ const resetFailedAutorenders = async () => {
           , render_node = null
       where pending in (?, ?)
         and video_url is null
+        and deleted_at is null
         and board_changelog_id is not null
         and rendered_by_token is not null
         and TIMESTAMPDIFF(MINUTE, created_at, NOW()) >= ?

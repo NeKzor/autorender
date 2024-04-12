@@ -7,7 +7,7 @@
 import * as React from 'react';
 import { tw } from 'twind';
 
-export const NotFound = () => {
+export const NotFound = ({ resource }: { resource?: string }) => {
   return (
     <>
       <div className={tw`container md:flex items-center px-6 py-12 mx-auto`}>
@@ -16,10 +16,10 @@ export const NotFound = () => {
             404
           </p>
           <h1 className={tw`mt-3 text-2xl font-semibold text-gray-800 dark:text-white md:text-3xl`}>
-            Page not found
+            {resource ?? 'Page'} not found
           </h1>
           <p className={tw`mt-4 text-gray-500 dark:text-gray-400`}>
-            The page you are looking for does not exist or has been moved.
+            The {resource?.toLowerCase() ?? 'page'} you are looking for does not exist or has been moved.
           </p>
           <div className={tw`flex items-center mt-6 gap-x-3`}>
             <button

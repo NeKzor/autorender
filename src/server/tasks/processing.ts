@@ -193,7 +193,8 @@ const processVideos = async () => {
        from videos
       where processed = 0
         and pending = ?
-        and video_url is not null`,
+        and video_url is not null
+        and deleted_at is null`,
     [
       PendingStatus.FinishedRender,
     ],

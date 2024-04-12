@@ -17,9 +17,11 @@ import {
   Video,
 } from '~/shared/models.ts';
 import { DemoMetadata, SarDataTimestamp } from '../../demo.ts';
+import DeleteModal from '../components/DeleteModal.tsx';
 import RerenderModal from '../components/RerenderModal.tsx';
 import ShareModal from '../components/ShareModal.tsx';
 import { AppStateContext } from '../AppState.ts';
+import { NotFound } from './NotFound.tsx';
 
 type JoinedVideo = Video & {
   requested_by_username: string | null;
@@ -132,13 +134,20 @@ const formatToSeconds = (ticks: number, data: Data) => {
 };
 
 export const VideoView = () => {
-  const state = React.useContext(AppStateContext);
   const data = useLoaderData<Data>()!;
-  const metadata = getDemoMetadata(data);
+  if (data.deleted_at) {
+    return <NotFound resource='Video' />;
+  }
 
+  const state = React.useContext(AppStateContext);
+  const metadata = getDemoMetadata(data);
   const hasVideo = data.video_url !== null;
   const videoHeight = data.render_quality === RenderQuality.SD_480p ? '480' : '720';
-  const isAllowedToRerender = !!((state?.user?.permissions ?? 0) & UserPermissions.RerenderVideos);
+
+  const userPermissions = state?.user?.permissions ?? 0;
+  const isAllowedToRerender = (userPermissions & UserPermissions.RerenderVideos) !== 0;
+  const isAllowedToDelete = (userPermissions & UserPermissions.DeleteVideos) !== 0 ||
+    (state?.user?.user_id && state.user.discord_id === data.requested_by_id);
 
   return (
     <>
@@ -541,6 +550,34 @@ export const VideoView = () => {
                 </button>
               </div>
             )}
+            {data.pending === PendingStatus.FinishedRender && isAllowedToDelete && (
+              <div>
+                <button
+                  data-modal-target='delete-modal'
+                  data-modal-toggle='delete-modal'
+                  id='video-delete-button'
+                  type='button'
+                  className={tw`flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800`}
+                >
+                  <svg
+                    className={tw`w-[18px] h-[18px] text-gray-800 dark:text-white`}
+                    aria-hidden='true'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      stroke='currentColor'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      stroke-width='2'
+                      d='M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z'
+                    />
+                  </svg>
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -548,6 +585,7 @@ export const VideoView = () => {
       {data.pending === PendingStatus.FinishedRender && isAllowedToRerender && (
         <RerenderModal isCoop={data.type === MapType.Cooperative || data.type === MapType.WorkshopCooperative} />
       )}
+      <DeleteModal />
     </>
   );
 };

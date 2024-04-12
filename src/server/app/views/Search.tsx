@@ -235,6 +235,7 @@ const searchVideos = async (db: Database, query: string, sortableId?: SortableId
         where board_changelog_id is not null
           and video_url is not null
           and videos.map_id = ?
+          and deleted_at is null
           ${sortableId ? 'and (videos.created_at < ? or (videos.created_at = ? and videos.share_id > ?))' : ''}
           ${time === 0 && isNaN(rank) && playerName.length ? `and videos.demo_player_name sounds like ?` : ''}
           ${time !== 0 ? ' and demo_time_score = ?' : ''}

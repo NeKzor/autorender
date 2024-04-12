@@ -106,6 +106,7 @@ export const loader: DataLoader = async ({ context }) => {
          on renderer.user_id = videos.rendered_by
       where pending = ?
         and video_url is null
+        and deleted_at is null
         and board_changelog_id is not null
         and rendered_by_token is not null
    order by videos.created_at`,

@@ -62,6 +62,7 @@ const getVideos = async (db: Database, sortableId?: SortableId) => {
        left join users requester
             on requester.discord_id = videos.requested_by_id
       where video_url is not null
+        and deleted_at is null
             ${sortableId ? 'and (videos.rendered_at < ? or (videos.rendered_at = ? and videos.share_id > ?))' : ''}
    order by rendered_at desc
           , share_id asc

@@ -161,6 +161,17 @@ export enum BoardSource {
 }
 
 /**
+ * The reason for the deletion.
+ */
+export enum DeleteReason {
+  Unknown = 0,
+  Banned = 1,
+  Mistake = 2,
+  Duplicate = 3,
+  Other = 4,
+}
+
+/**
  * Table "videos".
  */
 export interface Video {
@@ -221,6 +232,9 @@ export interface Video {
   visibility: VisibilityState;
   deleted_by: number;
   deleted_at: Date;
+  deleted_reason: string;
+  deleted_reason_type: DeleteReason;
+  deleted_video_url: string;
 }
 
 /**
