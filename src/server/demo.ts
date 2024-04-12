@@ -4,7 +4,15 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Messages, NetMessages, ScoreboardTempUpdate, SourceDemo, SourceDemoParser, StringTables } from '@nekz/sdp';
+import {
+  Messages,
+  NetMessages,
+  ScoreboardTempUpdate,
+  SourceDemo,
+  SourceDemoBuffer,
+  SourceDemoParser,
+  StringTables,
+} from '@nekz/sdp';
 import { logger } from './logger.ts';
 import { basename, dirname, join } from 'path/mod.ts';
 import { readSarData, SarDataType } from './sar.ts';
@@ -535,10 +543,7 @@ export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
   };
 };
 
-// Remove all pauses before sending it to a render client.
-// Also try to end the demo when a coop cm run has finished.
-// This should be kept as close as possible to sdp's demo repair example:
-//    https://github.com/NeKzor/sdp/blob/master/examples/repair.ts
+// Imported from: https://github.com/NeKzor/sdp/blob/master/examples/repair.ts
 export const repairDemo = (buffer: Uint8Array): Uint8Array => {
   const parser = SourceDemoParser.default();
 
@@ -546,9 +551,49 @@ export const repairDemo = (buffer: Uint8Array): Uint8Array => {
     .setOptions({ packets: true })
     .parse(buffer);
 
+  const tryFixup = () => {
+    const dt = demo.findMessage(Messages.DataTable)?.dataTable;
+    if (!dt) {
+      return;
+    }
+
+    const mapsWhichUsePointSurvey = [
+      'sp_a2_bts2',
+      'sp_a2_bts3',
+      'sp_a3_portal_intro',
+      'sp_a2_core',
+      'sp_a2_bts4',
+    ];
+
+    const pointCameraClasses = dt.serverClasses.filter((table) => table.className === 'CPointCamera');
+    if (pointCameraClasses.length === 2) {
+      return;
+    }
+
+    const pointSurvey = dt.tables.findIndex((table) => table.netTableName === 'DT_PointSurvey');
+    if (pointSurvey === -1) {
+      return;
+    }
+
+    if (mapsWhichUsePointSurvey.includes(demo.mapName!)) {
+      return;
+    }
+
+    dt.tables.splice(pointSurvey, 1);
+
+    const svc = dt.serverClasses.find((table) => table.dataTableName === 'DT_PointSurvey');
+    if (!svc) {
+      return;
+    }
+
+    svc.className = 'CPointCamera';
+    svc.dataTableName = 'DT_PointCamera';
+  };
+
+  tryFixup();
+
   let paused = false;
   let coop = false;
-  let coopCmFlagsTouchCount = 0;
   let coopCmEndTick = -1;
 
   const didCoopChallengeModeFinish = (message: Messages.Message) => {
@@ -576,11 +621,7 @@ export const repairDemo = (buffer: Uint8Array): Uint8Array => {
           packet instanceof NetMessages.SvcUserMessage &&
           packet.userMessage instanceof ScoreboardTempUpdate
         ) {
-          coopCmFlagsTouchCount += 1;
-
-          if (coopCmFlagsTouchCount > 1) {
-            coopCmEndTick = message.tick!;
-          }
+          coopCmEndTick = message.tick! + 60; // Add 1s delay
         }
       }
 
@@ -608,6 +649,21 @@ export const repairDemo = (buffer: Uint8Array): Uint8Array => {
 
     return true;
   });
+
+  const lastMessage = demo.messages!.at(-1);
+  if (lastMessage && !(lastMessage instanceof Messages.Stop)) {
+    demo.detectGame()
+      .adjustTicks()
+      .adjustRange();
+
+    const stopMessage = new Messages.Stop(0x07)
+      .setTick(lastMessage.tick!)
+      .setSlot(lastMessage.slot!);
+
+    stopMessage.restData = new SourceDemoBuffer(new ArrayBuffer(0));
+
+    demo.messages![demo.messages!.length - 1] = stopMessage;
+  }
 
   return parser
     .setOptions({ packets: false })
