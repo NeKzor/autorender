@@ -484,8 +484,8 @@ const extractSteamData = (playerInfo?: StringTables.StringTableEntry): [string |
   }
 
   const guid = playerInfo.data?.guid;
-  if (guid === undefined) {
-    logger.error(`Found undefined player info GUID`);
+  if (guid === undefined || guid === 'STEAM_1:0:1' || guid === 'STEAM_1:1:1') {
+    logger.error(`Found invalid player info guid "${guid}"`);
     return [null, null];
   }
 
