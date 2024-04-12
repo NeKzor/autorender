@@ -292,6 +292,17 @@ export const VideoView = () => {
                 : <>{formatCmTime(data.demo_time_score)}</>}
             </div>
           )}
+          {data.demo_time_score === null && data.board_changelog_id && (
+            <div>
+              <a
+                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                href={`https://board.portal2.sr/changelog?id=${data.board_changelog_id}`}
+                target='_blank'
+              >
+                View Changelog
+              </a>
+            </div>
+          )}
           {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
           <br />
           {data.comment?.length ? <div className={tw`break-words`}>Comment: {data.comment}</div> : (
