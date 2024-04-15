@@ -545,11 +545,28 @@ export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
 
 // Imported from: https://github.com/NeKzor/sdp/blob/master/examples/repair.ts
 export const repairDemo = (buffer: Uint8Array): Uint8Array => {
-  const parser = SourceDemoParser.default();
+  const parser = SourceDemoParser.default()
+    .setOptions({ packets: true, dataTables: true });
 
-  const demo = parser
-    .setOptions({ packets: true })
-    .parse(buffer);
+  const demo = SourceDemo.default();
+
+  try {
+    const buf = parser.prepare(buffer);
+    demo.readHeader(buf)
+      .readMessages(buf);
+  } catch (err) {
+    console.error(err);
+  }
+  try {
+    demo.readDataTables();
+  } catch (err) {
+    console.error(err);
+  }
+  try {
+    demo.readPackets();
+  } catch (err) {
+    console.error(err);
+  }
 
   const tryFixup = () => {
     const dt = demo.findMessage(Messages.DataTable)?.dataTable;
