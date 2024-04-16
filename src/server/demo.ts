@@ -612,6 +612,7 @@ export const repairDemo = (buffer: Uint8Array): Uint8Array => {
   let paused = false;
   let coop = false;
   let coopCmEndTick = -1;
+  let didPopulateCustomCallbackMap = false;
 
   const didCoopChallengeModeFinish = (message: Messages.Message) => {
     // Start dropping messages on the next tick
@@ -651,6 +652,14 @@ export const repairDemo = (buffer: Uint8Array): Uint8Array => {
       message instanceof Messages.UserCmd ||
       message instanceof Messages.CustomData
     ) {
+      if (!didPopulateCustomCallbackMap && message instanceof Messages.CustomData) {
+        didPopulateCustomCallbackMap = message.unk === -1;
+
+        if (!didPopulateCustomCallbackMap) {
+          return false;
+        }
+      }
+
       if (didCoopChallengeModeFinish(message)) {
         return false;
       }
