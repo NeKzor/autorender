@@ -283,6 +283,8 @@ const initRerenderModal = () => {
   const rerenderModalQueueButton = document.getElementById('rerender-modal-queue-button');
   /** @type {HTMLInputElement} */
   const rerenderModalRepairCheckbox = document.getElementById('rerender-modal-repair-checkbox');
+  const rerenderModalSndRestartCheckbox = document.getElementById('rerender-modal-snd-restart-checkbox');
+  const rerenderModalSkipCoopCheckbox = document.getElementById('rerender-modal-skip-coop-checkbox');
   const tryRerenderButton = document.getElementById('video-try-rerender-button');
   const rerenderButton = document.getElementById('video-rerender-button');
 
@@ -290,9 +292,9 @@ const initRerenderModal = () => {
     rerenderModal.classList.remove('hidden');
     rerenderModal.classList.add('flex');
 
-    if (rerenderModalRepairCheckbox) {
-      rerenderModalRepairCheckbox.checked = false;
-    }
+    if (rerenderModalRepairCheckbox) rerenderModalRepairCheckbox.checked = false;
+    if (rerenderModalSndRestartCheckbox) rerenderModalSndRestartCheckbox.checked = false;
+    if (rerenderModalSkipCoopCheckbox) rerenderModalSkipCoopCheckbox.checked = false;
   };
 
   tryRerenderButton?.addEventListener('click', openModal);
@@ -303,9 +305,9 @@ const initRerenderModal = () => {
   });
 
   rerenderModalQueueButton?.addEventListener('click', () => {
-    if (rerenderModalRepairCheckbox) {
-      rerenderModalRepairCheckbox.setAttribute('disabled', '');
-    }
+    if (rerenderModalRepairCheckbox) rerenderModalRepairCheckbox.setAttribute('disabled', '');
+    if (rerenderModalSndRestartCheckbox) rerenderModalSndRestartCheckbox.setAttribute('disabled', '');
+    if (rerenderModalSkipCoopCheckbox) rerenderModalSkipCoopCheckbox.setAttribute('disabled', '');
 
     rerenderModalQueueButton.setAttribute('disabled', '');
     rerenderModalQueueButton.textContent = 'Adding to queue...';
@@ -315,7 +317,11 @@ const initRerenderModal = () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ demoRepair: rerenderModalRepairCheckbox?.checked ?? false }),
+      body: JSON.stringify({
+        demoRepair: rerenderModalRepairCheckbox?.checked ?? false,
+        disableSndRestart: rerenderModalSndRestartCheckbox?.checked ?? false,
+        disableSkipCoopVideos: rerenderModalSkipCoopCheckbox?.checked ?? false,
+      }),
     })
       .catch(console.error)
       .finally(() => location.replace(location.href));

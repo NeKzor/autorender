@@ -744,7 +744,11 @@ apiV1
       return Err(ctx, Status.BadRequest, 'Missing body.');
     }
 
-    const { demoRepair } = await ctx.request.body({ type: 'json' }).value as { demoRepair: boolean };
+    const { demoRepair, disableSndRestart, disableSkipCoopVideos } = await ctx.request.body({ type: 'json' }).value as {
+      demoRepair: boolean;
+      disableSndRestart: boolean;
+      disableSkipCoopVideos: boolean;
+    };
 
     const [video] = await db.query<
       Pick<
@@ -814,8 +818,12 @@ apiV1
           : []),
       ];
 
-      if (demoInfo.disableRenderSkipCoopVideos) {
+      if (demoInfo.disableRenderSkipCoopVideos || disableSkipCoopVideos) {
         renderOptions.push('sar_render_skip_coop_videos 0');
+      }
+
+      if (disableSndRestart) {
+        renderOptions.push('alias snd_restart ""');
       }
 
       const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;

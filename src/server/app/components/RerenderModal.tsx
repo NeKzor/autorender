@@ -7,7 +7,7 @@
 import * as React from 'react';
 import { tw } from 'twind';
 
-const RerenderModal = ({ showDemoRepair }: { showDemoRepair: boolean }) => {
+const RerenderModal = ({ isCoop }: { isCoop: boolean }) => {
   return (
     <div
       id='rerender-modal'
@@ -44,23 +44,49 @@ const RerenderModal = ({ showDemoRepair }: { showDemoRepair: boolean }) => {
               <label className={tw`block mb-2 text-sm font-medium text-gray-900 dark:text-white`}>
                 Rerender
               </label>
-              {showDemoRepair && (
-                <div className={tw`flex items-center mt-2`}>
-                  <div className={tw`flex items-center mr-4`}>
+              <div className={tw`mt-2`}>
+                <div className={tw`flex items-center mr-4 mb-2 mt-2`}>
+                  <input
+                    id='rerender-modal-repair-checkbox'
+                    type='checkbox'
+                    className={tw`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600`}
+                  />
+                  <label
+                    htmlFor='rerender-modal-repair-checkbox'
+                    className={tw`ml-2 text-sm font-medium text-gray-900 dark:text-gray-300`}
+                  >
+                    Run Demo Repair (experimental)
+                  </label>
+                </div>
+                <div className={tw`flex items-center mr-4 mb-2`}>
+                  <input
+                    id='rerender-modal-snd-restart-checkbox'
+                    type='checkbox'
+                    className={tw`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600`}
+                  />
+                  <label
+                    htmlFor='rerender-modal-snd-restart-checkbox'
+                    className={tw`ml-2 text-sm font-medium text-gray-900 dark:text-gray-300`}
+                  >
+                    Disable snd_restart
+                  </label>
+                </div>
+                {isCoop && (
+                  <div className={tw`flex items-center mr-4 mb-2`}>
                     <input
-                      id='rerender-modal-repair-checkbox'
+                      id='rerender-modal-skip-coop-checkbox'
                       type='checkbox'
                       className={tw`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600`}
                     />
                     <label
-                      htmlFor='rerender-modal-repair-checkbox'
+                      htmlFor='rerender-modal-skip-coop-checkbox'
                       className={tw`ml-2 text-sm font-medium text-gray-900 dark:text-gray-300`}
                     >
-                      Run Demo Repair (experimental)
+                      Disable sar_render_skip_coop_videos
                     </label>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             <button
               id='rerender-modal-queue-button'

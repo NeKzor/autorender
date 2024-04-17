@@ -546,7 +546,7 @@ export const VideoView = () => {
         </div>
       </div>
       <ShareModal />
-      <RerenderModal showDemoRepair />
+      <RerenderModal isCoop={data.type === MapType.Cooperative || data.type === MapType.WorkshopCooperative} />
     </>
   );
 };
