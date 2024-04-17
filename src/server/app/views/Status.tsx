@@ -228,7 +228,7 @@ export const Status = () => {
           </tbody>
         </table>
         <h2 className={tw`text-2xl mt-12 mb-6`}>
-          In Queue
+          In Queue{queuedVideos.length ? ` (${queuedVideos.length})` : ''}
         </h2>
         {queuedVideos.length === 0 && (
           <div>
@@ -313,7 +313,7 @@ export const Status = () => {
           </table>
         )}
         <h2 className={tw`text-2xl mt-12 mb-6`}>
-          Failed Autorenders
+          Failed Autorenders{failedAutorenderVideos.length ? ` (${failedAutorenderVideos.length})` : ''}
         </h2>
         {failedAutorenderVideos.length === 0 && (
           <div>
