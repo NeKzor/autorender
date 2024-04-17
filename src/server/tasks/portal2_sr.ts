@@ -7,6 +7,8 @@
 export const BOARD_BASE_API = 'https://board.portal2.sr';
 export const AUTORENDER_BASE_API = 'https://autorender.portal2.sr/api/v1';
 
+const DEFAULT_ABORT_TIMEOUT_MS = 10_000;
+
 export type ChangelogOptions =
   & {
     id?: number;
@@ -79,6 +81,7 @@ export const getChangelog = async (options?: ChangelogOptions) => {
     headers: {
       'User-Agent': Deno.env.get('USER_AGENT')!,
     },
+    signal: AbortSignal.timeout(DEFAULT_ABORT_TIMEOUT_MS),
   });
 
   if (!res.ok) {
@@ -106,6 +109,7 @@ export const fetchDemo = async (id: string | number) => {
       'User-Agent': Deno.env.get('USER_AGENT')!,
     },
     redirect: 'manual',
+    signal: AbortSignal.timeout(DEFAULT_ABORT_TIMEOUT_MS),
   });
 
   const location = res.headers.get('Location');
@@ -121,6 +125,7 @@ export const fetchDemo = async (id: string | number) => {
     headers: {
       'User-Agent': Deno.env.get('USER_AGENT')!,
     },
+    signal: AbortSignal.timeout(DEFAULT_ABORT_TIMEOUT_MS),
   });
 
   return {
@@ -152,6 +157,7 @@ export const getInfo = async (changelogId: string) => {
     headers: {
       'User-Agent': Deno.env.get('USER_AGENT')!,
     },
+    signal: AbortSignal.timeout(DEFAULT_ABORT_TIMEOUT_MS),
   });
 
   if (!res.ok) {

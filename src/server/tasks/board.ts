@@ -74,7 +74,15 @@ const resetFailedAutorenders = async () => {
   }
 };
 
+let isUpdating = false;
+
 const update = async () => {
+  if (isUpdating) {
+    return;
+  }
+
+  isUpdating = true;
+
   try {
     await checkChangelogUpdates();
   } catch (err) {
@@ -86,6 +94,8 @@ const update = async () => {
   } catch (err) {
     logger.error(err);
   }
+
+  isUpdating = false;
 };
 
 setInterval(update, BOARD_INTEGRATION_UPDATE_INTERVAL);

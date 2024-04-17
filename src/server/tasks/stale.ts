@@ -53,11 +53,20 @@ const checkStaleVideos = async () => {
   }
 };
 
+let isUpdating = false;
+
 const update = async () => {
+  if (isUpdating) {
+    return;
+  }
+
   try {
+    isUpdating = true;
     await checkStaleVideos();
   } catch (err) {
     logger.error(err);
+  } finally {
+    isUpdating = false;
   }
 };
 
