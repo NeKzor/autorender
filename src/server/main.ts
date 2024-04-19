@@ -179,7 +179,8 @@ const Err = (ctx: Context, status: Status, message: string) => {
     status,
     message,
   };
-  logger.error(message);
+
+  status !== Status.NotFound && logger.error(message);
 };
 
 const apiV1 = new Router<AppState>();
