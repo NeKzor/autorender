@@ -134,7 +134,7 @@ const sendErrorToBot = (error: {
   if (discordBot && discordBot.readyState === WebSocket.OPEN) {
     discordBot.send(JSON.stringify({ type: 'error', data: error }));
   } else {
-    logger.error('Bot not connected. Failed to send error status.', error);
+    logger.error(`Bot not connected (${discordBot?.readyState}). Failed to send error status.`, error);
   }
 };
 
@@ -673,7 +673,7 @@ apiV1
             );
           } else {
             logger.error(
-              `Bot not connected. Failed to send upload message:`,
+              `Bot not connected (${discordBot?.readyState}). Failed to send upload message:`,
               uploadMessage,
             );
           }
