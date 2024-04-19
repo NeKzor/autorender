@@ -48,7 +48,9 @@ const onError = (event: ErrorEvent | Event) => {
     return;
   }
 
-  self.postMessage('Connection error', isErrorEvent ? event.error ?? event.message : event);
+  self.postMessage(
+    'Connection error: ' + JSON.stringify(isErrorEvent ? event.error?.toString() ?? event.message : event),
+  );
 };
 
 const connect = () => {
