@@ -5,7 +5,7 @@
  */
 
 import type { Guild } from '@discordeno/bot';
-import { bgBlack, bgYellow, black, green, InteractionTypes, red, white, yellow } from '@discordeno/bot';
+import { InteractionTypes } from '@discordeno/bot';
 import { events } from './mod.ts';
 import { log } from '../utils/logger.ts';
 import { getGuildFromId } from '../utils/helpers.ts';
@@ -35,13 +35,7 @@ events.interactionCreate = async (interaction) => {
     const source = interaction.data.name ?? interaction.data.customId;
 
     log.info(
-      `[Command: ${
-        bgYellow(
-          black(String(source)),
-        )
-      } - ${
-        bgBlack(white(`Trigger`))
-      }] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
+      `[Command: ${source} - Trigger] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
         guildName !== 'Direct Message' ? ` (${guild.id})` : ``
       }`,
     );
@@ -54,9 +48,7 @@ events.interactionCreate = async (interaction) => {
     ) {
       if (!interaction.data.customId) {
         log.warn(
-          `[Modal - ${
-            bgBlack(yellow(`Not Found`))
-          }] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
+          `[Modal - Not Found] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
             guildName !== 'Direct Message' ? ` (${guild.id})` : ``
           }`,
         );
@@ -75,9 +67,7 @@ events.interactionCreate = async (interaction) => {
           if (command) {
             command.execute(bot, interaction);
             log.info(
-              `[Command: ${bgYellow(black(String(source)))} - ${
-                bgBlack(green(`Success`))
-              }] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
+              `[Command: ${source} - Success] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
                 guildName !== 'Direct Message' ? ` (${guild.id})` : ``
               }`,
             );
@@ -86,9 +76,7 @@ events.interactionCreate = async (interaction) => {
           }
         } catch (err) {
           log.error(
-            `[Command: ${bgYellow(black(String(source)))} - ${
-              bgBlack(red(`Error`))
-            }] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
+            `[Command: ${source} - Error] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
               guildName !== 'Direct Message' ? ` (${guild.id})` : ``
             }`,
           );
@@ -96,9 +84,7 @@ events.interactionCreate = async (interaction) => {
         }
       } else {
         log.warn(
-          `[Command: ${bgYellow(black(String(source)))} - ${
-            bgBlack(yellow(`Not Found`))
-          }] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
+          `[Command: ${source} - Not Found] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
             guildName !== 'Direct Message' ? ` (${guild.id})` : ``
           }`,
         );
