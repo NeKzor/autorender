@@ -119,6 +119,7 @@ export const fetchDemo = async (id: string | number) => {
 
   const redirect = new URL(res.url);
   redirect.pathname = location;
+  redirect.search = '';
 
   const demo = await fetch(redirect.toString(), {
     method: 'GET',
