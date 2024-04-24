@@ -494,16 +494,16 @@ server {
 - [@PortalRex] for idea and motivation
 - [@ThatFridgeFella] for testing and feedback
 - [@ThisAMJ] for quickhud files and for removing my only easter egg in SAR :(
-- [p2sr/demofixup] for an almost working demo fixup method
+- [@mlugg] for an almost working demo fixup method
 - [p2sr/SourceAutoRecord] for renderer crashes and many other bugs
-- [p2sr/portal2-cm-autorender] for making me not want to use Python
+- [p2sr/portal2-autorender-v1] for making me not want to use Python
 
 [@PortalRex]: https://github.com/PortalRex
 [@ThatFridgeFella]: https://github.com/ThatFridgeFella
 [@ThisAMJ]: https://github.com/ThisAMJ
-[p2sr/demofixup]: https://github.com/p2sr/demofixup
+[@mlugg]: https://github.com/mlugg
 [p2sr/SourceAutoRecord]: https://github.com/p2sr/SourceAutoRecord
-[p2sr/portal2-cm-autorender]: https://github.com/p2sr/portal2-cm-autorender
+[p2sr/portal2-autorender-v1]: https://github.com/p2sr/portal2-autorender-v1
 
 ## License
 
