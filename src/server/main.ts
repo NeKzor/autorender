@@ -2490,8 +2490,9 @@ await app.listen(
       hostname: SERVER_HOST,
       port: SERVER_PORT,
       secure: true,
-      certFile: SERVER_SSL_CERT,
-      keyFile: SERVER_SSL_KEY,
+      // TODO: Fix this.
+      //certFile: SERVER_SSL_CERT,
+      //keyFile: SERVER_SSL_KEY,
       alpnProtocols: ['h2', 'http/1.1'],
     }
     : {
