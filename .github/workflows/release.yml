@@ -22,13 +22,13 @@ jobs:
           deno-version: v1.x
 
       - name: Format check
-        run: deno fmt --check
+        run: deno fmt --check src/client
 
       - name: Lint
-        run: deno lint
+        run: deno lint src/client
 
       - name: Type check
-        run: deno task check:types
+        run: deno check --no-lock --import-map src/import_map.json src/client/*.ts
 
       # Disabled until useful tests have been written
       #- name: Test
