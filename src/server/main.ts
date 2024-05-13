@@ -2227,7 +2227,9 @@ router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
   }
 
   try {
-    const [video] = await db.query<Pick<Video, 'video_id' | 'file_name' | 'board_source_domain' | 'board_changelog_id'>>(
+    const [video] = await db.query<
+      Pick<Video, 'video_id' | 'file_name' | 'board_source_domain' | 'board_changelog_id'>
+    >(
       `select BIN_TO_UUID(video_id) as video_id
           , file_name
           , board_source_domain
