@@ -65,7 +65,7 @@ self.addEventListener(
           try {
             const game = config.games.find((game) => game.mod === demo_game_dir)!;
 
-            const videoFile = realGameModFolder(game, config.autorender['folder-name'], `${video_id}.dem.mp4`);
+            const videoFile = realGameModFolder(game, config.autorender['folder-name'], `${video_id}.mp4`);
 
             // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
             //       https://github.com/oakserver/oak/issues/581
