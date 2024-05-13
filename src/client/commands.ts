@@ -89,7 +89,7 @@ export const runCheck = async (options: Options) => {
 
     // Check if SAR needs to be downloaded
     const sar = await getRelease(
-      'https://api.github.com/repos/NeKzor/sar/releases/latest',
+      'https://api.github.com/repos/p2sr/SourceAutoRecord/releases/latest',
       options,
     );
 
@@ -110,7 +110,7 @@ export const runCheck = async (options: Options) => {
       );
       console.log(
         colors.italic.gray(
-          `https://github.com/NeKzor/sar/releases`,
+          `https://github.com/p2sr/SourceAutoRecord/releases`,
         ),
       );
       Deno.exit(1);

@@ -590,7 +590,7 @@ export const downloadSourceAutoRecord = async (
     new TextEncoder().encode(colors.white('\r🗿️ Getting SourceAutoRecord')),
   );
 
-  const sarRelease = await getRelease('https://api.github.com/repos/NeKzor/sar/releases/latest', options);
+  const sarRelease = await getRelease('https://api.github.com/repos/p2sr/SourceAutoRecord/releases/latest', options);
 
   config.sar.version = sarRelease?.tag_name ?? '';
 

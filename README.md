@@ -378,8 +378,6 @@ server {
 - Docker
   - Permissions for containers have to be managed manually for mounted volumes: [moby#2259]
   - MariaDB image does not leak memory but MySQL 8 does: [containerd#6707]
-- SourceAutoRecord
-  - The autorender client installs a [patched version] of SAR to make it work on the latest version of Portal 2
 
 [vscode_deno#501]: https://github.com/denoland/vscode_deno/issues/501
 [deno#6532]: https://github.com/denoland/deno/issues/6532
@@ -388,7 +386,6 @@ server {
 [containerd#6707]: https://github.com/containerd/containerd/issues/6707
 [64 MiB]: https://github.com/denoland/fastwebsockets/blob/875e6b7ba001898e38bbff50e8f90cc11b90e718/src/lib.rs#L283
 [deno#15809]: https://github.com/denoland/deno/issues/15809
-[patched version]: https://github.com/NeKzor/sar/releases
 
 ## TODO
 
