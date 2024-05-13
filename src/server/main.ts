@@ -64,7 +64,7 @@ import { insertVideo } from './tasks/board_insert.ts';
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
 const SERVER_SSL_CERT = Deno.env.get('SERVER_SSL_CERT')!;
-const SERVER_SSL_KEY = Deno.env.get('SERVER_SSL_KEY')!;
+const _SERVER_SSL_KEY = Deno.env.get('SERVER_SSL_KEY')!;
 // NOTE: Clients should only handle one video per request.
 const MAX_VIDEOS_PER_REQUEST = 1;
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
