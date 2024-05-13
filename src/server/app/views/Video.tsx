@@ -241,7 +241,7 @@ export const VideoView = () => {
               <a
                 className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
                 href={data.board_changelog_id !== null
-                  ? `https://board.portal2.sr/chamber/${data.best_time_id}`
+                  ? `https://${data.board_source_domain}/chamber/${data.best_time_id}`
                   : `https://steamcommunity.com/workshop/filedetails/?id=${data.workshop_file_id}`}
                 target='_blank'
               >
@@ -255,7 +255,7 @@ export const VideoView = () => {
               <a
                 className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
                 href={data.board_changelog_id !== null
-                  ? `https://board.portal2.sr/profile/${data.demo_steam_id}`
+                  ? `https://${data.board_source_domain}/profile/${data.demo_steam_id}`
                   : `https://steamcommunity.com/profiles/${data.demo_steam_id}`}
                 target='_blank'
               >
@@ -269,7 +269,7 @@ export const VideoView = () => {
               <a
                 className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
                 href={data.board_changelog_id !== null
-                  ? `https://board.portal2.sr/profile/${data.demo_partner_steam_id}`
+                  ? `https://${data.board_source_domain}/profile/${data.demo_partner_steam_id}`
                   : `https://steamcommunity.com/profiles/${data.demo_partner_steam_id}`}
                 target='_blank'
               >
@@ -283,7 +283,7 @@ export const VideoView = () => {
                 ? (
                   <a
                     className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                    href={`https://board.portal2.sr/changelog?id=${data.board_changelog_id}`}
+                    href={`https://${data.board_source_domain}/changelog?id=${data.board_changelog_id}`}
                     target='_blank'
                   >
                     {formatCmTime(data.demo_time_score)}
@@ -296,7 +296,7 @@ export const VideoView = () => {
             <div>
               <a
                 className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                href={`https://board.portal2.sr/changelog?id=${data.board_changelog_id}`}
+                href={`https://${data.board_source_domain}/changelog?id=${data.board_changelog_id}`}
                 target='_blank'
               >
                 View Changelog

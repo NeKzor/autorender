@@ -44,6 +44,17 @@ const validateUrl = (urlString: string) => {
       return isNaN(id) ? null : `https://board.portal2.sr/getDemo?id=${id}`;
     }
 
+    // Input/Output: https://mel.board.portal2.sr/getDemo?id=234826
+
+    if (
+      url.origin === 'https://mel.board.portal2.sr' &&
+      url.pathname === '/getDemo' &&
+      url.search.startsWith('?id=')
+    ) {
+      const id = parseInt(url.search.slice(4), 10);
+      return isNaN(id) ? null : `https://mel.board.portal2.sr/getDemo?id=${id}`;
+    }
+
     // Input:  https://autorender.portal2.sr/video.html?v=234826
     // Output: https://board.portal2.sr/getDemo?id=234826
 

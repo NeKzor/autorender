@@ -81,6 +81,7 @@ createCommand({
               user_id: string;
               views: number;
               share_id: string;
+              source: string;
             }[];
           }
 
@@ -99,14 +100,14 @@ createCommand({
 
           const map = escapeMaskedLink(video.map);
           const mapLink = escapeMaskedLink(
-            `https://board.portal2.sr/chamber/${video.map_id}`,
+            `https://${video.source}/chamber/${video.map_id}`,
           );
 
           const time = escapeMaskedLink(formatCmTime(video.time));
           const videoLink = `${AUTORENDER_PUBLIC_URI}/videos/${video.share_id}`;
 
           const playerName = escapeMaskedLink(video.user);
-          const profileLink = `https://board.portal2.sr/profile/${video.user_id}`;
+          const profileLink = `https://${video.source}/profile/${video.user_id}`;
 
           await bot.helpers.editOriginalInteractionResponse(
             interaction.token,

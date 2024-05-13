@@ -24,6 +24,7 @@ import {
   AccessToken,
   AuditSource,
   AuditType,
+  BoardSource,
   DiscordUser,
   FixedDemoStatus,
   Game,
@@ -60,6 +61,7 @@ import {
 import { rateLimits } from './rate_limits.ts';
 import { fetchDemo, getChangelog } from './tasks/portal2_sr.ts';
 import { insertVideo } from './tasks/board_insert.ts';
+import { fetchMelDemo } from './tasks/mel.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -756,6 +758,7 @@ apiV1
         Video,
         | 'video_id'
         | 'share_id'
+        | 'board_source'
         | 'board_changelog_id'
         | 'file_name'
         | 'created_at'
@@ -764,6 +767,7 @@ apiV1
     >(
       `select BIN_TO_UUID(video_id) as video_id
             , share_id
+            , board_source
             , board_changelog_id
             , file_name
             , created_at
@@ -783,7 +787,8 @@ apiV1
     }
 
     if (video.board_changelog_id) {
-      const { demo, originalFilename } = await fetchDemo(video.board_changelog_id);
+      const demoFetcher = video.board_source === BoardSource.Mel ? fetchMelDemo : fetchDemo;
+      const { demo, originalFilename } = await demoFetcher(video.board_changelog_id);
       const filePath = getDemoFilePath(video.video_id);
 
       {
@@ -978,7 +983,8 @@ apiV1
     const videos = await db.query<Pick<Video, 'board_changelog_id'>>(
       `select board_changelog_id
          from videos
-        where board_changelog_id in (${ids.map(() => '?')})
+        where board_source = ${BoardSource.Portal2}
+          and board_changelog_id in (${ids.map(() => '?')})
           and video_url is not null`,
       ids,
     );
@@ -989,12 +995,19 @@ apiV1
   })
   // Get the video of a leaderboard run.
   .get('/video/:boardChangelogId(\\d+)/video', async (ctx) => {
+    const source = Number(ctx.request.url.searchParams.get('source')) ?? BoardSource.Portal2;
+    if (isNaN(source) || ![BoardSource.Portal2, BoardSource.Mel].includes(source)) {
+      return Err(ctx, Status.BadRequest, 'Bad value for source parameter.');
+    }
+
     const [video] = await db.query<Pick<Video, 'video_url'>>(
       `select video_url
          from videos
-        where board_changelog_id = ?
+        where board_source = ?
+          and board_changelog_id = ?
           and video_url is not null`,
       [
+        source,
         ctx.params.boardChangelogId,
       ],
     );
@@ -1023,20 +1036,22 @@ apiV1
         user_id: string;
         views: number;
         share_id: string;
+        source: string;
       }[];
     }
 
     type VideoSelect =
       & Pick<
         Video,
-        | 'comment'
         | 'created_at'
+        | 'board_source_domain'
         | 'board_changelog_id'
         | 'board_rank'
         | 'demo_time_score'
         | 'demo_player_name'
         | 'board_profile_number'
         | 'views'
+        | 'comment'
         | 'share_id'
       >
       & Pick<MapModel, 'alias' | 'best_time_id'>;
@@ -1056,6 +1071,7 @@ apiV1
         user_id: video.board_profile_number,
         views: video.views,
         share_id: video.share_id,
+        source: video.board_source_domain,
       };
     };
 
@@ -1064,6 +1080,7 @@ apiV1
     if (!query.length) {
       const videos = await db.query<VideoSelect>(
         `select videos.created_at
+              , videos.board_source_domain
               , videos.board_changelog_id
               , videos.board_rank
               , videos.demo_time_score
@@ -1226,6 +1243,7 @@ apiV1
 
     const videos = await db.query<VideoSelect>(
       `select videos.created_at
+            , videos.board_source_domain
             , videos.board_changelog_id
             , videos.board_rank
             , videos.demo_time_score
@@ -2209,9 +2227,10 @@ router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
   }
 
   try {
-    const [video] = await db.query<Pick<Video, 'video_id' | 'file_name' | 'board_changelog_id'>>(
+    const [video] = await db.query<Pick<Video, 'video_id' | 'file_name' | 'board_source_domain' | 'board_changelog_id'>>(
       `select BIN_TO_UUID(video_id) as video_id
           , file_name
+          , board_source_domain
           , board_changelog_id
        from videos
       where share_id = ?`,
@@ -2224,7 +2243,7 @@ router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
     }
 
     if (video.board_changelog_id) {
-      return ctx.response.redirect(`https://board.portal2.sr/getDemo?id=${video.board_changelog_id}`);
+      return ctx.response.redirect(`https://${video.board_source_domain}/getDemo?id=${video.board_changelog_id}`);
     }
 
     const requestedFixedDemo = ctx.params.fixed !== undefined;
@@ -2372,7 +2391,8 @@ router.get('/video.html', useSession, async (ctx) => {
   const [video] = await db.query<Pick<Video, 'share_id'>>(
     `select share_id
        from videos
-      where board_changelog_id = ?`,
+      where board_source = ${BoardSource.Portal2}
+        and board_changelog_id = ?`,
     [
       changelogId,
     ],
@@ -2388,7 +2408,7 @@ router.get('/video.html', useSession, async (ctx) => {
       return Err(ctx, Status.NotFound, 'Unable to fetch changelog entry.');
     }
 
-    const shareId = await insertVideo(entry);
+    const shareId = await insertVideo(BoardSource.Portal2, entry);
     if (!shareId) {
       return Err(ctx, Status.NotFound, 'Unable to create video.');
     }

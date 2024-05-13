@@ -8,6 +8,7 @@ import { db } from '../db.ts';
 import {
   AuditSource,
   AuditType,
+  BoardSource,
   FixedDemoStatus,
   Game,
   MapModel,
@@ -20,16 +21,21 @@ import { generateShareId, getDemoFilePath, getFixedDemoFilePath } from '../utils
 import { getDemoInfo } from '../demo.ts';
 import { logger } from '../logger.ts';
 import { ChangelogEntry, fetchDemo, formatCmTime } from './portal2_sr.ts';
+import { fetchMelDemo } from './mel.ts';
 
 const AUTORENDER_RUN_SKIP_COOP_VIDEOS_CHECK =
   Deno.env.get('AUTORENDER_RUN_SKIP_COOP_VIDEOS_CHECK')?.toLowerCase() === 'true';
 
-export const insertVideo = async (entry: ChangelogEntry) => {
+export const insertVideo = async (boardSource: BoardSource, entry: ChangelogEntry) => {
   const [existingVideo] = await db.query(
     `select 1
-         from videos
-        where board_changelog_id = ?`,
-    [entry.id],
+       from videos
+      where board_source = ?
+        and board_changelog_id = ?`,
+    [
+      boardSource,
+      entry.id,
+    ],
   );
 
   if (existingVideo) {
@@ -60,7 +66,8 @@ export const insertVideo = async (entry: ChangelogEntry) => {
   };
 
   try {
-    const { demo, originalFilename } = await fetchDemo(entry.id);
+    const demoFetcher = boardSource === BoardSource.Mel ? fetchMelDemo : fetchDemo;
+    const { demo, originalFilename } = await demoFetcher(entry.id);
 
     if (!demo.ok) {
       logger.error(`Unable to download demo`);
@@ -97,19 +104,24 @@ export const insertVideo = async (entry: ChangelogEntry) => {
 
     const [game] = await db.query<Game>(
       `select game_id
-             from games
-            where game_mod = ?`,
+         from games
+        where game_mod = ?`,
       [
         demoInfo.gameDir,
       ],
     );
 
+    if (!game) {
+      logger.error(`Invalid game dir: ${demoInfo.gameDir}`);
+      return null;
+    }
+
     let [map] = await db.query<MapModel>(
       `select map_id
-                , auto_fullbright
-             from maps
-            where game_id = ?
-              and name = ?`,
+            , auto_fullbright
+         from maps
+        where game_id = ?
+          and name = ?`,
       [
         game!.game_id,
         demoInfo.fullMapName,
@@ -147,10 +159,10 @@ export const insertVideo = async (entry: ChangelogEntry) => {
 
       const [newMap] = await db.query<MapModel>(
         `select map_id
-                  , auto_fullbright
-               from maps
-              where game_id = ?
-                and name = ?`,
+              , auto_fullbright
+           from maps
+          where game_id = ?
+            and name = ?`,
         [
           game!.game_id,
           demoInfo.fullMapName,
@@ -209,6 +221,7 @@ export const insertVideo = async (entry: ChangelogEntry) => {
       demoInfo.partnerSteamId,
       demoInfo.isHost,
       demoMetadata,
+      boardSource,
       boardChangelogId,
       boardProfileNumber,
       boardRank,
@@ -217,36 +230,37 @@ export const insertVideo = async (entry: ChangelogEntry) => {
 
     await db.execute(
       `insert into videos (
-                video_id
-              , game_id
-              , map_id
-              , share_id
-              , title
-              , comment
-              , render_quality
-              , render_options
-              , file_name
-              , file_url
-              , full_map_name
-              , demo_size
-              , demo_map_crc
-              , demo_game_dir
-              , demo_playback_time
-              , demo_required_fix
-              , demo_tickrate
-              , demo_portal_score
-              , demo_time_score
-              , demo_player_name
-              , demo_steam_id
-              , demo_partner_player_name
-              , demo_partner_steam_id
-              , demo_is_host
-              , demo_metadata
-              , board_changelog_id
-              , board_profile_number
-              , board_rank
-              , pending
-            ) values (UUID_TO_BIN(?), ${new Array(fields.length - 1).fill('?').join(',')})`,
+              video_id
+            , game_id
+            , map_id
+            , share_id
+            , title
+            , comment
+            , render_quality
+            , render_options
+            , file_name
+            , file_url
+            , full_map_name
+            , demo_size
+            , demo_map_crc
+            , demo_game_dir
+            , demo_playback_time
+            , demo_required_fix
+            , demo_tickrate
+            , demo_portal_score
+            , demo_time_score
+            , demo_player_name
+            , demo_steam_id
+            , demo_partner_player_name
+            , demo_partner_steam_id
+            , demo_is_host
+            , demo_metadata
+            , board_source
+            , board_changelog_id
+            , board_profile_number
+            , board_rank
+            , pending
+      ) values (UUID_TO_BIN(?), ${new Array(fields.length - 1).fill('?').join(',')})`,
       fields,
     );
 
@@ -255,16 +269,16 @@ export const insertVideo = async (entry: ChangelogEntry) => {
     try {
       await db.execute(
         `insert into audit_logs (
-                  title
-                , audit_type
-                , source
-                , source_user_id
-              ) values (
-                  ?
-                , ?
-                , ?
-                , ?
-              )`,
+                title
+              , audit_type
+              , source
+              , source_user_id
+            ) values (
+                ?
+              , ?
+              , ?
+              , ?
+            )`,
         [
           `Created video ${videoId} automatically`,
           AuditType.Info,

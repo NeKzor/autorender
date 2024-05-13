@@ -22,7 +22,10 @@ type QueuedVideo =
   };
 
 type AutorenderVideo =
-  & Pick<Video, 'share_id' | 'title' | 'created_at' | 'pending' | 'render_node' | 'board_changelog_id'>
+  & Pick<
+    Video,
+    'share_id' | 'title' | 'created_at' | 'pending' | 'render_node' | 'board_source_domain' | 'board_changelog_id'
+  >
   & {
     rendered_by_username: string | null;
   };
@@ -93,6 +96,7 @@ export const loader: DataLoader = async ({ context }) => {
           , videos.created_at
           , videos.pending
           , videos.render_node
+          , videos.board_source_domain
           , videos.board_changelog_id
           , renderer.username as rendered_by_username
        from videos
@@ -359,7 +363,7 @@ export const Status = () => {
                     <td className={tw`px-6 py-4`}>
                       <a
                         className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                        href={`https://board.portal2.sr/changelog?id=${video.board_changelog_id}`}
+                        href={`https://${video.board_source_domain}/changelog?id=${video.board_changelog_id}`}
                         target='_blank'
                       >
                         {video.board_changelog_id}

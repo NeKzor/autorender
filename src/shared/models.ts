@@ -152,6 +152,15 @@ export enum RenderQuality {
 }
 
 /**
+ * Source of leaderboard.
+ */
+export enum BoardSource {
+  None = 0,
+  Portal2 = 1,
+  Mel = 2,
+}
+
+/**
  * Table "videos".
  */
 export interface Video {
@@ -189,6 +198,8 @@ export interface Video {
   demo_is_host: number;
   demo_metadata: string;
   demo_requires_repair: number;
+  board_source: BoardSource;
+  board_source_domain: string;
   board_changelog_id: number;
   board_profile_number: string;
   board_rank: number;

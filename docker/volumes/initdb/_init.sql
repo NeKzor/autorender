@@ -119,6 +119,18 @@ CREATE TABLE videos (
     demo_is_host INT,
     demo_metadata TEXT,
     demo_requires_repair INT NOT NULL DEFAULT 0,
+    board_source INT NOT NULL DEFAULT 0,
+    board_source_domain VARCHAR(32) AS (
+        IF(
+            board_source = 0,
+            NULL,
+            IF(
+                board_source = 1,
+                'board.portal2.sr',
+                'mel.board.portal2.sr'
+            )
+        )
+    ) STORED,
     board_changelog_id INT,
     board_profile_number VARCHAR(32),
     board_rank INT,
