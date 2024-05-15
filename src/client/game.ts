@@ -12,9 +12,6 @@ import { gameFolder, realGameModFolder } from './utils.ts';
 import { VideoPayload } from './protocol.ts';
 import { RenderQuality } from '~/shared/models.ts';
 
-// TODO: Upstream sar_on_renderer feature
-const AUTORENDER_PATCHED_SAR = true;
-
 /**
  * Request access to the game's subdirectory and create all folders for rendering.
  */
@@ -164,7 +161,7 @@ export const prepareGameLaunch = async (
 
   const usesQueue = (videos?.length ?? 0) > 1;
   const nextCommand = usesQueue ? 'autorender_queue' : exitCommand;
-  const eventCommand = AUTORENDER_PATCHED_SAR ? 'sar_on_renderer_finish' : 'sar_on_demo_stop';
+  const eventCommand = 'sar_on_renderer_finish';
   const firstVideo = videos?.at(0);
 
   // Quality for each video here should be the same which is handled server-side.
