@@ -20,6 +20,7 @@
     "id": "docker exec -ti autorender-server deno task id",
     "board": "docker exec -ti autorender-server deno task board",
     "processing": "docker exec -ti autorender-server deno task processing",
+    "optimize": "docker exec -ti autorender-server deno task optimize",
     "migrate": "docker exec -ti autorender-server deno task migrate",
     "build": "docker compose build",
     "up": "docker compose up",

@@ -19,16 +19,26 @@ const Navbar = () => {
     >
       <div className={tw`max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4`}>
         <div id='nav-items-left' className={tw`flex items-center`}>
-          <a href='/'>
-            <img height='30px' width='30px' src='/assets/images/logo.png' />
+          <a href='/' aria-label='Go to home'>
+            <img
+              src='/assets/images/autorender_logo.webp'
+              alt='Autorender logo'
+              height='30px'
+              width='30px'
+            />
           </a>
-          <a href='/' className={tw`self-center pl-1 pt-1 text-2xl font-semibold whitespace-nowrap dark:text-white`}>
+          <a
+            href='/'
+            aria-label='Go to home'
+            className={tw`self-center pl-1 pt-1 text-2xl font-semibold whitespace-nowrap dark:text-white`}
+          >
             Autorender
           </a>
         </div>
         <div id='nav-search-items' className={tw`flex md:order-2`}>
           <button
             id='nav-back-button'
+            aria-label='Cancel search'
             type='button'
             aria-expanded='false'
             className={tw`hidden text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-4`}
@@ -77,6 +87,7 @@ const Navbar = () => {
             />
             <button
               id='nav-search-input-clear-button'
+              aria-label='Clear search'
               type='button'
               className={tw`${searchValue ? ' ' : 'hidden'}absolute inset-y-0 right-0 flex items-center px-3`}
             >
@@ -123,6 +134,7 @@ const Navbar = () => {
           </button>
           <button
             id='theme-toggle-button'
+            aria-label='Toggle theme'
             type='button'
             className={tw`text-gray-500 inline-flex items-center justify-center dark:text-gray-400 hover:bg-gray-100 w-10 h-10 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-4`}
             data-tooltip-target='theme-toggle-button-tooltip'
@@ -161,6 +173,7 @@ const Navbar = () => {
               <>
                 <button
                   id='user-menu-button'
+                  aria-label='Open user menu'
                   type='button'
                   className={tw`flex mr-3 text-sm bg-gray-800 rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600`}
                   aria-expanded='false'
@@ -187,6 +200,7 @@ const Navbar = () => {
                     <li>
                       <a
                         href={`/profile/${state?.user.username}`}
+                        aria-label='Go to profile'
                         className={tw`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white`}
                       >
                         Profile
@@ -197,6 +211,7 @@ const Navbar = () => {
                       <li>
                         <a
                           href='/tokens'
+                          aria-label='Go to tokens'
                           className={tw`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white`}
                         >
                           Tokens
@@ -206,6 +221,7 @@ const Navbar = () => {
                     <li>
                       <a
                         href='/logout'
+                        aria-label='Logout'
                         className={tw`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white`}
                       >
                         Sign out
@@ -217,9 +233,15 @@ const Navbar = () => {
             )
             : (
               <>
-                <a id='login-button' href={state?.discordAuthorizeLink} tabIndex={-1}>
+                <a
+                  id='login-button'
+                  aria-label='Login with Discord'
+                  href={state?.discordAuthorizeLink}
+                  tabIndex={-1}
+                >
                   <button
                     className={tw`text-gray-500 inline-flex items-center justify-center dark:text-gray-400 hover:bg-gray-100 w-10 h-10 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-4`}
+                    aria-label='Login'
                     type='button'
                     data-ripple-light='true'
                     data-tooltip-target='login-button-tooltip'

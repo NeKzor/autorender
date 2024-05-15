@@ -323,7 +323,6 @@ const initRerenderModal = () => {
         disableSkipCoopVideos: rerenderModalSkipCoopCheckbox?.checked ?? false,
       }),
     })
-      .catch(console.error)
       .finally(() => location.replace(location.href));
   });
 };
@@ -366,7 +365,7 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       }
     });
 
-    fetch(`/api/v1${location.pathname}/views`, { method: 'POST' }).catch(console.error);
+    fetch(`/api/v1${location.pathname}/views`, { method: 'POST' });
 
     initShareModal();
   }

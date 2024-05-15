@@ -21,13 +21,50 @@ type VideoRowData =
     | 'requested_by_name'
     | 'requested_by_id'
     | 'video_preview_url'
-    | 'thumbnail_url_large'
+    | 'thumbnail_url_small'
     | 'video_length'
     | 'board_changelog_id'
   >
   & {
     requested_by_discord_avatar_url: string | null;
   };
+
+const RequestedBy = ({ video }: { video: VideoRowData }) => {
+  return (
+    <>
+      {video.requested_by_discord_avatar_url
+        ? (
+          <img
+            className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
+            src={video.requested_by_discord_avatar_url}
+            alt='Avatar of user'
+          />
+        )
+        : video.board_changelog_id
+        ? (
+          <img
+            className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
+            src='/assets/images/autorender_avatar.webp'
+            alt='Avatar of autorender'
+          />
+        )
+        : (
+          <svg
+            className={tw`w-10 h-10 text-gray-200 dark:text-gray-700`}
+            aria-hidden='true'
+            xmlns='http://www.w3.org/2000/svg'
+            fill='currentColor'
+            viewBox='0 0 20 20'
+          >
+            <path d='M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z' />
+          </svg>
+        )}
+      <div className={tw`pl-2`}>
+        {video.requested_by_name ?? 'Autorender'}
+      </div>
+    </>
+  );
+};
 
 export const VideoRow = ({ video }: { video: VideoRowData }) => {
   return (
@@ -37,24 +74,26 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
       <div className={tw`rounded-xl shadow-sm overflow-hidden`}>
         <div className={tw`sm:flex`}>
           <div className={tw`sm:shrink-0`}>
-            <a href={`/videos/${video.share_id}`}>
+            <a href={`/videos/${video.share_id}`} aria-label='Go to video'>
               <div
                 className={tw`relative flex items-center justify-center h-48 min-w-[390px]${
-                  video.thumbnail_url_large ? '' : ' bg-gray-300 dark:bg-gray-700 rounded-[12px]'
+                  video.thumbnail_url_small ? '' : ' bg-gray-300 dark:bg-gray-700 rounded-[12px]'
                 }`}
               >
-                {video.thumbnail_url_large
+                {video.thumbnail_url_small
                   ? (
                     <>
                       <img
                         className={tw`transition-transform duration-300 transform object-cover w-full h-full rounded-[12px]`}
-                        src={video.thumbnail_url_large}
+                        src={video.thumbnail_url_small}
+                        alt='Thumbnail of video'
                       />
                       {video.video_length !== null && <VideoLength videoLength={video.video_length} />}
                       {video.video_preview_url && (
                         <img
                           className={tw`absolute top-0 left-0 opacity-0 transition-opacity duration-300 transform hover:opacity-100 object-cover w-full h-full rounded-[12px]`}
                           src={video.video_preview_url}
+                          alt='Preview of video'
                         />
                       )}
                     </>
@@ -92,39 +131,22 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
                   </a>
                 </div>
                 <div className={tw`flex pt-2`}>
-                  <a
-                    className={tw`flex items-center`}
-                    href={video.requested_by_name ? `/profile/${video.requested_by_name}` : undefined}
-                  >
-                    {video.requested_by_discord_avatar_url
-                      ? (
-                        <img
-                          className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
-                          src={video.requested_by_discord_avatar_url!}
-                        />
-                      )
-                      : video.board_changelog_id
-                      ? (
-                        <img
-                          className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
-                          src='/assets/images/portal2boards_avatar.jpg'
-                        />
-                      )
-                      : (
-                        <svg
-                          className={tw`w-10 h-10 text-gray-200 dark:text-gray-700`}
-                          aria-hidden='true'
-                          xmlns='http://www.w3.org/2000/svg'
-                          fill='currentColor'
-                          viewBox='0 0 20 20'
-                        >
-                          <path d='M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z' />
-                        </svg>
-                      )}
-                    <div className={tw`pl-2`}>
-                      {video.requested_by_name ?? 'Autorender'}
-                    </div>
-                  </a>
+                  {video.requested_by_name
+                    ? (
+                      <a
+                        className={tw`flex items-center`}
+                        href={`/profile/${video.requested_by_name}`}
+                      >
+                        <RequestedBy video={video} />
+                      </a>
+                    )
+                    : (
+                      <div
+                        className={tw`flex items-center`}
+                      >
+                        <RequestedBy video={video} />
+                      </div>
+                    )}
                 </div>
                 {video.comment && (
                   <a href={`/videos/${video.share_id}`}>
@@ -138,6 +160,7 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
                 <div className={tw`flex items-center justify-center`}>
                   <button
                     id={`video-menu-button-${video.share_id}`}
+                    aria-label='Open video menu'
                     data-dropdown-toggle={`video-menu-dropdown-${video.share_id}`}
                     type='button'
                     className={tw`mx-2 hover:text-white focus:outline-none font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:border-gray-500 dark:text-gray-500 dark:hover:text-white dark:focus:ring-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700`}

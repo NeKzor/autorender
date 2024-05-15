@@ -50,7 +50,7 @@ export const NotFound = () => {
         <div className={tw`relative w-full mt-8 lg:w-1/2 lg:mt-0`}>
           <img
             className={tw` w-full lg:h-[32rem] h-80 md:h-96 rounded-lg object-cover`}
-            src='/assets/images/404.jpg'
+            src='/assets/images/404.webp'
             alt='404'
           />
         </div>

@@ -36,21 +36,23 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
       <a href={`/videos/${video.share_id}`}>
         <div
           className={tw`relative flex items-center justify-center h-48 mb-4${
-            video.thumbnail_url_large ? '' : ' bg-gray-300 dark:bg-gray-700 rounded-[12px]'
+            video.thumbnail_url_small ? '' : ' bg-gray-300 dark:bg-gray-700 rounded-[12px]'
           }`}
         >
-          {video.thumbnail_url_large
+          {video.thumbnail_url_small
             ? (
               <>
                 <img
                   className={tw`transition-transform duration-300 transform object-cover w-full h-full rounded-[12px]`}
-                  src={video.thumbnail_url_large}
+                  src={video.thumbnail_url_small}
+                  alt='Thumbnail of video'
                 />
                 {video.video_length !== null && <VideoLength videoLength={video.video_length} />}
                 {video.video_preview_url && (
                   <img
                     className={tw`absolute top-0 left-0 opacity-0 transition-opacity duration-300 transform hover:opacity-100 object-cover w-full h-full rounded-[12px]`}
                     src={video.video_preview_url}
+                    alt='Preview of video'
                   />
                 )}
               </>
@@ -76,14 +78,16 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
               ? (
                 <img
                   className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
-                  src={video.requested_by_discord_avatar_url!}
+                  src={video.requested_by_discord_avatar_url}
+                  alt='Avatar of user'
                 />
               )
               : video.board_changelog_id
               ? (
                 <img
                   className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
-                  src='/assets/images/portal2boards_avatar.jpg'
+                  src='/assets/images/autorender_avatar.webp'
+                  alt='Avatar of autorender'
                 />
               )
               : (

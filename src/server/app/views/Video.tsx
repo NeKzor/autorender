@@ -545,8 +545,10 @@ export const VideoView = () => {
           </div>
         </div>
       </div>
-      <ShareModal />
-      <RerenderModal isCoop={data.type === MapType.Cooperative || data.type === MapType.WorkshopCooperative} />
+      {hasVideo && <ShareModal />}
+      {data.pending === PendingStatus.FinishedRender && isAllowedToRerender && (
+        <RerenderModal isCoop={data.type === MapType.Cooperative || data.type === MapType.WorkshopCooperative} />
+      )}
     </>
   );
 };

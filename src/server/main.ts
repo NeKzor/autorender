@@ -1417,18 +1417,18 @@ apiV1
         ],
       );
 
-    type Metdata = {
+    type Metadata = {
       segments: DemoMetadata['segments'];
     };
 
     mtriggers.forEach((mtrigger) => {
       try {
         const metadata = JSON.parse(mtrigger.demo_metadata) as DemoMetadata;
-        (mtrigger.demo_metadata as unknown as Metdata) = {
+        (mtrigger.demo_metadata as unknown as Metadata) = {
           segments: metadata.segments,
         };
       } catch {
-        (mtrigger.demo_metadata as unknown as Metdata) = {
+        (mtrigger.demo_metadata as unknown as Metadata) = {
           segments: [],
         };
       }
@@ -2329,7 +2329,7 @@ router.get('/storage/previews/:share_id', async (ctx) => {
       `filename="${encodeURIComponent(basename(path))}"`,
     );
 
-    ctx.response.headers.set('Cache-Control', 'public, max-age=300');
+    ctx.response.headers.set('Cache-Control', 'public, max-age=31536000');
 
     Ok(ctx, preview, 'image/webp');
   } catch (err) {
@@ -2357,7 +2357,7 @@ router.get('/storage/thumbnails/:share_id/:small(small)?', async (ctx) => {
       `filename="${encodeURIComponent(basename(path))}"`,
     );
 
-    ctx.response.headers.set('Cache-Control', 'public, max-age=300');
+    ctx.response.headers.set('Cache-Control', 'max-age=31536000');
 
     Ok(ctx, preview, 'image/webp');
   } catch (err) {
@@ -2374,6 +2374,9 @@ router.get('/security.txt', async (ctx) => {
 router.get('/.well-known/security.txt', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('security.txt')), 'text/plain');
 });
+router.get('/robots.txt', (ctx) => {
+  Ok(ctx, 'user-agent: *\ndisallow: /api/\ndisallow: /connect/\n', 'text/plain');
+});
 router.get('/storage/files/autorender.cfg', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('autorender.cfg')), 'text/plain');
 });
@@ -2388,7 +2391,7 @@ const routeToImages = async (ctx: Context, file: string, contentType: string) =>
   try {
     const image = await Deno.readFile(`./app/assets/images/${file}`);
 
-    ctx.response.headers.set('Cache-Control', 'public, max-age=300');
+    ctx.response.headers.set('Cache-Control', 'max-age=31536000');
 
     Ok(ctx, image, contentType);
   } catch (err) {
@@ -2405,9 +2408,16 @@ router.get(
   '/assets/images/:file([\\w]+\\.jpg)',
   async (ctx) => await routeToImages(ctx, ctx.params.file!, 'image/jpeg'),
 );
+router.get(
+  '/assets/images/:file([\\w]+\\.webp)',
+  async (ctx) => await routeToImages(ctx, ctx.params.file!, 'image/webp'),
+);
 router.get('/assets/js/:file([\\w]+\\.js)', async (ctx) => {
   try {
     const js = await Deno.readFile(`./app/assets/js/${ctx.params.file}`);
+
+    !isHotReloadEnabled && ctx.response.headers.set('Cache-Control', 'max-age=31536000');
+
     Ok(ctx, js, 'text/javascript');
   } catch (err) {
     logger.error(err);

@@ -12,6 +12,11 @@ import { getStyleTag, virtualSheet } from 'twind/sheets';
 import { Body, Head } from './App.tsx';
 import { AppState } from './AppState.ts';
 
+// NOTE: Always bump this version before deployment when module.js changed.
+const jsModuleVersion = '1.0.0';
+
+const isHotReloadEnabled = Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true';
+
 const sheet = virtualSheet();
 
 setup({
@@ -59,9 +64,10 @@ export const index = (
   const themeScriptTag =
     `<script nonce="${nonce}">localStorage.getItem('color-theme')==='light'&&document.documentElement.classList.remove('dark')</script>`;
 
-  const moduleScriptTag = `<script nonce="${nonce}" src="/assets/js/module.js" type="module"></script>`;
+  const moduleScriptTag =
+    `<script nonce="${nonce}" src="/assets/js/module.js?v=${jsModuleVersion}" type="module"></script>`;
 
-  const hotReloadScriptTag = Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true'
+  const hotReloadScriptTag = isHotReloadEnabled
     ? `<script nonce="${nonce}" src="/assets/js/hot_reload.js" type="module"></script>`
     : '';
 
