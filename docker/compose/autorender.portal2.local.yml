@@ -9,6 +9,11 @@ services:
     restart: always
     links:
       - database:autorender.database
+    networks:
+      - default
+      - board-net
+    external_links:
+      - board-net
     volumes:
       - ./docker/volumes/logs/server:/logs/server:rw
       - ./docker/volumes/storage:/storage:rw
@@ -47,6 +52,7 @@ services:
     volumes:
       - ./docker/volumes/initdb:/docker-entrypoint-initdb.d
       - ./docker/volumes/mysql:/var/lib/mysql
+      - ./docker/volumes/backups:/backups
   proxy:
     image: nginx:stable-alpine3.17
     container_name: "${PROJECT_NAME}-proxy"
@@ -61,3 +67,6 @@ services:
       - ./docker/volumes/ssl:/ssl:r
       - ./docker/volumes/nginx:/etc/nginx/templates
       - ./docker/volumes/logs/nginx:/var/log/nginx:rw
+networks:
+  board-net:
+    external: true

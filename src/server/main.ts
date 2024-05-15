@@ -89,6 +89,8 @@ const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
 const AUTORENDER_MAX_DEMO_FILE_SIZE = Number(Deno.env.get('AUTORENDER_MAX_DEMO_FILE_SIZE')) * 1_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = Number(Deno.env.get('AUTORENDER_MAX_VIDEO_FILE_SIZE')) * 1_000_000;
 const DISCORD_BOARD_INTEGRATION_WEBHOOK_URL = Deno.env.get('DISCORD_BOARD_INTEGRATION_WEBHOOK_URL')!;
+const MEL_BOARD_DOMAIN = Deno.env.get('MEL_BOARD_DOMAIN')!;
+const MEL_BOARD_API_TOKEN = Deno.env.get('MEL_BOARD_API_TOKEN')!;
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
@@ -624,6 +626,38 @@ apiV1
       }
 
       try {
+        if (video.board_changelog_id && video.board_source === BoardSource.Mel && MEL_BOARD_API_TOKEN) {
+          logger.info(`Sending autorender to ${MEL_BOARD_DOMAIN}`, video.share_id);
+
+          const res = await fetch(`https://${MEL_BOARD_DOMAIN}/api-v3/set-autorender`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${MEL_BOARD_API_TOKEN}`,
+              'Content-Type': 'application/json',
+              'User-Agent': Deno.env.get('USER_AGENT')!,
+            },
+            body: JSON.stringify({
+              changelog_id: video.board_changelog_id,
+              autorender_id: video.share_id,
+            }),
+          });
+
+          logger.info(`Sent autorender to ${MEL_BOARD_DOMAIN} for`, video.video_id, ':', res.statusText);
+
+          if (!res.ok) {
+            logger.error(
+              `Failed to send autorender to ${MEL_BOARD_DOMAIN} for video`,
+              video.video_id,
+              ':',
+              await res.text(),
+            );
+          }
+        }
+      } catch (err) {
+        logger.error(err);
+      }
+
+      try {
         if (video.board_changelog_id !== null) {
           if (video.board_rank === 1) {
             logger.info('Sending webhook message for', video.video_id);
@@ -995,7 +1029,7 @@ apiV1
   })
   // Get the video of a leaderboard run.
   .get('/video/:boardChangelogId(\\d+)/video', async (ctx) => {
-    const source = Number(ctx.request.url.searchParams.get('source')) ?? BoardSource.Portal2;
+    const source = Number(ctx.request.url.searchParams.get('source') ?? BoardSource.Portal2);
     if (isNaN(source) || ![BoardSource.Portal2, BoardSource.Mel].includes(source)) {
       return Err(ctx, Status.BadRequest, 'Bad value for source parameter.');
     }
