@@ -2173,7 +2173,7 @@ const routeToApp = async (ctx: Context) => {
   const clientStates: ReactAppState['clientStates'] = new Map();
   let accessTokenIds: ReactAppState['clients'] = [];
 
-  if (url.pathname === '/status') {
+  if (url.pathname === '/status' || url.pathname === '/tokens') {
     if (isHotReloadEnabled) {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
