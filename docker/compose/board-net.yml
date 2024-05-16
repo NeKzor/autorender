@@ -62,3 +62,39 @@ services:
       - ./docker/volumes/ssl:/ssl:r
       - ./docker/volumes/nginx:/etc/nginx/templates
       - ./docker/volumes/logs/nginx:/var/log/nginx:rw
+  board-server:
+    image: p2sr/mel-board:latest
+    container_name: "board-server"
+    restart: always
+    stdin_open: true
+    tty: true
+    ports:
+      - "127.0.0.1:8880:80"
+      - "127.0.0.1:4443:443"
+    links:
+      - board-database:database
+    volumes:
+      - ./board-net/.config.json:/var/www/html/.config.json
+      - ./board-net/docker/apache/board.portal2.local.conf:/etc/apache2/sites-available/board.portal2.local.conf
+      - ./board-net/docker/logs/error.log:/var/log/apache2/error.log
+      - ./board-net/docker/logs/access.log:/var/log/apache2/other_vhosts_access.log
+      - ./board-net/docker/logs/debug.txt:/var/www/html/debug.txt
+      - ./board-net/docker/php/board.ini:/etc/php/8.1/apache2/conf.d/board.ini
+      - ./board-net/docker/ssl/board.portal2.local.key:/etc/apache2/ssl/board.portal2.local.key
+      - ./board-net/docker/ssl/board.portal2.local.crt:/etc/apache2/ssl/board.portal2.local.crt
+  board-database:
+    image: mysql:8
+    container_name: "board-db"
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: board
+      MYSQL_PASSWORD: board
+      MYSQL_DATABASE: board
+      MYSQL_TCP_PORT: 3306
+    volumes:
+      - ./board-net/docker/initdb:/docker-entrypoint-initdb.d
+      - ./board-net/docker/volumes/mysql:/var/lib/mysql
+      - ./board-net/docker/volumes/backups:/backups

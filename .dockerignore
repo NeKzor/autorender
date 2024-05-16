@@ -5,6 +5,7 @@ src/client/bin/
 
 # from .gitignore
 .vscode/
+board-net*
 log/
 .autorender.yaml
 .kv

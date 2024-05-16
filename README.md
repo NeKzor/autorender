@@ -17,7 +17,8 @@ Render Portal 2 demos on-demand with: `/render demo <file>`
   - [User Setup](#user-setup)
   - [Storage](#storage)
   - [Install & Run Client](#install--run-client)
-  - [Testing](#testing)
+  - [Testing Renders](#testing-renders)
+  - [Testing Board Connection](#testing-board-connection)
   - [Tasks](#tasks)
 - [Production](#production)
   - [Server](#server)
@@ -197,13 +198,33 @@ In [production](#production) the client code will be compiled into a single exec
 
 [logged in account]: #user-setup
 
-### Testing
+### Testing Renders
 
 There are several demo files in `src/server/tests/demos` which can be used for testing:
 
 - `benchmark.dem` 10 seconds long demo
 - `short.dem` 1 second long demo
 - `workshop.dem` 10 seconds long demo of a workshop map
+
+### Testing Board Connection
+
+> NOTE: Optional.
+
+Since mel.board.portal2.sr and the new v3 API it is possible to send the autorender result directly to the leaderboard.
+Testing this locally requires a partial setup of the [board repository](https://github.com/NeKzor/board). A build of the
+board image is not required since it will be pulled from
+[Docker Hub](https://hub.docker.com/repository/docker/p2sr/mel-board).
+
+- Create a symlink: `ln -s /path/to/board/repository board-net`
+- Set a random API token that will be shared in both projects:
+  - MEL_BOARD_API_TOKEN in `docker/volumes/.env.server`
+  - autorender_api_token in `board-net/.config.json`
+- Copy docker compose file: `cp docker/compose/board-net.yml docker-compose.yml`
+- Run `deno task up`
+- Run `deno task test` once all containers are up
+
+Because of proxy differences (board = apache2 vs autorender = nginx) the board has to be accessed via a port
+`https://board.portal2.local:4443/`. Inside the docker container it will be alias to `https://board-server/`.
 
 ### Tasks
 
