@@ -659,7 +659,7 @@ apiV1
 
       try {
         if (video.board_changelog_id !== null) {
-          if (video.board_rank === 1) {
+          if (video.board_rank === 1 && video.board_source === BoardSource.Portal2) {
             logger.info('Sending webhook message for', video.video_id);
 
             const webhook = await fetch(DISCORD_BOARD_INTEGRATION_WEBHOOK_URL, {
