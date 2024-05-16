@@ -594,9 +594,11 @@ export const downloadSourceAutoRecord = async (
 
   config.sar.version = sarRelease?.tag_name ?? '';
 
+  const filename = isWindows ? 'sar.dll' : 'sar.so';
+
   const url = sarRelease
     ?.assets
-    ?.find(({ name }) => name.includes(isWindows ? 'windows' : 'linux'))
+    ?.find(({ name }) => name === filename)
     ?.browser_download_url;
 
   if (!url) {
@@ -638,24 +640,13 @@ export const downloadSourceAutoRecord = async (
 
   console.log(colors.white(`🗿️ Downloaded SourceAutoRecord`));
 
-  let zip: ZipReader<BlobReader> | null = null;
-
   try {
-    zip = new ZipReader(new BlobReader(sar), { useWebWorkers: false });
-
-    const binary = (await zip.getEntries()).shift();
-    if (!binary) {
-      throw new Error('Failed to find sar binary inside zip.');
-    }
-
-    const data = await binary.getData!(new Uint8ArrayWriter());
-
     for (const game of addedGames ?? config.games) {
       if (game.sourcemod) {
         continue;
       }
 
-      const file = gameFolder(game, binary.filename);
+      const filepath = gameFolder(game, filename);
 
       try {
         const { state } = await Deno.permissions.request({
@@ -667,27 +658,24 @@ export const downloadSourceAutoRecord = async (
           Deno.exit(1);
         }
 
-        await Deno.writeFile(file, data);
+        using file = await Deno.open(filepath, { write: true, create: true });
+        await sar.stream().pipeTo(file.writable);
 
         console.log(
-          colors.white(`🗿️ Installed ${colors.italic.gray(file)}`),
+          colors.white(`🗿️ Installed ${colors.italic.gray(filepath)}`),
         );
       } catch (err) {
         options.verboseMode && logger.error(err);
 
-        console.log(colors.red(`❌️ Failed to install ${file}`));
+        console.log(colors.red(`❌️ Failed to install ${filepath}`));
         Deno.exit(1);
       }
     }
-
-    await zip.close();
   } catch (err) {
     options.verboseMode && logger.error(err);
 
     console.log(colors.red(`❌️ Failed to install SourceAutoRecord`));
     Deno.exit(1);
-  } finally {
-    await zip?.close();
   }
 
   return true;
