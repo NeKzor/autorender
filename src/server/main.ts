@@ -626,7 +626,7 @@ apiV1
       }
 
       try {
-        if (video.board_changelog_id && video.board_source === BoardSource.Mel && MEL_BOARD_API_TOKEN) {
+        if (video.board_changelog_id && video.board_source === BoardSource.Mel && MEL_BOARD_API_TOKEN !== 'none') {
           logger.info(`Sending autorender to ${MEL_BOARD_DOMAIN}`, video.share_id);
 
           const res = await fetch(`https://${MEL_BOARD_DOMAIN}/api-v3/set-autorender`, {
