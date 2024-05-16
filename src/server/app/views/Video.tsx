@@ -197,7 +197,6 @@ export const VideoView = () => {
                 className={tw`h-[56.25vw] xl:h-[${videoHeight}px]`}
                 controls
                 autoPlay
-                controlsList='nodownload'
               >
                 <source src={data.video_url} itemType='video/mp4'></source>
               </video>
