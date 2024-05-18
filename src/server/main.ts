@@ -2375,7 +2375,7 @@ router.get('/.well-known/security.txt', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('security.txt')), 'text/plain');
 });
 router.get('/robots.txt', (ctx) => {
-  Ok(ctx, 'user-agent: *\ndisallow: /api/\ndisallow: /connect/\n', 'text/plain');
+  Ok(ctx, 'user-agent: *\ndisallow: /api/\ndisallow: /connect/\ndisallow: /storage/\n', 'text/plain');
 });
 router.get('/storage/files/autorender.cfg', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('autorender.cfg')), 'text/plain');
