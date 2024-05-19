@@ -12,6 +12,7 @@ import { addNewGame, launchGame, runBenchmark, runCheck, runExplain } from './co
 export interface Options {
   devMode: boolean;
   verboseMode: boolean;
+  canary?: boolean;
 }
 
 let options: Options | null = null;
@@ -36,7 +37,11 @@ const cli = new Command()
     .action(async () => await runCheck(options!))
   .command('sar')
     .description('Download latest SourceAutoRecord version.')
-    .action(async () => await downloadSourceAutoRecord(await getConfigOnly(), options!) && Deno.exit(0))
+    .option('-c, --canary', 'Download latest canary version.', { default: false })
+    .action(async ({ canary }) => {
+      options!.canary = canary;
+      await downloadSourceAutoRecord(await getConfigOnly(), options!) && Deno.exit(0);
+    })
   .command('cfg')
     .description('Download latest autorender.cfg file.')
     .action(async () => await downloadAutorenderConfig(await getConfigOnly(), options!) && Deno.exit(0))

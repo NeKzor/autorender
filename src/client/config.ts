@@ -585,24 +585,55 @@ export const downloadSourceAutoRecord = async (
     Deno.exit(1);
   }
 
-  await writeAll(
-    Deno.stdout,
-    new TextEncoder().encode(colors.white('\r🗿️ Getting SourceAutoRecord')),
-  );
-
-  const sarRelease = await getRelease('https://api.github.com/repos/p2sr/SourceAutoRecord/releases/latest', options);
-
-  config.sar.version = sarRelease?.tag_name ?? '';
+  console.log(colors.white(`\r🗿️ Getting SourceAutoRecord${options.canary ? ' (canary)' : ''}`));
 
   const filename = isWindows ? 'sar.dll' : 'sar.so';
 
-  const url = sarRelease
-    ?.assets
-    ?.find(({ name }) => name === filename)
-    ?.browser_download_url;
+  const url = await (async () => {
+    if (options.canary) {
+      try {
+        const res = await fetch('https://dl.sar.portal2.sr/api/v1/latest/canary', {
+          headers: {
+            'User-Agent': UserAgent,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch latest from dl.sar.portal2.sr : status ${res.status}`);
+        }
+
+        const latest = await res.json() as {
+          channel: 'release' | 'prerelease' | 'canary';
+          version: string;
+          sar_version: string;
+          commit: string;
+          branch: string;
+          date: string;
+        };
+
+        config.sar.version = latest.sar_version;
+        return `https://dl.sar.portal2.sr/${latest.version}/${isWindows ? 'windows' : 'linux'}/${filename}`;
+      } catch (err) {
+        options?.verboseMode && logger.error(err);
+        return null;
+      }
+    } else {
+      const sarRelease = await getRelease(
+        'https://api.github.com/repos/p2sr/SourceAutoRecord/releases/latest',
+        options,
+      );
+
+      config.sar.version = sarRelease?.tag_name ?? '';
+
+      return sarRelease
+        ?.assets
+        ?.find(({ name }) => name === filename)
+        ?.browser_download_url;
+    }
+  })();
 
   if (!url) {
-    console.log(colors.red(`❌️ Failed to get latest SourceAutoRecord release`));
+    console.log(colors.red(`❌️ Failed to get latest SourceAutoRecord version`));
     Deno.exit(1);
   }
 
@@ -610,7 +641,7 @@ export const downloadSourceAutoRecord = async (
 
   await writeAll(
     Deno.stdout,
-    new TextEncoder().encode(colors.white('\r🗿️ Found SourceAutoRecord release')),
+    new TextEncoder().encode(colors.white('\r🗿️ Found SourceAutoRecord version')),
   );
 
   const sar = await getBinary(url, {

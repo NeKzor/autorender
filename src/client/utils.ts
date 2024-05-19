@@ -55,7 +55,7 @@ export const getBinary = async (
   });
 
   let loaded = 0;
-  const total = Number(res.headers.get('Content-Length')) || 0;
+  const total = Number(res.headers.get('Content-Length') ?? res.headers.get('X-File-Size') ?? 0);
 
   const { onStart, onProgress, onEnd } = options;
 
