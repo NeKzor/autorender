@@ -92,7 +92,7 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
                       {video.video_preview_url && (
                         <img
                           className={tw`absolute top-0 left-0 opacity-0 transition-opacity duration-300 transform hover:opacity-100 object-cover w-full h-full rounded-[12px]`}
-                          src={video.video_preview_url}
+                          x-preview={video.video_preview_url}
                           alt='Preview of video'
                         />
                       )}

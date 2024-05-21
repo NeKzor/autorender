@@ -9,6 +9,25 @@ const minWidthBreakpoints = {
   md: 768,
 };
 
+const initPreviews = () => {
+  const previews = document.querySelectorAll('[x-preview]');
+  for (const preview of previews) {
+    preview.addEventListener(
+      'mouseover',
+      () => {
+        preview.src = preview.getAttribute('x-preview');
+      },
+      { once: true },
+    );
+  }
+};
+
+// Home
+
+if (location.pathname === '/') {
+  initPreviews();
+}
+
 // Navbar
 
 const navItemsLeft = document.getElementById('nav-items-left');
@@ -380,6 +399,7 @@ if (location.pathname.startsWith('/search') && location.search.length !== 0) {
     search.open();
   }
 
+  initPreviews();
   initShareModal();
 }
 
@@ -388,4 +408,10 @@ if (location.pathname.startsWith('/search') && location.search.length !== 0) {
 const goBackButton = document.getElementById('not-found-go-back');
 if (goBackButton) {
   goBackButton.addEventListener('click', () => history.back());
+}
+
+// Profile
+
+if (location.pathname.startsWith('/profile/')) {
+  initPreviews();
 }
