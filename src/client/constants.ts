@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-export const AutorenderVersion = '1.0.3';
+export const AutorenderVersion = '1.0.4';
 
 export const ReleaseTag = `client-${AutorenderVersion}`;
 
