@@ -13,7 +13,7 @@ import { Body, Head } from './App.tsx';
 import { AppState } from './AppState.ts';
 
 // NOTE: Always bump this version before deployment when module.js changed.
-const jsModuleVersion = '1.0.0';
+const jsModuleVersion = '1.0.1';
 
 const isHotReloadEnabled = Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true';
 
