@@ -5,6 +5,7 @@
  */
 
 import {
+  DemoMessages,
   Messages,
   NetMessages,
   ScoreboardTempUpdate,
@@ -17,6 +18,7 @@ import { logger } from './logger.ts';
 import { basename, dirname, join } from 'path/mod.ts';
 import { readSarData, SarDataType } from './sar.ts';
 import { SteamId } from './steam.ts';
+import { NavLinkProps } from 'https://esm.sh/v131/react-router-dom@6.11.2/X-ZS8q/dist/index.js';
 
 const AUTORENDER_MIN_PLAYBACK_TIME = 1;
 const AUTORENDER_MAX_PLAYBACK_TIME = 6 * 60;
@@ -207,6 +209,7 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       metadata: getSarData(demo),
       ...getChallengeModeData(demo),
       ...getPlayerInfo(demo),
+      inputs: getInputData(demo),
     };
   } catch (err) {
     logger.error(filePath, err);
@@ -541,6 +544,69 @@ export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
     partnerSteamId: null,
     isHost: null,
   };
+};
+
+export interface TickInputdata {
+  attack: boolean;
+  jump: boolean;
+  duck: boolean;
+  forward: boolean;
+  back: boolean;
+  use: boolean;
+  moveleft: boolean;
+  moveright: boolean;
+  attack2: boolean;
+}
+
+export interface DemoInputdata {
+  [tick: number]: TickInputdata;
+}
+
+const getInputData = (demo: SourceDemo): DemoInputdata => {
+  try {
+    const inputs: DemoInputdata = [];
+
+    demo.readUserCmds();
+    const msgs = demo.findMessages(DemoMessages.UserCmd);
+    for (const msg of msgs ?? []) {
+      if (msg.slot === 0 && msg.userCmd?.buttons) {
+        if (msg.tick) {
+          inputs[msg.tick] = {
+            attack: !!(msg.userCmd.buttons & (1 << 0)),
+            jump: !!(msg.userCmd.buttons & (1 << 1)),
+            duck: !!(msg.userCmd.buttons & (1 << 2)),
+            forward: !!(msg.userCmd.buttons & (1 << 3)),
+            back: !!(msg.userCmd.buttons & (1 << 4)),
+            use: !!(msg.userCmd.buttons & (1 << 5)),
+            moveleft: !!(msg.userCmd.buttons & (1 << 9)),
+            moveright: !!(msg.userCmd.buttons & (1 << 10)),
+            attack2: !!(msg.userCmd.buttons & (1 << 11)),
+          };
+        }
+      }
+    }
+
+    // Write last tick for syncing
+    if (demo.playbackTicks) {
+      inputs[demo.playbackTicks] = {
+        attack: false,
+        jump: false,
+        duck: false,
+        forward: false,
+        back: false,
+        use: false,
+        moveleft: false,
+        moveright: false,
+        attack2: false,
+      };
+    }
+
+    return inputs;
+  } catch (err) {
+    logger.error(err);
+  }
+
+  return [];
 };
 
 // Imported from: https://github.com/NeKzor/sdp/blob/master/examples/repair.ts

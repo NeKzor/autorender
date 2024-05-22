@@ -221,6 +221,7 @@ export interface Video {
   visibility: VisibilityState;
   deleted_by: number;
   deleted_at: Date;
+  demo_inputs: string;
 }
 
 /**

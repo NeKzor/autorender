@@ -480,6 +480,60 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       }
     });
 
+    const drawInputs = (_, metadata) => {
+      const btnSize = 50;
+      const btnPadding = 2;
+      const fps = 60; // TODO: fetch this from video (60 should work for default autorender presets)
+
+      const shouldDraw = document.getElementById('ihud-checkbox');
+      const canvas = document.getElementById('inputs');
+      const ctx = canvas.getContext('2d');
+      const inputData = JSON.parse(document.querySelector('[x-input-data]').getAttribute('x-input-data'));
+
+      const frame = Math.round(metadata.mediaTime * fps);
+      const lastFrame = Math.round(video.duration * fps);
+      const ticks = Object.keys(inputData);
+      const lastTick = ticks[ticks.length - 1];
+      const offset = lastTick - lastFrame;
+      const tick = frame + offset;
+
+      canvas.width = (btnSize + btnPadding) * 6;
+      canvas.height = (btnSize + btnPadding) * 3;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+      const drawButton = (text, column, row, width, height) => {        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        const rx = btnSize * column + btnPadding * column;
+        const ry = btnSize * row + btnPadding * row;
+        ctx.fillRect(rx, ry, width, height);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, rx + width / 2, ry + height / 2);
+      };
+
+      if (shouldDraw.checked) {
+        if (inputData[tick]) {
+          if (inputData[tick].forward) drawButton('W', 2, 0, btnSize, btnSize);
+          if (inputData[tick].use) drawButton('E', 3, 0, btnSize, btnSize);
+          if (inputData[tick].moveleft) drawButton('A', 1, 1, btnSize, btnSize);
+          if (inputData[tick].back) drawButton('S', 2, 1, btnSize, btnSize);
+          if (inputData[tick].moveright) drawButton('D', 3, 1, btnSize, btnSize);
+          if (inputData[tick].duck) drawButton('C', 0, 2, btnSize, btnSize);
+          if (inputData[tick].jump) drawButton('S', 1, 2, btnSize * 3, btnSize);
+          if (inputData[tick].attack) drawButton('L', 4, 2, btnSize, btnSize);
+          if (inputData[tick].attack2) drawButton('R', 5, 2, btnSize, btnSize);
+        }
+      }
+
+      video.requestVideoFrameCallback(drawInputs);
+    };
+
+    video.requestVideoFrameCallback(drawInputs);
+
     fetch(`/api/v1${location.pathname}/views`, { method: 'POST' });
 
     initShareModal();
