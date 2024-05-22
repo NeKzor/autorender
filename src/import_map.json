@@ -23,7 +23,6 @@
     "oak/": "https://deno.land/x/oak@v12.2.0/",
     "progress/": "https://deno.land/x/progress@v1.3.8/",
     "zipjs/": "https://deno.land/x/zipjs@v2.7.20/",
-    "@js-temporal/polyfill": "https://esm.sh/v131/*@js-temporal/polyfill@0.4.4",
     "@remix-run/router": "https://esm.sh/v131/@remix-run/router@1.6.2",
     "rate-limiter-flexible": "https://esm.sh/v131/rate-limiter-flexible@2.4.2",
     "react-dom/server": "https://esm.sh/v131/*react-dom@18.2.0/server",
