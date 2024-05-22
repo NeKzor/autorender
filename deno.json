@@ -29,15 +29,19 @@
     "down": "docker compose down",
     "reload": "deno task restart",
     "restart": "deno task up -d --force-recreate",
-    "db": "docker exec -ti autorender-db bash -c 'printf [client]\\\\nuser=${MARIADB_USER}\\\\npassword=${MARIADB_PASSWORD}\\\\n[clientroot]\\\\nuser=root\\\\npassword=${MARIADB_ROOT_PASSWORD}\\\\n[mysql]\\\\ndatabase=${MARIADB_DATABASE} > /etc/my.cnf' && docker exec -ti autorender-db mariadb",
+    "db": "deno task db:conf && docker exec -ti autorender-db mariadb",
+    "db:conf": "docker exec -ti autorender-db bash -c 'printf [client]\\\\nuser=${MARIADB_USER}\\\\npassword=${MARIADB_PASSWORD}\\\\n[clientroot]\\\\nuser=root\\\\npassword=${MARIADB_ROOT_PASSWORD}\\\\n[mysql]\\\\ndatabase=${MARIADB_DATABASE} > /etc/my.cnf'",
     "db:debug": "docker exec -ti autorender-db bash",
     "db:restart": "docker container restart autorender-db",
     "db:stop": "docker container stop autorender-db",
     "db:dump": "docker exec -ti autorender-db bash -c 'mariadb-dump --defaults-group-suffix=root --hex-blob --net-buffer-length 100K --routines --databases ${MARIADB_DATABASE} | gzip -8 > /backups/${MARIADB_DATABASE}_dump_$(date +%Y-%m-%d-%H.%M.%S).sql.gz'",
+    "db:dump:latest": "docker exec -ti autorender-db bash -c 'mariadb-dump --defaults-group-suffix=root --hex-blob --net-buffer-length 100K --routines --databases ${MARIADB_DATABASE} | gzip -8 > /backups/${MARIADB_DATABASE}_backup_latest.sql.gz'",
     "db:dump:raw": "docker exec -ti autorender-db bash -c 'mariadb-dump --defaults-group-suffix=root --hex-blob --net-buffer-length 100K --routines --databases ${MARIADB_DATABASE} > /backups/${MARIADB_DATABASE}_dump_$(date +%Y-%m-%d-%H.%M.%S).sql'",
     "setup": "deno run --allow-read=. --allow-write=. --allow-run=mkcert setup.ts",
     "prod:sync": "deno run --reload --allow-read=. --allow-write=. --allow-net=raw.githubusercontent.com https://raw.githubusercontent.com/NeKzor/autorender/main/setup.ts --prod --sync",
-    "prod:update": "docker pull p2sr/autorender-bot && docker pull p2sr/autorender-server && deno task prod:sync && deno task restart"
+    "prod:update": "docker pull p2sr/autorender-bot && docker pull p2sr/autorender-server && deno task prod:sync && deno task restart",
+    "prod:backup": "deno task db:conf && deno task db:dump:latest && zip -rFS kv_backup_latest.zip kv && deno run --env --no-prompt -A https://raw.githubusercontent.com/NeKzor/autorender/main/backup.ts /mnt/autorender-content/backups/p2render_backup_latest.sql.gz ./kv_backup_latest.zip",
+    "dev:backup": "deno task db:conf && deno task db:dump:latest && zip -rFS kv_backup_latest.zip docker/volumes/kv && deno run --env --no-prompt -A backup.ts --dry-run=1 ./docker/volumes/backups/p2render_backup_latest.sql.gz ./kv_backup_latest.zip"
   },
   "lint": {
     "exclude": [

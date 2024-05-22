@@ -14,6 +14,7 @@ log/
 autorender.yaml
 docker-compose.yml
 entrypoint.sh
+*_backup_latest.zip
 
 # Logs
 logs

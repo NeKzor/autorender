@@ -11,6 +11,7 @@ entrypoint.sh
 src/app/
 .test/
 docker/volumes/storage/users/
+*_backup_latest.zip
 
 # Logs
 logs
