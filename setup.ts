@@ -16,6 +16,9 @@ const devHostname = 'autorender.portal2.local';
 // Used to download files for prod setup.
 const repositoryUrl = 'https://raw.githubusercontent.com/NeKzor/autorender/main/';
 
+// Bot requires: VIEW_CHANNEL | SEND_MESSAGES | EMBED_LINKS | ATTACH_FILES | READ_MESSAGE_HISTORY
+const botPermissions = 117760;
+
 let inviteLink = '';
 let volumeFolder = '';
 let publicUri = '';
@@ -71,7 +74,7 @@ const main = async () => {
 const createInviteLink = (discordClientId: string) => {
   const params = new URLSearchParams({
     client_id: discordClientId,
-    permissions: '117760',
+    permissions: botPermissions.toString(),
     scope: 'bot applications.commands',
   });
   inviteLink = `https://discord.com/api/oauth2/authorize?${params}`;
@@ -89,13 +92,15 @@ const tryCopy = async (source: string, destination: string) => {
   try {
     const stat = await tryStat(destination);
     if (stat) {
-      return;
+      return false;
     }
 
     await Deno.copyFile(source, destination);
+    return true;
   } catch (err) {
     console.log(colors.bold('[-]'), colors.red(`Failed to copy "${source}" to "${destination}"`));
     console.error(err);
+    return false;
   }
 };
 
@@ -103,14 +108,31 @@ const tryMkdir = async (path: string) => {
   try {
     const stat = await tryStat(path);
     if (stat) {
-      return;
+      return false;
     }
 
     await Deno.mkdir(path, { recursive: true });
+    return true;
   } catch (err) {
     console.log(colors.bold('[-]'), colors.red(`Failed to create directory "${path}"`));
     console.error(err);
+    return false;
   }
+};
+
+const getEnv = (env: string[], key: string) => {
+  key += '=';
+  const line = env.find((line) => line.startsWith(key));
+  if (line === undefined) {
+    return '';
+  }
+
+  return line.slice(line.indexOf('=') + 1);
+};
+
+const hasEnv = (env: string[], key: string) => {
+  const value = getEnv(env, key);
+  return value !== '' && value !== '""';
 };
 
 const setEnv = (env: string[], key: string, value: string) => {
@@ -120,6 +142,8 @@ const setEnv = (env: string[], key: string, value: string) => {
     env[index] = key + value;
   }
 };
+
+const trim = (line: string) => line.trim();
 
 const downloadFromRepository = async (remote: string, local: string, skipIfExists?: boolean) => {
   if (skipIfExists) {
@@ -216,6 +240,32 @@ const downloadStorageFiles = async () => {
   await downloadFromRepository(`${remoteStorageFiles}security.txt`, 'storage/files/security.txt');
 };
 
+const syncEnv = async (envFile: string, exampleEnvFile: string) => {
+  if (await tryStat(envFile)) {
+    const example = (await Deno.readTextFile(exampleEnvFile)).split('\n').map(trim);
+    const oldEnv = await Deno.readTextFile(envFile);
+    const env = oldEnv.split('\n').map(trim);
+
+    for (const line of example) {
+      const eq = line.indexOf('=');
+      if (eq === -1) {
+        continue;
+      }
+
+      const key = line.slice(0, eq + 1);
+      if (!env.some((line) => line.startsWith(key))) {
+        env.push(line);
+        console.log(`[+] ${colors.green('Added')} new key ${key.slice(0, -1)} to ${envFile}`);
+      }
+    }
+
+    const newEnv = env.join('\n') + (env.at(-1) !== '' ? '\n' : '');
+    oldEnv !== newEnv && await Deno.writeTextFile(envFile, newEnv);
+  } else {
+    await tryCopy(exampleEnvFile, envFile);
+  }
+};
+
 /**
  * Configuration files:
  *    .env        -> used by docker
@@ -224,47 +274,80 @@ const downloadStorageFiles = async () => {
  */
 const createConfigAndEnv = async (env: Environment) => {
   if (env === 'prod') {
-    await downloadFromRepository('.env.example', '.env', true);
-    await downloadFromRepository('src/bot/.env.example', v`.env.bot`, true);
-    await downloadFromRepository('src/server/.env.example', v`.env.server`, true);
+    await downloadFromRepository('.env.example', '.env.example');
+    await downloadFromRepository('src/bot/.env.example', v`.env.bot.example`);
+    await downloadFromRepository('src/server/.env.example', v`.env.server.example`);
+
+    await syncEnv('.env', '.env.example');
+    await syncEnv(v`.env.bot`, v`.env.bot.example`);
+    await syncEnv(v`.env.server`, v`.env.server.example`);
   } else {
-    await tryCopy('.env.example', '.env');
-    await tryCopy('src/bot/.env.example', v`.env.bot`);
-    await tryCopy('src/server/.env.example', v`.env.server`);
+    await syncEnv('.env', '.env.example');
+    await syncEnv(v`.env.bot`, 'src/bot/.env.example');
+    await syncEnv(v`.env.server`, 'src/server/.env.example');
   }
 
-  const botEnv = (await Deno.readTextFile(v`.env.bot`)).split('\n');
-  const serverEnv = (await Deno.readTextFile(v`.env.server`)).split('\n');
+  const oldBotEnv = await Deno.readTextFile(v`.env.bot`);
+  const oldServerEnv = await Deno.readTextFile(v`.env.server`);
+
+  const botEnv = oldBotEnv.split('\n').map(trim);
+  const serverEnv = oldServerEnv.split('\n').map(trim);
 
   if (env === 'dev') {
     setEnv(serverEnv, 'HOT_RELOAD', 'true');
   }
 
-  const autorenderBotToken = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(12))));
-  setEnv(botEnv, 'AUTORENDER_BOT_TOKEN', autorenderBotToken);
-  setEnv(serverEnv, 'AUTORENDER_BOT_TOKEN', autorenderBotToken);
+  if (!hasEnv(serverEnv, 'AUTORENDER_BOT_TOKEN')) {
+    const autorenderBotToken = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(12))));
+    setEnv(botEnv, 'AUTORENDER_BOT_TOKEN', autorenderBotToken);
+    setEnv(serverEnv, 'AUTORENDER_BOT_TOKEN', autorenderBotToken);
+  }
 
-  const cookieSecretKey = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(12))));
-  setEnv(serverEnv, 'COOKIE_SECRET_KEY', cookieSecretKey);
+  if (!hasEnv(serverEnv, 'COOKIE_SECRET_KEY')) {
+    const cookieSecretKey = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(12))));
+    setEnv(serverEnv, 'COOKIE_SECRET_KEY', cookieSecretKey);
+  }
 
-  const discordUserId = await Input.prompt({ message: 'Your Discord User ID' });
-  const discordClientId = await Input.prompt({ message: 'Client ID of the Discord application' });
-  const discordClientSecret = await Secret.prompt({ message: 'Client secret of the Discord application' });
-  const discordBotToken = await Secret.prompt({ message: 'Token of the Discord bot' });
+  if (!hasEnv(serverEnv, 'DISCORD_USER_ID')) {
+    const discordUserId = await Input.prompt({ message: 'Your Discord User ID' });
+    discordUserId.length && setEnv(serverEnv, 'DISCORD_USER_ID', discordUserId);
+  }
 
-  discordUserId.length && setEnv(serverEnv, 'DISCORD_USER_ID', discordUserId);
-  discordClientId.length && setEnv(serverEnv, 'DISCORD_CLIENT_ID', discordClientId);
-  discordClientSecret.length && setEnv(serverEnv, 'DISCORD_CLIENT_SECRET', discordClientSecret);
-  discordClientId.length && setEnv(botEnv, 'DISCORD_BOT_ID', discordClientId);
-  discordBotToken.length && setEnv(botEnv, 'DISCORD_BOT_TOKEN', discordBotToken);
+  let discordClientId = getEnv(serverEnv, 'DISCORD_CLIENT_ID');
+  if (!discordClientId.length) {
+    discordClientId = await Input.prompt({ message: 'Client ID of the Discord application' });
+    if (discordClientId.length) {
+      setEnv(serverEnv, 'DISCORD_CLIENT_ID', discordClientId);
+      setEnv(botEnv, 'DISCORD_BOT_ID', discordClientId);
+    }
+  } else {
+    if (!hasEnv(botEnv, 'DISCORD_BOT_ID')) {
+      console.warn(
+        '[-] Missing DISCORD_BOT_ID in .env.bot. The value should equal DISCORD_CLIENT_ID from .env.server.',
+      );
+    }
+  }
+
+  if (!hasEnv(serverEnv, 'DISCORD_CLIENT_SECRET')) {
+    const discordClientSecret = await Secret.prompt({ message: 'Client secret of the Discord application' });
+    discordClientSecret.length && setEnv(serverEnv, 'DISCORD_CLIENT_SECRET', discordClientSecret);
+  }
+
+  if (!hasEnv(botEnv, 'DISCORD_BOT_TOKEN')) {
+    const discordBotToken = await Secret.prompt({ message: 'Token of the Discord bot' });
+    discordBotToken.length && setEnv(botEnv, 'DISCORD_BOT_TOKEN', discordBotToken);
+  }
 
   setEnv(botEnv, 'AUTORENDER_PUBLIC_URI', publicUri);
   setEnv(serverEnv, 'AUTORENDER_PUBLIC_URI', publicUri);
 
-  await Deno.writeTextFile(v`.env.bot`, botEnv.join('\n'));
-  await Deno.writeTextFile(v`.env.server`, serverEnv.join('\n'));
+  const newBotEnv = botEnv.join('\n');
+  const newServerEnv = serverEnv.join('\n');
 
-  if (discordClientId.length) {
+  oldBotEnv !== newBotEnv && await Deno.writeTextFile(v`.env.bot`, newBotEnv);
+  oldServerEnv !== newServerEnv && await Deno.writeTextFile(v`.env.server`, newServerEnv);
+
+  if (discordClientId?.length) {
     createInviteLink(discordClientId);
   } else {
     const discordClientId = botEnv
@@ -279,7 +362,8 @@ const createConfigAndEnv = async (env: Environment) => {
     }
   }
 
-  console.log(colors.bold('[+]'), `Created .env files`);
+  const updatedEnvFiles = oldBotEnv !== newBotEnv || oldServerEnv !== newServerEnv;
+  console.log(colors.bold('[+]'), `${updatedEnvFiles ? 'Created or updated' : 'Skipped'} .env files`);
 };
 
 /**
@@ -311,19 +395,26 @@ const createEntryPointFiles = async (env: Environment) => {
  *    storage     -> Server file storage
  */
 const createDirectories = async () => {
-  await tryMkdir(v`backups`);
-  await tryMkdir(v`initdb`);
-  await tryMkdir(v`kv`);
-  await tryMkdir(v`logs/bot`);
-  await tryMkdir(v`logs/server`);
-  await tryMkdir(v`mysql`);
-  await tryMkdir(v`storage/demos`);
-  await tryMkdir(v`storage/files`);
-  await tryMkdir(v`storage/previews`);
-  await tryMkdir(v`storage/thumbnails`);
-  await tryMkdir(v`storage/videos`);
+  const dirs = [
+    v`backups`,
+    v`initdb`,
+    v`kv`,
+    v`logs/bot`,
+    v`logs/server`,
+    v`mysql`,
+    v`storage/demos`,
+    v`storage/files`,
+    v`storage/previews`,
+    v`storage/thumbnails`,
+    v`storage/videos`,
+  ];
 
-  console.log(colors.bold('[+]'), `Created directories`);
+  let created = 0;
+  for (const dir of dirs) {
+    created += await tryMkdir(dir) ? 1 : 0;
+  }
+
+  console.log(colors.bold('[+]'), `${created ? 'Created or updated' : 'Skipped'} directories`);
 };
 
 /**
