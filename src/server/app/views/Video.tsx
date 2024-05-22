@@ -202,13 +202,18 @@ export const VideoView = () => {
           )}
           {hasVideo && (
             <>
-              <video
-                className={tw`h-[56.25vw] xl:h-[${videoHeight}px]`}
-                controls
-                autoPlay
-              >
-                <source src={data.video_url} itemType='video/mp4'></source>
-              </video>
+              <div className={tw`h-[56.25vw] xl:h-[${videoHeight}px]`}>
+                <video
+                  className={tw`absolute`}
+                  controls
+                  autoPlay
+                >
+                  <source src={data.video_url} itemType='video/mp4'></source>
+                </video>
+                <div className={tw`absolute pointer-events-none`} x-input-data={data?.demo_inputs}>
+                  <canvas id='inputs'></canvas>
+                </div>
+              </div>
               {
                 /* <div
                 id='video-loading-status'
@@ -236,6 +241,19 @@ export const VideoView = () => {
               }
             </>
           )}
+          <div className={tw`flex items-center mr-4 mb-2 mt-2`}>
+            <input
+              id='ihud-checkbox'
+              type='checkbox'
+              className={tw`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600`}
+            />
+            <label
+              htmlFor='ihud-checkbox'
+              className={tw`ml-2 text-sm font-medium text-gray-900 dark:text-gray-300`}
+            >
+              Input HUD
+            </label>
+          </div>
           <div className={tw`mt-6 relative text-[20px]`}>
             <div>
               {hasVideo && <span className={tw`float-right ml-8`}>{data.views} views</span>}
