@@ -9,23 +9,119 @@ const minWidthBreakpoints = {
   md: 768,
 };
 
-const initPreviews = () => {
-  const previews = document.querySelectorAll('[x-preview]');
-  for (const preview of previews) {
-    preview.addEventListener(
-      'mouseover',
-      () => {
-        preview.src = preview.getAttribute('x-preview');
-      },
-      { once: true },
-    );
+/** @param {HTMLElement} last */
+const initPreviews = (last) => {
+  let element = last;
+
+  while (element) {
+    const previewImage = element.querySelector('[x-preview]');
+    const thumbnail = previewImage?.parentElement?.firstElementChild;
+
+    if (thumbnail) {
+      thumbnail.addEventListener(
+        'mousemove',
+        () => {
+          previewImage.src = previewImage.getAttribute('x-preview');
+          previewImage.classList.remove('hidden');
+        },
+        { once: true },
+      );
+    }
+
+    if (!element.nextElementSibling) {
+      return element;
+    }
+
+    element = element.nextElementSibling;
   }
+};
+
+const initLoadMore = (view) => {
+  const videosElement = document.querySelector('[x-last-video]');
+  if (!videosElement) {
+    return;
+  }
+
+  let lastVideoElement = initPreviews(videosElement.firstElementChild);
+
+  const loadMore = document.querySelector('#loading');
+  if (!videosElement || !loadMore) {
+    return;
+  }
+
+  let isLoading = false;
+  let lastVideo = videosElement.getAttribute('x-last-video');
+
+  const headers = {
+    'Accept': 'text/html',
+  };
+
+  const loadMoreVideos = (previous) => {
+    if (isLoading) {
+      return;
+    }
+
+    if (!lastVideo) {
+      observer.disconnect();
+      return;
+    }
+
+    isLoading = true;
+    loadMore.firstElementChild?.classList?.remove('hidden');
+
+    const search = new URLSearchParams(`?l=${encodeURIComponent(previous)}`);
+
+    switch (view) {
+      case 'search': {
+        const query = (new URLSearchParams(location.search)).get('q');
+        search.set('q', encodeURIComponent(query));
+        break;
+      }
+      case 'profile': {
+        const user = location.pathname.split('/').at(-1);
+        search.set('u', encodeURIComponent(user));
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+
+    fetch(`/api/v1/videos/more/${view}?${search}`, { headers })
+      .then(async (res) => {
+        if (!res.ok) {
+          return;
+        }
+
+        lastVideo = res.headers.get('X-Last-Video');
+        if (!lastVideo) {
+          loadMore.textContent = 'No more videos.';
+        }
+
+        videosElement.insertAdjacentHTML('beforeend', await res.text());
+        lastVideoElement = initPreviews(lastVideoElement);
+        initDropdowns();
+      })
+      .catch(() => void 0)
+      .finally(() => {
+        isLoading = false;
+        loadMore.firstElementChild?.classList?.add('hidden');
+      });
+  };
+
+  loadMoreVideos(lastVideo);
+
+  const observer = new IntersectionObserver(([entry]) => {
+    entry.isIntersecting && loadMoreVideos(lastVideo);
+  });
+
+  observer.observe(loadMore);
 };
 
 // Home
 
 if (location.pathname === '/') {
-  initPreviews();
+  initLoadMore('home');
 }
 
 // Navbar
@@ -399,7 +495,7 @@ if (location.pathname.startsWith('/search') && location.search.length !== 0) {
     search.open();
   }
 
-  initPreviews();
+  initLoadMore('search');
   initShareModal();
 }
 
@@ -413,5 +509,5 @@ if (goBackButton) {
 // Profile
 
 if (location.pathname.startsWith('/profile/')) {
-  initPreviews();
+  initLoadMore('profile');
 }

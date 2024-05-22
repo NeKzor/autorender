@@ -62,6 +62,10 @@ import { rateLimits } from './rate_limits.ts';
 import { fetchDemo, getChangelog } from './tasks/portal2_sr.ts';
 import { insertVideo } from './tasks/board_insert.ts';
 import { fetchMelDemo } from './tasks/mel.ts';
+import { loadMoreHome } from './app/views/Home.tsx';
+import { loadMoreSearch } from './app/views/Search.tsx';
+import { loadMoreProfile } from './app/views/Profile.tsx';
+import { parseSortableId } from './app/utils.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -1438,6 +1442,52 @@ apiV1
       data: mtriggers,
       count: mtriggers.length,
     });
+  })
+  .get('/videos/more/:view(home|search|profile)', async (ctx) => {
+    if ((ctx.request.headers.get('Accept')?.indexOf('text/html') ?? -1) === -1) {
+      return Err(ctx, Status.BadRequest, 'Only HTML is accepted.');
+    }
+
+    const searchParams = ctx.request.url.searchParams;
+    const last = parseSortableId(searchParams.get('l') ?? '');
+    if (last === false) {
+      return Err(ctx, Status.BadRequest, 'Invalid last parameter.');
+    }
+
+    switch (ctx.params.view) {
+      case 'home': {
+        const [html, lastVideo] = await loadMoreHome(db, last);
+        lastVideo && ctx.response.headers.append('X-Last-Video', lastVideo);
+        Ok(ctx, html, 'text/html');
+        break;
+      }
+      case 'search': {
+        const query = searchParams.get('q');
+        if (!query) {
+          return Err(ctx, Status.BadRequest, 'Missing query.');
+        }
+
+        const [html, lastVideo] = await loadMoreSearch(db, last, decodeURIComponent(query));
+        lastVideo && ctx.response.headers.append('X-Last-Video', lastVideo);
+        Ok(ctx, html, 'text/html');
+        break;
+      }
+      case 'profile': {
+        const user = searchParams.get('u');
+        if (!user) {
+          return Err(ctx, Status.BadRequest, 'Missing user.');
+        }
+
+        const [html, lastVideo] = await loadMoreProfile(db, last, user);
+        lastVideo && ctx.response.headers.append('X-Last-Video', lastVideo);
+        Ok(ctx, html, 'text/html');
+        break;
+      }
+      default: {
+        Err(ctx, Status.BadRequest, 'Invalid view.');
+        break;
+      }
+    }
   })
   .get('/(.*)', (ctx) => {
     Err(ctx, Status.NotFound, 'Route not found :(');

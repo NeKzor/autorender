@@ -86,14 +86,14 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
                       <img
                         className={tw`transition-transform duration-300 transform object-cover w-full h-full rounded-[12px]`}
                         src={video.thumbnail_url_small}
-                        alt='Thumbnail of video'
+                        alt='thumbnail'
                       />
                       {video.video_length !== null && <VideoLength videoLength={video.video_length} />}
                       {video.video_preview_url && (
                         <img
-                          className={tw`absolute top-0 left-0 opacity-0 transition-opacity duration-300 transform hover:opacity-100 object-cover w-full h-full rounded-[12px]`}
+                          className={tw`hidden absolute top-0 left-0 opacity-0 transition-opacity duration-300 transform hover:opacity-100 object-cover w-full h-full rounded-[12px]`}
+                          alt='preview'
                           x-preview={video.video_preview_url}
-                          alt='Preview of video'
                         />
                       )}
                     </>

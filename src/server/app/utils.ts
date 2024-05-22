@@ -4,13 +4,16 @@
  * SPDX-License-Identifier: MIT
  */
 
+import { Video } from '~/shared/models.ts';
+import { validateShareId } from '../utils.ts';
+
 export const toAgo = (date: Date | null) => {
   if (!date) {
     return '';
   }
 
   const now = Temporal.Now.instant();
-  const then = Temporal.Instant.from(date.toString());
+  const then = date.toTemporalInstant();
   const ago = then.until(now);
 
   const days = Math.floor(ago.seconds / 60 / 60 / 24);
@@ -44,4 +47,44 @@ export const toAgo = (date: Date | null) => {
   }
 
   return `${ago.seconds} second${ago.seconds === 1 ? '' : 's'} ago`;
+};
+
+export const getSortableIdByCreated = (
+  video?: {
+    created_at: Video['created_at'];
+    share_id: Video['share_id'];
+  },
+) => {
+  return video ? btoa(`${video.share_id},${video.created_at.toISOString()}`) : undefined;
+};
+
+export const getSortableIdByRendered = (
+  video?: {
+    rendered_at: Video['rendered_at'];
+    share_id: Video['share_id'];
+  },
+) => {
+  return video ? btoa(`${video.share_id},${video.rendered_at.toISOString()}`) : undefined;
+};
+
+export type SortableId = {
+  shareId: string;
+  date: string;
+};
+
+export const parseSortableId = (id: string): SortableId | false => {
+  try {
+    const [shareId, date] = atob(id).split(',');
+
+    if (
+      shareId === undefined || !validateShareId(shareId) ||
+      date === undefined || isNaN(Number(new Date(date)))
+    ) {
+      return false;
+    }
+
+    return { shareId, date };
+  } catch {
+    return false;
+  }
 };
