@@ -18,7 +18,6 @@ import { logger } from './logger.ts';
 import { basename, dirname, join } from 'path/mod.ts';
 import { readSarData, SarDataType } from './sar.ts';
 import { SteamId } from './steam.ts';
-import { NavLinkProps } from 'https://esm.sh/v131/react-router-dom@6.11.2/X-ZS8q/dist/index.js';
 
 const AUTORENDER_MIN_PLAYBACK_TIME = 1;
 const AUTORENDER_MAX_PLAYBACK_TIME = 6 * 60;
@@ -569,20 +568,18 @@ const getInputData = (demo: SourceDemo): DemoInputdata => {
     demo.readUserCmds();
     const msgs = demo.findMessages(DemoMessages.UserCmd);
     for (const msg of msgs ?? []) {
-      if (msg.slot === 0 && msg.userCmd?.buttons) {
-        if (msg.tick) {
-          inputs[msg.tick] = {
-            attack: !!(msg.userCmd.buttons & (1 << 0)),
-            jump: !!(msg.userCmd.buttons & (1 << 1)),
-            duck: !!(msg.userCmd.buttons & (1 << 2)),
-            forward: !!(msg.userCmd.buttons & (1 << 3)),
-            back: !!(msg.userCmd.buttons & (1 << 4)),
-            use: !!(msg.userCmd.buttons & (1 << 5)),
-            moveleft: !!(msg.userCmd.buttons & (1 << 9)),
-            moveright: !!(msg.userCmd.buttons & (1 << 10)),
-            attack2: !!(msg.userCmd.buttons & (1 << 11)),
-          };
-        }
+      if (msg.slot === 0 && msg.userCmd?.buttons && msg.tick) {
+        inputs[msg.tick] = {
+          attack: !!(msg.userCmd.buttons & (1 << 0)),
+          jump: !!(msg.userCmd.buttons & (1 << 1)),
+          duck: !!(msg.userCmd.buttons & (1 << 2)),
+          forward: !!(msg.userCmd.buttons & (1 << 3)),
+          back: !!(msg.userCmd.buttons & (1 << 4)),
+          use: !!(msg.userCmd.buttons & (1 << 5)),
+          moveleft: !!(msg.userCmd.buttons & (1 << 9)),
+          moveright: !!(msg.userCmd.buttons & (1 << 10)),
+          attack2: !!(msg.userCmd.buttons & (1 << 11)),
+        };
       }
     }
 
