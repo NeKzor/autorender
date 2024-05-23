@@ -5,7 +5,7 @@
 
 // deno-lint-ignore-file no-window
 
-import 'https://esm.sh/v135/rvfc-polyfill@1.0.7/es2022/rvfc-polyfill.mjs'
+import 'https://esm.sh/v135/rvfc-polyfill@1.0.7/es2022/rvfc-polyfill.mjs';
 
 const minWidthBreakpoints = {
   md: 768,
@@ -621,8 +621,8 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       canvas.height = (btnSize + btnPadding) * 3;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-      const drawButton = (text, column, row, width, height, active) => {        
+
+      const drawButton = (text, column, row, width, height, active) => {
         ctx.fillStyle = active ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.5)';
         const rx = btnSize * column + btnPadding * column;
         const ry = btnSize * row + btnPadding * row;
@@ -640,8 +640,9 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
 
       if (shouldDraw.checked) {
         let tickData = {};
-        if (inputData[tick])
-          tickData = inputData[tick]
+        if (inputData[tick]) {
+          tickData = inputData[tick];
+        }
 
         drawButton('W', 2, 0, btnSize, btnSize, tickData.forward);
         drawButton('E', 3, 0, btnSize, btnSize, tickData.use);
