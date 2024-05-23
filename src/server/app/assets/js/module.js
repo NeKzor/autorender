@@ -5,6 +5,8 @@
 
 // deno-lint-ignore-file no-window
 
+import 'https://esm.sh/v135/rvfc-polyfill@1.0.7/es2022/rvfc-polyfill.mjs'
+
 const minWidthBreakpoints = {
   md: 768,
 };
@@ -495,38 +497,43 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       const ticks = Object.keys(inputData);
       const lastTick = ticks[ticks.length - 1];
       const offset = lastTick - lastFrame;
-      const tick = frame + offset;
+      const tick = frame + offset + 3;
 
       canvas.width = (btnSize + btnPadding) * 6;
       canvas.height = (btnSize + btnPadding) * 3;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-      const drawButton = (text, column, row, width, height) => {        
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      const drawButton = (text, column, row, width, height, active) => {        
+        ctx.fillStyle = active ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.5)';
         const rx = btnSize * column + btnPadding * column;
         const ry = btnSize * row + btnPadding * row;
         ctx.fillRect(rx, ry, width, height);
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 1)';
         ctx.font = '12px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
+        ctx.strokeText(text, rx + width / 2, ry + height / 2);
         ctx.fillText(text, rx + width / 2, ry + height / 2);
       };
 
       if (shouldDraw.checked) {
-        if (inputData[tick]) {
-          if (inputData[tick].forward) drawButton('W', 2, 0, btnSize, btnSize);
-          if (inputData[tick].use) drawButton('E', 3, 0, btnSize, btnSize);
-          if (inputData[tick].moveleft) drawButton('A', 1, 1, btnSize, btnSize);
-          if (inputData[tick].back) drawButton('S', 2, 1, btnSize, btnSize);
-          if (inputData[tick].moveright) drawButton('D', 3, 1, btnSize, btnSize);
-          if (inputData[tick].duck) drawButton('C', 0, 2, btnSize, btnSize);
-          if (inputData[tick].jump) drawButton('S', 1, 2, btnSize * 3, btnSize);
-          if (inputData[tick].attack) drawButton('L', 4, 2, btnSize, btnSize);
-          if (inputData[tick].attack2) drawButton('R', 5, 2, btnSize, btnSize);
-        }
+        let tickData = {};
+        if (inputData[tick])
+          tickData = inputData[tick]
+
+        drawButton('W', 2, 0, btnSize, btnSize, tickData.forward);
+        drawButton('E', 3, 0, btnSize, btnSize, tickData.use);
+        drawButton('A', 1, 1, btnSize, btnSize, tickData.moveleft);
+        drawButton('S', 2, 1, btnSize, btnSize, tickData.back);
+        drawButton('D', 3, 1, btnSize, btnSize, tickData.moveright);
+        drawButton('C', 0, 2, btnSize, btnSize, tickData.duck);
+        drawButton('S', 1, 2, btnSize * 3 + btnPadding * 2, btnSize, tickData.jump);
+        drawButton('L', 4, 2, btnSize, btnSize, tickData.attack);
+        drawButton('R', 5, 2, btnSize, btnSize, tickData.attack2);
       }
 
       video.requestVideoFrameCallback(drawInputs);
