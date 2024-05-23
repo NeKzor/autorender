@@ -21,6 +21,9 @@ const MEL_BOARD_INTEGRATION_START_DATE = '2024-05-12';
 const FAILED_RENDER_MIN_RETRY_MINUTES = 15;
 const FAILED_RENDER_MAX_RETRY_MINUTES = 60;
 
+// TODO: Remove this at some point
+const MAP_ID_ADVANCED_FAITH_PLATE = '36';
+
 installLogger('board');
 
 addEventListener('unhandledrejection', (ev) => {
@@ -51,7 +54,7 @@ const checkChangelogUpdates = async () => {
 
 const checkMelChangelogUpdates = async () => {
   const changelog = await getMelChangelog({
-    endRank: 1,
+    endRank: 3,
     maxDaysAgo: 1,
     banned: 0,
     pending: 0,
@@ -63,6 +66,10 @@ const checkMelChangelogUpdates = async () => {
 
   for (const entry of changelog) {
     if (entry.time_gained.slice(0, 10) < MEL_BOARD_INTEGRATION_START_DATE) {
+      continue;
+    }
+
+    if (entry.mapid === MAP_ID_ADVANCED_FAITH_PLATE) {
       continue;
     }
 
