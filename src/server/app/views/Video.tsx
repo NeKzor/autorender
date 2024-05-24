@@ -242,7 +242,7 @@ export const VideoView = () => {
               htmlFor='ihud-checkbox'
               className={tw`ml-2 text-sm font-medium text-gray-900 dark:text-gray-300`}
             >
-              Input HUD
+              Show inputs
             </label>
           </div>
           <div className={tw`mt-6 relative text-[20px]`}>
