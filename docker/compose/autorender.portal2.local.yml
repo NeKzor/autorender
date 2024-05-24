@@ -62,3 +62,4 @@ services:
       - ./docker/volumes/ssl:/ssl:r
       - ./docker/volumes/nginx:/etc/nginx/templates
       - ./docker/volumes/logs/nginx:/var/log/nginx:rw
+      - ./docker/volumes/storage:/storage:r

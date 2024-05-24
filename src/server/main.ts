@@ -2294,10 +2294,15 @@ if (!B2_ENABLED) {
         return;
       }
 
-      const filename = getVideoDownloadFilename(video);
+      const filename = encodeURIComponent(getVideoDownloadFilename(video));
+
+      if (Deno.env.get('SERVE_STORAGE_VIA_PROXY')) {
+        ctx.response.redirect(`/download/storage/videos/${video.video_id}?filename=${filename}`);
+        return;
+      }
 
       ctx.response.headers.set('Accept-Ranges', 'bytes');
-      ctx.response.headers.set('Content-Disposition', `filename="${encodeURIComponent(filename)}"`);
+      ctx.response.headers.set('Content-Disposition', `filename="${filename}"`);
       ctx.response.headers.set('Cache-Control', 'max-age=0, no-cache, no-store');
 
       await ctx.send({

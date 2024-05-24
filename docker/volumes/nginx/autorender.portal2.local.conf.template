@@ -51,4 +51,34 @@ server {
         proxy_buffering off;
         client_max_body_size 150M;
     }
+
+    root /storage;
+
+    location /storage/demos/ {
+        alias /storage/demos/;
+    }
+
+    location /storage/files/ {
+        types {
+            text/plain cfg;
+        }
+        alias /storage/files/;
+    }
+
+    location /storage/previews/ {
+        alias /storage/previews/;
+    }
+
+    location ~  ^/storage/thumbnails/[0-9A-Za-z_-]\{10\}[048AEIMQUYcgkosw]$ {
+        alias /storage/thumbnails/$1.webp;
+    }
+
+    location ~  ^/storage/thumbnails/[0-9A-Za-z_-]\{10\}[048AEIMQUYcgkosw]/small$ {
+        alias /storage/thumbnails/$1_sm.webp;
+    }
+
+    location ~ "^/download/storage/videos/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$" {
+        alias /storage/videos/$1.mp4;
+        add_header Content-Disposition 'attachment; filename="$arg_filename"';
+    }
 }

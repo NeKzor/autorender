@@ -62,6 +62,7 @@ services:
       - ./docker/volumes/ssl:/ssl:r
       - ./docker/volumes/nginx:/etc/nginx/templates
       - ./docker/volumes/logs/nginx:/var/log/nginx:rw
+      - ./docker/volumes/storage:/storage:r
   board-server:
     image: p2sr/mel-board:latest
     container_name: "board-server"
