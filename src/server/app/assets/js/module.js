@@ -600,16 +600,32 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       }
     });
 
+    const btnSize = 50;
+    const btnPadding = 2;
+    const fps = 60; // TODO: fetch this from video (60 should work for default autorender presets)
+
+    const shouldDraw = document.getElementById('ihud-checkbox');
+    const canvas = document.getElementById('inputs');
+    const ctx = canvas.getContext('2d');
+    const inputData = JSON.parse(document.querySelector('[x-input-data]').getAttribute('x-input-data'));
+
+    const drawButton = (text, column, row, width, height, active) => {
+      ctx.fillStyle = active ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.5)';
+      const rx = btnSize * column + btnPadding * column;
+      const ry = btnSize * row + btnPadding * row;
+      ctx.fillRect(rx, ry, width, height);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.strokeText(text, rx + width / 2, ry + height / 2);
+      ctx.fillText(text, rx + width / 2, ry + height / 2);
+    };
+
     const drawInputs = (_, metadata) => {
-      const btnSize = 50;
-      const btnPadding = 2;
-      const fps = 60; // TODO: fetch this from video (60 should work for default autorender presets)
-
-      const shouldDraw = document.getElementById('ihud-checkbox');
-      const canvas = document.getElementById('inputs');
-      const ctx = canvas.getContext('2d');
-      const inputData = JSON.parse(document.querySelector('[x-input-data]').getAttribute('x-input-data'));
-
       const frame = Math.round(metadata.mediaTime * fps);
       const lastFrame = Math.round(video.duration * fps);
       const ticks = Object.keys(inputData);
@@ -621,22 +637,6 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       canvas.height = (btnSize + btnPadding) * 3;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const drawButton = (text, column, row, width, height, active) => {
-        ctx.fillStyle = active ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.5)';
-        const rx = btnSize * column + btnPadding * column;
-        const ry = btnSize * row + btnPadding * row;
-        ctx.fillRect(rx, ry, width, height);
-
-        ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-        ctx.font = '12px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.lineWidth = 2;
-        ctx.lineJoin = 'round';
-        ctx.strokeText(text, rx + width / 2, ry + height / 2);
-        ctx.fillText(text, rx + width / 2, ry + height / 2);
-      };
 
       if (shouldDraw.checked) {
         let tickData = {};
