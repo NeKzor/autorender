@@ -144,6 +144,7 @@ const search = {
   open: null,
   close: null,
   input: null,
+  keydown: null,
   clear: null,
   shortcut: null,
 };
@@ -192,18 +193,21 @@ if (
     loginButton?.classList?.remove('hidden');
   };
 
-  /** @param {KeyboardEvent} ev */
   search.input = (ev) => {
-    const value = ev.target.value ?? '';
+    if ((ev.target.value ?? '').length) {
+      navSearchInputClearButton.classList.remove('hidden');
+    } else {
+      navSearchInputClearButton.classList.add('hidden');
+    }
+  };
 
+  /** @param {KeyboardEvent} ev */
+  search.keydown = (ev) => {
+    const value = ev.target.value ?? '';
     if (value.length) {
       if (ev.key === 'Enter') {
         location.href = `/search?q=${encodeURIComponent(value)}`;
       }
-
-      navSearchInputClearButton.classList.remove('hidden');
-    } else {
-      navSearchInputClearButton.classList.add('hidden');
     }
   };
 
@@ -228,7 +232,8 @@ if (
 
   navSearchButton.addEventListener('click', () => search.open({ focus: true }));
   navSearchInput.addEventListener('focusout', () => search.close());
-  navSearchInput.addEventListener('keydown', search.input);
+  navSearchInput.addEventListener('input', search.input);
+  navSearchInput.addEventListener('keydown', search.keydown);
   navBackButton.addEventListener('click', () => search.close({ force: true }));
   navSearchInputClearButton.addEventListener('click', () => search.clear());
   document.addEventListener('keydown', search.shortcut);
