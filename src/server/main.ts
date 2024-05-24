@@ -538,13 +538,11 @@ apiV1
       `update videos
           set pending = ?
          where video_id = UUID_TO_BIN(?)
-           and rendered_by_token = ?
-           and pending = ?`,
+           and rendered_by_token = ?`,
       [
         PendingStatus.UploadingRender,
         data.fields.video_id,
         accessToken.access_token_id,
-        PendingStatus.StartedRender,
       ],
     );
 
