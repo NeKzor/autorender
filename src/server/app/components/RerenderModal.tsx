@@ -16,7 +16,7 @@ const RerenderModal = ({ isCoop }: { isCoop: boolean }) => {
       className={tw`hidden flex fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full`}
     >
       <div className={tw`relative w-full max-w-sm max-h-full`}>
-        <div className={tw`relative bg-white rounded-lg shadow dark:bg-gray-700`}>
+        <div className={tw`relative bg-white rounded-lg shadow dark:bg-gray-800`}>
           <button
             id='rerender-modal-close-button'
             type='button'

@@ -144,8 +144,8 @@ export const Status = () => {
   const { tokens, queuedVideos, failedAutorenderVideos } = useLoaderData<Data>();
 
   return (
-    <div className={tw`sm:flex justify-center`}>
-      <div className={tw`md:w-[75%] lg:w-[50%]`}>
+    <div className={tw`sm:flex`}>
+      <div className={tw`md:w-[75%]`}>
         <h2 className={tw`text-2xl mb-6`}>
           Status
         </h2>

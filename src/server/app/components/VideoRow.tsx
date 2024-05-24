@@ -69,9 +69,9 @@ const RequestedBy = ({ video }: { video: VideoRowData }) => {
 export const VideoRow = ({ video }: { video: VideoRowData }) => {
   return (
     <div
-      className={tw`w-full pl-4 pt-4 pb-4 pr-2 rounded shadow bg-white dark:bg-gray-900 dark:text-white`}
+      className={tw`w-full pl-4 pr-2 rounded bg-white dark:bg-gray-900 dark:text-white`}
     >
-      <div className={tw`rounded-xl shadow-sm overflow-hidden`}>
+      <div className={tw`rounded-xl overflow-hidden`}>
         <div className={tw`sm:flex`}>
           <div className={tw`sm:shrink-0`}>
             <a href={`/videos/${video.share_id}`} aria-label='Go to video'>
@@ -163,7 +163,7 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
                     aria-label='Open video menu'
                     data-dropdown-toggle={`video-menu-dropdown-${video.share_id}`}
                     type='button'
-                    className={tw`mx-2 hover:text-white focus:outline-none font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:border-gray-500 dark:text-gray-500 dark:hover:text-white dark:focus:ring-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700`}
+                    className={tw`mx-2 hover:text-white focus:outline-none font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center dark:text-gray-500 dark:hover:text-white dark:focus:ring-gray-800`}
                   >
                     <svg
                       className={tw`w-3 h-3 text-gray-800 dark:text-white`}
@@ -177,7 +177,7 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
                   </button>
                   <div
                     id={`video-menu-dropdown-${video.share_id}`}
-                    className={tw`z-10 hidden text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700`}
+                    className={tw`z-10 hidden text-base list-none bg-white divide-y divide-gray-100 rounded-lg w-44 dark:bg-gray-800`}
                   >
                     <ul className={tw`py-2`} aria-labelledby='video-menu-button'>
                       <li>
@@ -185,7 +185,7 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
                           data-modal-target='share-modal'
                           data-modal-toggle='share-modal'
                           id={`video-share-button-${video.share_id}`}
-                          className={tw`video-share-button block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white cursor-pointer`}
+                          className={tw`video-share-button block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200 dark:hover:text-white cursor-pointer`}
                         >
                           Share
                         </div>

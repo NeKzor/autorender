@@ -9,7 +9,7 @@ import { tw } from 'twind';
 import { AppDispatchContext, AppState, AppStateContext, reducer } from './AppState.ts';
 import { RouteMeta } from './Routes.ts';
 import Navbar from './components/Navbar.tsx';
-import Footer from './components/Footer.tsx';
+import Sidebar from './components/Sidebar.tsx';
 
 const metaNames: (keyof RouteMeta)[] = [
   'title',
@@ -105,10 +105,10 @@ export const Body = ({ initialState, children }: BodyProps) => {
       <AppDispatchContext.Provider value={dispatch}>
         <div className={tw`flex flex-col h-screen`}>
           <Navbar />
-          <main className={tw`mt-[88px] m-4 grow`}>
+          <Sidebar queued={state.clients.length} />
+          <main className={tw`pr-4 mt-[70px] sm:ml-64 grow`}>
             {children}
           </main>
-          <Footer />
         </div>
       </AppDispatchContext.Provider>
     </AppStateContext.Provider>

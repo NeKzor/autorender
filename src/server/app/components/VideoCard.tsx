@@ -30,10 +30,10 @@ type VideoCardData =
 
 export const VideoCard = ({ video }: { video: VideoCardData }) => {
   return (
-    <div
-      className={tw`p-4 rounded shadow bg-white dark:bg-gray-900 dark:text-white max-w-[378px]`}
-    >
-      <a href={`/videos/${video.share_id}`}>
+    <a href={`/videos/${video.share_id}`}>
+      <div
+        className={tw`p-4 rounded-[12px] cursor-pointer transform transition duration-300 hover:bg-gray-200 dark:hover:bg-gray-800 dark:bg-gray-900 dark:text-white max-w-[378px]`}
+      >
         <div
           className={tw`relative flex items-center justify-center h-48 mb-4${
             video.thumbnail_url_small ? '' : ' bg-gray-300 dark:bg-gray-700 rounded-[12px]'
@@ -111,7 +111,7 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
             </div>
           </div>
         </div>
-      </a>
-    </div>
+      </div>
+    </a>
   );
 };

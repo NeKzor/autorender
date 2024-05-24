@@ -72,7 +72,7 @@ export const index = (
     : '';
 
   const headTag = `<head>${head}${styleTag}${themeScriptTag}${moduleScriptTag}${hotReloadScriptTag}</head>`;
-  const bodyTag = `<body class="bg-gray-100 dark:bg-gray-800 dark:text-white">${body}</body>`;
+  const bodyTag = `<body class="dark:bg-gray-900 dark:text-white">${body}</body>`;
 
   return `<!DOCTYPE html><html lang='en' dir='ltr' class="dark">${headTag}${bodyTag}</html>`;
 };

@@ -9,16 +9,10 @@ import { tw } from 'twind';
 
 const Footer = () => {
   return (
-    <footer className={tw`bg-white shadow dark:bg-gray-900`}>
+    <footer className={tw`fixed floating bottom-0 left-0 z-50 w-full bg-white dark:bg-gray-900`}>
       <div className={tw`w-full mx-auto max-w-screen-xl p-4 flex items-center justify-between`}>
-        <span className={tw`text-sm text-gray-500 text-center dark:text-gray-400`}>
-          © 2024{' '}
-          <a href='https://github.com/NeKzor' className={tw`hover:underline`}>
-            NeKz
-          </a>
-        </span>
         <ul
-          className={tw`flex flex-wrap items-center mb-6 gap-6 text-sm font-medium text-gray-500 mb-0 dark:text-gray-400`}
+          className={tw`flex flex-wrap items-center gap-2 text-sm font-medium text-gray-500 mb-0 dark:text-gray-400`}
         >
           <li>
             <a href='https://discord.gg/p2sr' target='_blank' className={tw`hover:underline`}>
@@ -26,8 +20,13 @@ const Footer = () => {
             </a>
           </li>
           <li>
+            <a href='https://github.com/NeKzor/autorender' target='_blank' className={tw`hover:underline`}>
+              GitHub
+            </a>
+          </li>
+          <li>
             <a href='/privacy' target='_blank' className={tw`hover:underline`}>
-              Privacy Policy
+              Privacy
             </a>
           </li>
           <li>
@@ -36,20 +35,18 @@ const Footer = () => {
               target='_blank'
               className={tw`hover:underline`}
             >
-              Report Issue
-            </a>
-          </li>
-          <li>
-            <a href='https://github.com/NeKzor/autorender' target='_blank' className={tw`hover:underline`}>
-              Source Code
-            </a>
-          </li>
-          <li>
-            <a href='/status' className={tw`hover:underline`}>
-              Status
+              Report
             </a>
           </li>
         </ul>
+      </div>
+      <div className={tw`w-full mx-auto max-w-screen-xl p-4 pt-0 flex items-center justify-between`}>
+        <span className={tw`text-sm text-gray-500 text-center dark:text-gray-400`}>
+          © 2024{' '}
+          <a href='https://github.com/NeKzor' className={tw`hover:underline`}>
+            NeKz
+          </a>
+        </span>
       </div>
     </footer>
   );

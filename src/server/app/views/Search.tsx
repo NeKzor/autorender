@@ -277,7 +277,7 @@ export const Search = () => {
 
   return (
     <>
-      <div className={tw`lg:flex lg:justify-center md:w-full`}>
+      <div className={tw`lg:flex lg:justify-center md:w-full pb-4`}>
         <div>
           <div
             className={tw`grid grid-cols gap-4`}

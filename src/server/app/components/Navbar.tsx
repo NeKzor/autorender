@@ -15,11 +15,30 @@ const Navbar = () => {
 
   return (
     <nav
-      className={tw`bg-white dark:bg-gray-900 fixed w-full z-20 top-0 left-0`}
+      className={tw`bg-white opacity-95 dark:bg-gray-900 fixed w-full z-50 top-0 left-0 pr-[16px]`}
     >
-      <div className={tw`max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4`}>
+      <div className={tw`flex flex-wrap items-center justify-between mx-auto p-2`}>
         <div id='nav-items-left' className={tw`flex items-center`}>
-          <a href='/' aria-label='Go to home'>
+          <button
+            id='nav-sidebar'
+            aria-label='Sidebar'
+            type='button'
+            aria-expanded='false'
+            className={tw`text-gray-500 dark:text-gray-400 rounded-lg text-sm p-2.5 mr-4`}
+          >
+            <svg
+              className={tw`w-6 h-6 text-gray-800 dark:text-white`}
+              aria-hidden='true'
+              xmlns='http://www.w3.org/2000/svg'
+              width='24'
+              height='24'
+              fill='none'
+              viewBox='0 0 24 24'
+            >
+              <path stroke='currentColor' stroke-linecap='round' stroke-width='2' d='M5 7h14M5 12h14M5 17h14' />
+            </svg>
+          </button>
+          <a href='/' aria-label='Go to home' className={tw`hover:animate-spin`}>
             <img
               src='/storage/files/autorender_logo.webp'
               alt='Autorender logo'
@@ -80,7 +99,7 @@ const Navbar = () => {
             <input
               type='text'
               id='nav-search-input'
-              className={tw`block w-full p-2 pl-10 md:min-w-[300px] lg:min-w-[400px] text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500`}
+              className={tw`block w-full p-2 pl-10 md:min-w-[300px] lg:min-w-[400px] text-sm text-gray-900 border-1 border-gray-300 rounded-[12px] focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-900 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500`}
               placeholder='Search'
               value={searchValue}
               autoComplete='off'
@@ -136,7 +155,7 @@ const Navbar = () => {
             id='theme-toggle-button'
             aria-label='Toggle theme'
             type='button'
-            className={tw`text-gray-500 inline-flex items-center justify-center dark:text-gray-400 hover:bg-gray-100 w-10 h-10 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-4`}
+            className={tw`z-100 text-gray-500 inline-flex items-center justify-center dark:text-gray-400 hover:bg-gray-100 w-10 h-10 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-4`}
             data-tooltip-target='theme-toggle-button-tooltip'
           >
             <svg
@@ -192,9 +211,11 @@ const Navbar = () => {
                 >
                   <div className={tw`px-4 py-3`}>
                     <span className={tw`block text-sm text-gray-900 dark:text-white`}>{state.user.username}</span>
-                    <span className={tw`block text-sm text-gray-500 truncate dark:text-gray-400`}>
+                    {
+                      /* <span className={tw`block text-sm text-gray-500 truncate dark:text-gray-400`}>
                       {state.user.username}
-                    </span>
+                    </span> */
+                    }
                   </div>
                   <ul className={tw`py-2`} aria-labelledby='user-menu-button'>
                     <li>

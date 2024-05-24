@@ -151,7 +151,7 @@ export const VideoView = () => {
 
   return (
     <>
-      <div className={tw`xl:flex items-center justify-center`}>
+      <div className={tw`xl:flex`}>
         <div className={tw`xl:w-[1280px]`}>
           {!hasVideo &&
             data.pending === PendingStatus.FinishedRender && (
@@ -202,7 +202,7 @@ export const VideoView = () => {
           )}
           {hasVideo && (
             <>
-              <div className={tw`h-[56.25vw] xl:h-[${videoHeight}px]`}>
+              <div className={tw`rounded-[12px] h-[56.25vw] xl:h-[${videoHeight}px]`}>
                 <video
                   className={tw`absolute`}
                   controls
@@ -260,183 +260,7 @@ export const VideoView = () => {
               <span className={tw`break-words`}>{data.title}</span>
             </div>
           </div>
-          <br />
-          {(data.board_changelog_id !== null || data.workshop_file_id !== null) && (
-            <div>
-              Map:{' '}
-              <a
-                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                href={data.board_changelog_id !== null
-                  ? `https://${data.board_source_domain}/chamber/${data.best_time_id}`
-                  : `https://steamcommunity.com/workshop/filedetails/?id=${data.workshop_file_id}`}
-                target='_blank'
-              >
-                {data.alias}
-              </a>
-            </div>
-          )}
-          {data.demo_steam_id !== null && (
-            <div>
-              Player:{' '}
-              <a
-                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                href={data.board_changelog_id !== null
-                  ? `https://${data.board_source_domain}/profile/${data.demo_steam_id}`
-                  : `https://steamcommunity.com/profiles/${data.demo_steam_id}`}
-                target='_blank'
-              >
-                {data.demo_player_name}
-              </a>
-            </div>
-          )}
-          {data.demo_partner_steam_id !== null && (
-            <div>
-              Partner:{' '}
-              <a
-                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                href={data.board_changelog_id !== null
-                  ? `https://${data.board_source_domain}/profile/${data.demo_partner_steam_id}`
-                  : `https://steamcommunity.com/profiles/${data.demo_partner_steam_id}`}
-                target='_blank'
-              >
-                {data.demo_partner_player_name}
-              </a>
-            </div>
-          )}
-          {data.demo_time_score !== null && (
-            <div>
-              Time: {data.board_changelog_id
-                ? (
-                  <a
-                    className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                    href={`https://${data.board_source_domain}/changelog?id=${data.board_changelog_id}`}
-                    target='_blank'
-                  >
-                    {formatCmTime(data.demo_time_score)}
-                  </a>
-                )
-                : <>{formatCmTime(data.demo_time_score)}</>}
-            </div>
-          )}
-          {data.demo_time_score === null && data.board_changelog_id && (
-            <div>
-              <a
-                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                href={`https://${data.board_source_domain}/changelog?id=${data.board_changelog_id}`}
-                target='_blank'
-              >
-                View Changelog
-              </a>
-            </div>
-          )}
-          {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
-          <br />
-          {data.comment?.length ? <div className={tw`break-words`}>Comment: {data.comment}</div> : (
-            <div>
-              Comment: <i>No comment</i>
-            </div>
-          )}
-          <br />
-          <div>Quality: {data.render_quality}</div>
-          <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
-          {data.requested_by_username !== null && (
-            <div>
-              Requested by: {data.requested_by_username
-                ? (
-                  <a
-                    className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                    href={`/profile/${data.requested_by_username}`}
-                  >
-                    {data.requested_by_username}
-                  </a>
-                )
-                : <>{data.requested_by_name}</>}
-            </div>
-          )}
-          {data.requested_in_channel_name && (
-            <div>
-              Requested in: {data.requested_in_guild_name}#
-              {data.requested_in_channel_name}
-            </div>
-          )}
-          {(data.render_options?.length ?? 0) !== 0 && <div>Render options: {data.render_options}</div>}
-          {!!data.render_time && <div>Render time: {formatRenderTime(data)}</div>}
-          {(data.rendered_by_username || data.render_node) && (
-            <div>
-              Render node: {data.rendered_by_username !== null
-                ? (
-                  <a
-                    className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                    href={`/profile/${data.rendered_by_username}`}
-                  >
-                    {data.render_node}@{data.rendered_by_username}
-                  </a>
-                )
-                : <>{data.render_node}</>}
-            </div>
-          )}
-          {metadata.timestamp !== null && (
-            <div className={tw`mt-4 mb-4`}>Timestamp: {formatTimestamp(metadata.timestamp)}</div>
-          )}
-          {(metadata.segments?.length ?? 0) > 0 && (
-            <>
-              <div className={tw`relative overflow-x-auto`}>
-                <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
-                  <thead
-                    className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
-                  >
-                    <tr>
-                      <th scope='col' className={tw`px-6 py-3`}>
-                        Segment
-                      </th>
-                      <th scope='col' className={tw`px-6 py-3 text-right`}>
-                        Seconds
-                      </th>
-                      <th scope='col' className={tw`px-6 py-3 text-right`}>
-                        Ticks
-                      </th>
-                      <th scope='col' className={tw`px-6 py-3 text-right`}>
-                        Total Seconds
-                      </th>
-                      <th scope='col' className={tw`px-6 py-3 text-right`}>
-                        Total Ticks
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {metadata.segments!.map((segment, index, segments) => {
-                      const totalTicks = segments
-                        .slice(0, index + 1)
-                        .reduce((total, segment) => (total += segment.ticks), 0);
-                      return (
-                        <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
-                          <th
-                            scope='row'
-                            className={tw`px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white`}
-                          >
-                            {segment.name}
-                          </th>
-                          <td className={tw`px-6 py-4 text-right`}>
-                            {formatToSeconds(segment.ticks, data)}
-                          </td>
-                          <td className={tw`px-6 py-4 text-right`}>
-                            {segment.ticks}
-                          </td>
-                          <td className={tw`px-6 py-4 text-right`}>
-                            {formatToSeconds(totalTicks, data)}
-                          </td>
-                          <td className={tw`px-6 py-4 text-right`}>
-                            {totalTicks}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-          <div className={tw`mt-6 flex gap-2`}>
+          <div className={tw`my-6 flex gap-2 float-right`}>
             {data.demo_required_fix === FixedDemoStatus.Required && (
               <>
                 <div>
@@ -550,7 +374,7 @@ export const VideoView = () => {
                   className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                 >
                   <svg
-                    className={tw`w-4 h-4 text-gray-800 dark:text-white`}
+                    className={tw`w-4 h-4 text-white dark:text-white`}
                     aria-hidden='true'
                     xmlns='http://www.w3.org/2000/svg'
                     fill='none'
@@ -597,6 +421,184 @@ export const VideoView = () => {
               </div>
             )}
           </div>
+          <br />
+          {(data.board_changelog_id !== null || data.workshop_file_id !== null) && (
+            <div>
+              Map:{' '}
+              <a
+                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                href={data.board_changelog_id !== null
+                  ? `https://${data.board_source_domain}/chamber/${data.best_time_id}`
+                  : `https://steamcommunity.com/workshop/filedetails/?id=${data.workshop_file_id}`}
+                target='_blank'
+              >
+                {data.alias}
+              </a>
+            </div>
+          )}
+          {data.demo_steam_id !== null && (
+            <div>
+              Player:{' '}
+              <a
+                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                href={data.board_changelog_id !== null
+                  ? `https://${data.board_source_domain}/profile/${data.demo_steam_id}`
+                  : `https://steamcommunity.com/profiles/${data.demo_steam_id}`}
+                target='_blank'
+              >
+                {data.demo_player_name}
+              </a>
+            </div>
+          )}
+          {data.demo_partner_steam_id !== null && (
+            <div>
+              Partner:{' '}
+              <a
+                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                href={data.board_changelog_id !== null
+                  ? `https://${data.board_source_domain}/profile/${data.demo_partner_steam_id}`
+                  : `https://steamcommunity.com/profiles/${data.demo_partner_steam_id}`}
+                target='_blank'
+              >
+                {data.demo_partner_player_name}
+              </a>
+            </div>
+          )}
+          {data.demo_time_score !== null && (
+            <div>
+              Time: {data.board_changelog_id
+                ? (
+                  <a
+                    className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                    href={`https://${data.board_source_domain}/changelog?id=${data.board_changelog_id}`}
+                    target='_blank'
+                  >
+                    {formatCmTime(data.demo_time_score)}
+                  </a>
+                )
+                : <>{formatCmTime(data.demo_time_score)}</>}
+            </div>
+          )}
+          {data.demo_time_score === null && data.board_changelog_id && (
+            <div>
+              <a
+                className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                href={`https://${data.board_source_domain}/changelog?id=${data.board_changelog_id}`}
+                target='_blank'
+              >
+                View Changelog
+              </a>
+            </div>
+          )}
+          {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
+          <br />
+          {
+            /* {data.comment?.length ? <div className={tw`break-words`}>Comment: {data.comment}</div> : (
+            <div>
+              Comment: <i>No comment</i>
+            </div>
+          )}
+          <br />
+          <div>Quality: {data.render_quality}</div>
+          <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
+          {data.requested_by_username !== null && (
+            <div>
+              Requested by: {data.requested_by_username
+                ? (
+                  <a
+                    className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                    href={`/profile/${data.requested_by_username}`}
+                  >
+                    {data.requested_by_username}
+                  </a>
+                )
+                : <>{data.requested_by_name}</>}
+            </div>
+          )}
+          {data.requested_in_channel_name && (
+            <div>
+              Requested in: {data.requested_in_guild_name}#
+              {data.requested_in_channel_name}
+            </div>
+          )}
+          {(data.render_options?.length ?? 0) !== 0 && <div>Render options: {data.render_options}</div>}
+          {!!data.render_time && <div>Render time: {formatRenderTime(data)}</div>}
+          {(data.rendered_by_username || data.render_node) && (
+            <div>
+              Render node: {data.rendered_by_username !== null
+                ? (
+                  <a
+                    className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                    href={`/profile/${data.rendered_by_username}`}
+                  >
+                    {data.render_node}@{data.rendered_by_username}
+                  </a>
+                )
+                : <>{data.render_node}</>}
+            </div>
+          )} */
+          }
+          {metadata.timestamp !== null && (
+            <div className={tw`my-4`}>Timestamp: {formatTimestamp(metadata.timestamp)}</div>
+          )}
+          {(metadata.segments?.length ?? 0) > 0 && (
+            <>
+              <div className={tw`mb-4 relative overflow-x-auto`}>
+                <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
+                  <thead
+                    className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
+                  >
+                    <tr>
+                      <th scope='col' className={tw`px-6 py-3`}>
+                        Segment
+                      </th>
+                      <th scope='col' className={tw`px-6 py-3 text-right`}>
+                        Seconds
+                      </th>
+                      <th scope='col' className={tw`px-6 py-3 text-right`}>
+                        Ticks
+                      </th>
+                      <th scope='col' className={tw`px-6 py-3 text-right`}>
+                        Total Seconds
+                      </th>
+                      <th scope='col' className={tw`px-6 py-3 text-right`}>
+                        Total Ticks
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {metadata.segments!.map((segment, index, segments) => {
+                      const totalTicks = segments
+                        .slice(0, index + 1)
+                        .reduce((total, segment) => (total += segment.ticks), 0);
+                      return (
+                        <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
+                          <th
+                            scope='row'
+                            className={tw`px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white`}
+                          >
+                            {segment.name}
+                          </th>
+                          <td className={tw`px-6 py-4 text-right`}>
+                            {formatToSeconds(segment.ticks, data)}
+                          </td>
+                          <td className={tw`px-6 py-4 text-right`}>
+                            {segment.ticks}
+                          </td>
+                          <td className={tw`px-6 py-4 text-right`}>
+                            {formatToSeconds(totalTicks, data)}
+                          </td>
+                          <td className={tw`px-6 py-4 text-right`}>
+                            {totalTicks}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       </div>
       {hasVideo && <ShareModal />}
