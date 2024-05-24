@@ -223,6 +223,7 @@ const downloadRemoteFiles = async () => {
   await downloadFromRepository('docker/volumes/initdb/_populate.sql', 'initdb/_populate.sql');
   await downloadFromRepository('deno.json', 'deno.json');
   await downloadFromRepository('deno.lock', 'deno.lock');
+  await downloadFromRepository('backup.ts', 'backup.ts');
 };
 
 /**
