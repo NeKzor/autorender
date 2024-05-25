@@ -93,6 +93,8 @@ const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
 const AUTORENDER_MAX_DEMO_FILE_SIZE = Number(Deno.env.get('AUTORENDER_MAX_DEMO_FILE_SIZE')) * 1_000_000;
 const AUTORENDER_MAX_VIDEO_FILE_SIZE = Number(Deno.env.get('AUTORENDER_MAX_VIDEO_FILE_SIZE')) * 1_000_000;
 const DISCORD_BOARD_INTEGRATION_WEBHOOK_URL = Deno.env.get('DISCORD_BOARD_INTEGRATION_WEBHOOK_URL')!;
+const BOARD_DOMAIN = Deno.env.get('BOARD_DOMAIN')!;
+const BOARD_API_TOKEN = Deno.env.get('BOARD_API_TOKEN')!;
 const MEL_BOARD_DOMAIN = Deno.env.get('MEL_BOARD_DOMAIN')!;
 const MEL_BOARD_API_TOKEN = Deno.env.get('MEL_BOARD_API_TOKEN')!;
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
@@ -628,13 +630,26 @@ apiV1
       }
 
       try {
-        if (video.board_changelog_id && video.board_source === BoardSource.Mel && MEL_BOARD_API_TOKEN !== 'none') {
-          logger.info(`Sending autorender to ${MEL_BOARD_DOMAIN}`, video.share_id);
+        const boards: Record<number, { domain: string; token: string }> = {
+          [BoardSource.Portal2]: {
+            domain: BOARD_DOMAIN,
+            token: BOARD_API_TOKEN,
+          },
+          [BoardSource.Mel]: {
+            domain: MEL_BOARD_DOMAIN,
+            token: MEL_BOARD_API_TOKEN,
+          },
+        };
 
-          const res = await fetch(`https://${MEL_BOARD_DOMAIN}/api-v3/set-autorender`, {
+        const board = boards[video.board_source];
+
+        if (video.board_changelog_id && board && board.token !== 'none') {
+          logger.info(`Sending autorender to ${board.domain}`, video.share_id);
+
+          const res = await fetch(`https://${board.domain}/api-v3/set-autorender`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${MEL_BOARD_API_TOKEN}`,
+              'Authorization': `Bearer ${board.token}`,
               'Content-Type': 'application/json',
               'User-Agent': Deno.env.get('USER_AGENT')!,
             },
@@ -644,11 +659,11 @@ apiV1
             }),
           });
 
-          logger.info(`Sent autorender to ${MEL_BOARD_DOMAIN} for`, video.video_id, ':', res.statusText);
+          logger.info(`Sent autorender to ${board.domain} for`, video.video_id, ':', res.statusText);
 
           if (!res.ok) {
             logger.error(
-              `Failed to send autorender to ${MEL_BOARD_DOMAIN} for video`,
+              `Failed to send autorender to ${board.domain} for video`,
               video.video_id,
               ':',
               await res.text(),
