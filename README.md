@@ -23,7 +23,7 @@ Render Portal 2 demos on-demand with: `/render demo <file>`
 - [Production](#production)
   - [Server](#server)
   - [Clients](#clients)
-  - [Proxy Example with Nginx + Certbot](#proxy-example-with-nginx--certbot)
+  - [Reverse Proxy](#reverse-proxy)
 - [Caveats](#caveats)
 - [Credits](#credits)
 - [License](#license)
@@ -313,79 +313,10 @@ When deploying make sure that clients have checked the following:
 - Network connection is stable
 - There is nothing else that could interrupt the client
 
-### Proxy Example with Nginx + Certbot
+### Reverse Proxy
 
-<details>
-<summary>View autorender.nekz.me.conf</summary>
-
-```
-server {
-    listen 80;
-    server_name autorender.nekz.me;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name autorender.nekz.me;
-
-    ssl_certificate /etc/letsencrypt/live/autorender.nekz.me/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/autorender.nekz.me/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-
-    location / {
-        proxy_pass http://127.0.0.1:8834$request_uri;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_buffering off;
-	      client_max_body_size 150M;
-    }
-
-    location /connect/client {
-        proxy_pass http://127.0.0.1:8834$request_uri;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "Upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_buffering off;
-        proxy_read_timeout 1800s;
-        proxy_send_timeout 1800s;
-    }
-
-    location /api/v1/videos/upload {
-        proxy_pass http://127.0.0.1:8834$request_uri;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_send_timeout 300s;
-        proxy_read_timeout 300s;
-        proxy_buffering off;
-        client_max_body_size 150M;
-    }
-
-    location /storage/videos {
-        proxy_pass http://127.0.0.1:8834$request_uri;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_send_timeout 300s;
-        proxy_read_timeout 300s;
-        proxy_buffering off;
-        proxy_force_ranges on;
-        client_max_body_size 150M;
-    }
-}
-```
-
-</details>
+- [With Nginx](/docker/volumes/nginx/autorender.portal2.local.conf.template) (Note: template file)
+- [With lighttpd](/docker/volumes/nginx/autorender.portal2.local.conf.template)
 
 ## Caveats
 

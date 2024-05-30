@@ -26,10 +26,11 @@ export const validateShareId = (shareId: string) => {
   return /^[0-9A-Za-z_-]{10}[048AEIMQUYcgkosw]$/.test(shareId);
 };
 
-export const getDemoFilePath = (videoId: string) => join(Storage.Demos, `${videoId}.dem`);
-export const getFixedDemoFilePath = (videoId: string) => join(Storage.Demos, `${videoId}_fixed.dem`);
+export const getDemoFilePath = (video: Pick<Video, 'share_id'>) => join(Storage.Demos, `${video.share_id}.dem`);
+export const getFixedDemoFilePath = (video: Pick<Video, 'share_id'>) =>
+  join(Storage.Demos, `${video.share_id}_fixed.dem`);
 export const getStorageFilePath = (filename: string) => join(Storage.Files, filename);
-export const getVideoFilePath = (videoId: string) => join(Storage.Videos, `${videoId}.mp4`);
+export const getVideoFilePath = (video: Pick<Video, 'share_id'>) => join(Storage.Videos, `${video.share_id}.mp4`);
 export const getVideoDownloadFilename = (video: Pick<Video, 'title' | 'file_name'>) =>
   video.title === video.file_name ? `${video.file_name} Video.mp4` : `${video.title}.mp4`;
 export const getVideoThumbnailPath = (video: Pick<Video, 'share_id'>) =>

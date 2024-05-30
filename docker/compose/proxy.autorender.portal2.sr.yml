@@ -1,0 +1,61 @@
+version: "3.8"
+services:
+  server:
+    image: "${PROJECT_NAME}-server"
+    build:
+      context: .
+      target: server
+    container_name: "${PROJECT_NAME}-server"
+    restart: always
+    links:
+      - database:autorender.database
+    volumes:
+      - ./docker/volumes/logs/server:/logs/server:rw
+      - ./docker/volumes/storage:/storage:rw
+      - ./docker/volumes/.env.server:/app/.env:rw
+      - ./docker/volumes/entrypoint.server.sh:/app/entrypoint.sh:rw
+      - ./src/server:/app:rw
+      - ./src/shared:/shared:rw
+  bot:
+    image: "${PROJECT_NAME}-bot"
+    build:
+      context: .
+      target: bot
+    container_name: "${PROJECT_NAME}-bot"
+    restart: always
+    links:
+      - server:autorender.server
+    volumes:
+      - ./docker/volumes/logs/bot:/logs/bot:rw
+      - ./docker/volumes/kv:/kv:rw
+      - ./docker/volumes/.env.bot:/app/.env:rw
+      - ./docker/volumes/entrypoint.bot.sh:/app/entrypoint.sh:rw
+      - ./src/bot:/app:rw
+      - ./src/shared:/shared:rw
+  database:
+    image: mariadb:11
+    container_name: "${PROJECT_NAME}-db"
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${DATABASE_PORT}:${DATABASE_PORT}"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MYSQL_TCP_PORT: ${DATABASE_PORT}
+    volumes:
+      - ./docker/volumes/initdb:/docker-entrypoint-initdb.d
+      - ./docker/volumes/mysql:/var/lib/mysql
+      - ./docker/volumes/backups:/backups
+  proxy:
+    image: rtsp/lighttpd:1.4.59
+    container_name: "${PROJECT_NAME}-proxy-prod"
+    links:
+      - server:autorender.server
+    ports:
+      - 443:443
+    volumes:
+      - ./docker/volumes/lighttpd/autorender.portal2.local.conf:/etc/lighttpd/lighttpd.conf
+      - ./docker/volumes/storage:/mnt/autorender-content/storage:r
+      - ./docker/volumes/ssl:/ssl

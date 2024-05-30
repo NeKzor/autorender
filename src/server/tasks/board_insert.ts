@@ -77,7 +77,7 @@ export const insertVideo = async (boardSource: BoardSource, entry: ChangelogEntr
     const videoId = uuid.v1.generate() as string;
     const shareId = generateShareId();
 
-    filePath = getDemoFilePath(videoId);
+    filePath = getDemoFilePath({ share_id: shareId });
 
     using demoFile = await Deno.open(filePath, { write: true, create: true });
     await demo.body?.pipeTo(demoFile.writable);
@@ -93,7 +93,7 @@ export const insertVideo = async (boardSource: BoardSource, entry: ChangelogEntr
     }
 
     if (demoInfo.useFixedDemo) {
-      fixedFilePath = getFixedDemoFilePath(videoId);
+      fixedFilePath = getFixedDemoFilePath({ share_id: shareId });
     }
 
     if (demoInfo.isWorkshopMap && !demoInfo.workshopInfo?.fileUrl) {

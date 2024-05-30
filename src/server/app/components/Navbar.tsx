@@ -21,7 +21,7 @@ const Navbar = () => {
         <div id='nav-items-left' className={tw`flex items-center`}>
           <a href='/' aria-label='Go to home'>
             <img
-              src='/assets/images/autorender_logo.webp'
+              src='/storage/files/autorender_logo.webp'
               alt='Autorender logo'
               height='30px'
               width='30px'

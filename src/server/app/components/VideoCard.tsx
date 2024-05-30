@@ -86,7 +86,7 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
               ? (
                 <img
                   className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
-                  src='/assets/images/autorender_avatar.webp'
+                  src='/storage/files/autorender_avatar.webp'
                   alt='Avatar of autorender'
                 />
               )

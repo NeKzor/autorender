@@ -28,7 +28,7 @@ const getVideoLength = async (video: VideoSelect) => {
   try {
     const args = [
       '-i',
-      `${getVideoFilePath(video.video_id)}`,
+      `${getVideoFilePath(video)}`,
       '-show_entries',
       'format=duration',
       '-v',
@@ -74,7 +74,7 @@ const getThumbnailUrl = async (video: VideoSelect, options: { videoLength: numbe
       '-ss',
       Math.floor(options.videoLength / 2).toString(),
       '-i',
-      getVideoFilePath(video.video_id),
+      getVideoFilePath(video),
       '-vcodec',
       'libwebp',
       '-lossless',

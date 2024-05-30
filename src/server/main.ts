@@ -101,6 +101,7 @@ const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 const AUTORENDER_RUN_DEMO_REPAIR = Deno.env.get('AUTORENDER_RUN_DEMO_REPAIR')?.toLowerCase() === 'true';
+const AUTORENDER_SERVE_STORAGE = Deno.env.get('AUTORENDER_SERVE_STORAGE');
 
 (() => {
   const originalDestroy = OakResponse.prototype.destroy;
@@ -250,7 +251,7 @@ apiV1
     const videoId = uuid.v1.generate() as string;
     const shareId = generateShareId();
 
-    const filePath = getDemoFilePath(videoId);
+    const filePath = getDemoFilePath({ share_id: shareId });
     await Deno.rename(file.filename, filePath);
 
     // TODO: Figure out if UGC changes when the revision of a workshop item updates.
@@ -566,7 +567,7 @@ apiV1
       return Err(ctx, Status.NotFound, 'Video not found.');
     }
 
-    const filePath = getVideoFilePath(video.video_id);
+    const filePath = getVideoFilePath(video);
     const fileName = basename(filePath);
 
     try {
@@ -698,7 +699,7 @@ apiV1
           }
 
           try {
-            await Deno.remove(getDemoFilePath(video.video_id));
+            await Deno.remove(getDemoFilePath(video));
           } catch (err) {
             logger.error(err);
           }
@@ -840,7 +841,7 @@ apiV1
     if (video.board_changelog_id) {
       const demoFetcher = video.board_source === BoardSource.Mel ? fetchMelDemo : fetchDemo;
       const { demo, originalFilename } = await demoFetcher(video.board_changelog_id);
-      const filePath = getDemoFilePath(video.video_id);
+      const filePath = getDemoFilePath(video);
 
       {
         using file = await Deno.open(filePath, { create: true, write: true, truncate: true });
@@ -1798,6 +1799,7 @@ router.get('/connect/client', async (ctx) => {
             type VideoSelect = Pick<
               Video,
               | 'video_id'
+              | 'share_id'
               | 'render_quality'
               | 'render_options'
               | 'file_url'
@@ -1813,6 +1815,7 @@ router.get('/connect/client', async (ctx) => {
 
             const [video] = await db.query<VideoSelect>(
               `select BIN_TO_UUID(video_id) as video_id
+                     , share_id
                      , render_quality
                      , render_options
                      , file_url
@@ -1853,7 +1856,7 @@ router.get('/connect/client', async (ctx) => {
             await buffer.write(payload);
 
             const getFilePath = demo_required_fix === FixedDemoStatus.Required ? getFixedDemoFilePath : getDemoFilePath;
-            const filePath = getFilePath(videoPayload.video_id);
+            const filePath = getFilePath(videoPayload);
 
             const file = await Deno.readFile(filePath);
 
@@ -2268,7 +2271,7 @@ const routeToApp = async (ctx: Context) => {
 };
 
 if (!B2_ENABLED) {
-  router.get('/storage/videos/:share_id', async (ctx) => {
+  AUTORENDER_SERVE_STORAGE && router.get('/storage/videos/:share_id', async (ctx) => {
     const shareId = ctx.params.share_id.endsWith('.mp4') ? ctx.params.share_id.slice(0, -4) : ctx.params.share_id;
 
     if (!validateShareId(shareId)) {
@@ -2278,9 +2281,9 @@ if (!B2_ENABLED) {
 
     try {
       const [video] = await db.query<
-        Pick<Video, 'video_id' | 'file_name' | 'title' | 'video_size'>
+        Pick<Video, 'share_id' | 'file_name' | 'title' | 'video_size'>
       >(
-        `select BIN_TO_UUID(video_id) as video_id
+        `select share_id
               , file_name
               , title
               , video_size
@@ -2296,17 +2299,12 @@ if (!B2_ENABLED) {
 
       const filename = encodeURIComponent(getVideoDownloadFilename(video));
 
-      if (Deno.env.get('SERVE_STORAGE_VIA_PROXY')) {
-        ctx.response.redirect(`/download/storage/videos/${video.video_id}?filename=${filename}`);
-        return;
-      }
-
       ctx.response.headers.set('Accept-Ranges', 'bytes');
       ctx.response.headers.set('Content-Disposition', `filename="${filename}"`);
       ctx.response.headers.set('Cache-Control', 'max-age=0, no-cache, no-store');
 
       await ctx.send({
-        path: `${video.video_id}.mp4`,
+        path: `${video.share_id}.mp4`,
         root: Storage.Videos,
         contentTypes: {
           '.mp4': 'video/mp4',
@@ -2322,7 +2320,7 @@ if (!B2_ENABLED) {
   });
 }
 
-router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
+AUTORENDER_SERVE_STORAGE && router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
   if (!validateShareId(ctx.params.share_id!)) {
     await routeToApp(ctx);
     return;
@@ -2330,14 +2328,14 @@ router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
 
   try {
     const [video] = await db.query<
-      Pick<Video, 'video_id' | 'file_name' | 'board_source_domain' | 'board_changelog_id'>
+      Pick<Video, 'share_id' | 'file_name' | 'board_source_domain' | 'board_changelog_id'>
     >(
-      `select BIN_TO_UUID(video_id) as video_id
-          , file_name
-          , board_source_domain
-          , board_changelog_id
-       from videos
-      where share_id = ?`,
+      `select share_id
+            , file_name
+            , board_source_domain
+            , board_changelog_id
+         from videos
+        where share_id = ?`,
       [ctx.params.share_id],
     );
 
@@ -2354,7 +2352,7 @@ router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
 
     const getFilePath = requestedFixedDemo ? getFixedDemoFilePath : getDemoFilePath;
 
-    const demo = await Deno.readFile(getFilePath(video.video_id));
+    const demo = await Deno.readFile(getFilePath(video));
 
     // TODO: Fix this
     const filename = requestedFixedDemo
@@ -2381,7 +2379,7 @@ router.get('/storage/demos/:share_id/:fixed(fixed)?', async (ctx) => {
     }
   }
 });
-router.get('/storage/previews/:share_id', async (ctx) => {
+AUTORENDER_SERVE_STORAGE && router.get('/storage/previews/:share_id', async (ctx) => {
   const { share_id } = ctx.params;
 
   if (!validateShareId(share_id)) {
@@ -2408,7 +2406,7 @@ router.get('/storage/previews/:share_id', async (ctx) => {
     }
   }
 });
-router.get('/storage/thumbnails/:share_id/:small(small)?', async (ctx) => {
+AUTORENDER_SERVE_STORAGE && router.get('/storage/thumbnails/:share_id/:small(small)?', async (ctx) => {
   const share_id = ctx.params.share_id!;
   const small = ctx.params.small !== undefined;
 
@@ -2445,19 +2443,19 @@ router.get('/.well-known/security.txt', async (ctx) => {
 router.get('/robots.txt', (ctx) => {
   Ok(ctx, 'user-agent: *\ndisallow: /api/\ndisallow: /connect/\ndisallow: /storage/\n', 'text/plain');
 });
-router.get('/storage/files/autorender.cfg', async (ctx) => {
+AUTORENDER_SERVE_STORAGE && router.get('/storage/files/autorender.cfg', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('autorender.cfg')), 'text/plain');
 });
-router.get('/storage/files/quickhud.zip', async (ctx) => {
+AUTORENDER_SERVE_STORAGE && router.get('/storage/files/quickhud.zip', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('quickhud.zip')), 'application/zip');
 });
-router.get('/storage/files/portal2_benchmark.dem', async (ctx) => {
+AUTORENDER_SERVE_STORAGE && router.get('/storage/files/portal2_benchmark.dem', async (ctx) => {
   Ok(ctx, await Deno.readFile(getStorageFilePath('portal2_benchmark.dem')), 'application/octet-stream');
 });
 
 const routeToImages = async (ctx: Context, file: string, contentType: string) => {
   try {
-    const image = await Deno.readFile(`./app/assets/images/${file}`);
+    const image = await Deno.readFile(getStorageFilePath(file));
 
     ctx.response.headers.set('Cache-Control', 'max-age=31536000');
 
@@ -2468,16 +2466,16 @@ const routeToImages = async (ctx: Context, file: string, contentType: string) =>
   }
 };
 
-router.get(
-  '/assets/images/:file([\\w]+\\.png)',
+AUTORENDER_SERVE_STORAGE && router.get(
+  '/storage/files/:file([\\w]+\\.png)',
   async (ctx) => await routeToImages(ctx, ctx.params.file!, 'image/png'),
 );
-router.get(
-  '/assets/images/:file([\\w]+\\.jpg)',
+AUTORENDER_SERVE_STORAGE && router.get(
+  '/storage/files/:file([\\w]+\\.jpg)',
   async (ctx) => await routeToImages(ctx, ctx.params.file!, 'image/jpeg'),
 );
-router.get(
-  '/assets/images/:file([\\w]+\\.webp)',
+AUTORENDER_SERVE_STORAGE && router.get(
+  '/storage/files/:file([\\w]+\\.webp)',
   async (ctx) => await routeToImages(ctx, ctx.params.file!, 'image/webp'),
 );
 router.get('/assets/js/:file([\\w]+\\.js)', async (ctx) => {
@@ -2533,9 +2531,9 @@ router.get('/video.html', useSession, async (ctx) => {
 
   ctx.response.redirect(`/videos/${video.share_id}`);
 });
-router.get('/favicon.ico', async (ctx) => {
+AUTORENDER_SERVE_STORAGE && router.get('/favicon.ico', async (ctx) => {
   try {
-    const image = await Deno.readFile('./app/assets/images/favicon.ico');
+    const image = await Deno.readFile(getStorageFilePath('favicon.ico'));
     Ok(ctx, image, 'image/x-icon');
   } catch (err) {
     logger.error(err);

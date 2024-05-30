@@ -36,7 +36,7 @@ const getVideoLength = async (video: VideoSelect) => {
   try {
     const args = [
       '-i',
-      `${getVideoFilePath(video.video_id)}`,
+      `${getVideoFilePath(video)}`,
       '-show_entries',
       'format=duration',
       '-v',
@@ -84,7 +84,7 @@ const getPreviewUrl = async (video: VideoSelect) => {
       '-to',
       '00:00:08',
       '-i',
-      getVideoFilePath(video.video_id),
+      getVideoFilePath(video),
       '-vcodec',
       'libwebp',
       '-lossless',
@@ -135,7 +135,7 @@ const getThumbnailUrl = async (video: VideoSelect, options: { videoLength: numbe
       '-ss',
       Math.floor(options.videoLength / 2).toString(),
       '-i',
-      getVideoFilePath(video.video_id),
+      getVideoFilePath(video),
       '-vcodec',
       'libwebp',
       '-lossless',
@@ -236,7 +236,7 @@ const processVideos = async () => {
     );
 
     if (video.video_external_id) {
-      const filePath = getVideoFilePath(video.video_id);
+      const filePath = getVideoFilePath(video);
       try {
         await Deno.remove(filePath);
       } catch (err) {

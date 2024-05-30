@@ -52,33 +52,66 @@ server {
         client_max_body_size 150M;
     }
 
-    root /storage;
+    location ~ /favicon.ico {
+        alias /storage/files/favicon.ico;
+    }
 
-    location /storage/demos/ {
-        alias /storage/demos/;
+    location ~ "^/storage/demos/([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])$" {
+        alias /storage/demos/$1.dem;
+        add_header content-type "application/octet-stream";
+        add_header content-disposition filename="$1.dem";
+    }
+
+    location ~ "^/storage/demos/([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])/fixed$" {
+        alias /storage/demos/$1_fixed.dem;
+        add_header content-type "application/octet-stream";
+        add_header content-disposition filename="$1_fixed.dem";
     }
 
     location /storage/files/ {
-        types {
-            text/plain cfg;
-        }
         alias /storage/files/;
+
+        if ($request_filename ~ "^/storage/files/(.+\.(png|jpg|jpeg|cfg|txt|mp4|webp|zip))$") {
+            set $filename $1;
+            add_header content-disposition filename="$filename";
+        }
+
+        types {
+            image/png png;
+            image/jpeg jpg;
+            image/jpeg jpeg;
+            text/plain cfg;
+            text/plain txt;
+            video/mp4 mp4;
+            image/webp webp;
+            application/zip zip;
+        }
     }
 
-    location /storage/previews/ {
-        alias /storage/previews/;
+    location ~ "^/storage/previews/([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])$" {
+        alias /storage/previews/$1.webp;
+        add_header content-type "image/webp";
+        add_header content-disposition filename="$1.webp";
+        add_header cache-control "public, max-age=31536000";
     }
 
-    location ~  ^/storage/thumbnails/[0-9A-Za-z_-]\{10\}[048AEIMQUYcgkosw]$ {
+    location ~ "^/storage/thumbnails/([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])$" {
         alias /storage/thumbnails/$1.webp;
+        add_header content-type "image/webp";
+        add_header content-disposition filename="$1.webp";
+        add_header cache-control "public, max-age=31536000";
     }
 
-    location ~  ^/storage/thumbnails/[0-9A-Za-z_-]\{10\}[048AEIMQUYcgkosw]/small$ {
+    location ~ "^/storage/thumbnails/([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])/small$" {
         alias /storage/thumbnails/$1_sm.webp;
+        add_header content-type "image/webp";
+        add_header content-disposition filename="$1_sm.webp";
+        add_header cache-control "public, max-age=31536000";
     }
 
-    location ~ "^/download/storage/videos/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$" {
+    location ~ "^/storage/videos/([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])$" {
         alias /storage/videos/$1.mp4;
-        add_header Content-Disposition 'attachment; filename="$arg_filename"';
+        add_header content-type "video/mp4";
+        add_header content-disposition filename="$1.mp4";
     }
 }
