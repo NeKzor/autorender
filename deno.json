@@ -67,6 +67,8 @@
     "src/app"
   ],
   "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "noUncheckedIndexedAccess": true
   }
 }
