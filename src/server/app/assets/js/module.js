@@ -607,7 +607,8 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
     const shouldDraw = document.getElementById('ihud-checkbox');
     const canvas = document.getElementById('inputs');
     const ctx = canvas.getContext('2d');
-    const inputData = JSON.parse(document.querySelector('[x-input-data]').getAttribute('x-input-data'));
+    const inputDataElement = document.querySelector('[x-input-data]');
+    const inputData = inputDataElement ? JSON.parse(inputDataElement.getAttribute('x-input-data')) : null;
 
     const drawButton = (text, column, row, width, height, active) => {
       ctx.fillStyle = active ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.5)';
@@ -658,7 +659,7 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       video.requestVideoFrameCallback(drawInputs);
     };
 
-    video.requestVideoFrameCallback(drawInputs);
+    inputData && video.requestVideoFrameCallback(drawInputs);
 
     fetch(`/api/v1${location.pathname}/views`, { method: 'POST' });
 
