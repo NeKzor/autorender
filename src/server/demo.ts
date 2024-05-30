@@ -561,7 +561,7 @@ export interface DemoInputdata {
   [tick: number]: TickInputdata;
 }
 
-const getInputData = (demo: SourceDemo): DemoInputdata => {
+export const getInputData = (demo: SourceDemo): DemoInputdata => {
   try {
     const inputs: DemoInputdata = [];
 

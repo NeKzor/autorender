@@ -29,6 +29,7 @@
     "optimize": "docker exec -ti autorender-server deno task optimize",
     "migrate": "docker exec -ti autorender-server deno task migrate",
     "migrate:storage": "docker exec -ti autorender-server deno task migrate:storage",
+    "migrate:inputs": "docker exec -ti autorender-server deno task migrate:inputs",
     "build": "docker compose build",
     "up": "docker compose up",
     "down": "docker compose down",
