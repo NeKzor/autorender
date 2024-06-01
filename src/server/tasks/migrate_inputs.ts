@@ -14,7 +14,7 @@ import { Video } from '~/shared/models.ts';
 import { db } from '../db.ts';
 import { getInputData } from '../demo.ts';
 import { installLogger, logger } from '../logger.ts';
-import { Storage, getDemoFilePath, getDemoInputsFilePath } from '../utils.ts';
+import { getDemoFilePath, getDemoInputsFilePath, Storage } from '../utils.ts';
 
 installLogger('migrate');
 
@@ -77,7 +77,7 @@ for (const video of videos) {
   if (video.board_changelog_id) {
     continue;
   }
-  
+
   const file = getDemoFilePath(video);
   await extractInputs(file, video);
 }
