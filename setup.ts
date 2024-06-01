@@ -404,6 +404,7 @@ const createDirectories = async () => {
     v`mysql`,
     v`storage/demos`,
     v`storage/files`,
+    v`storage/inputs`,
     v`storage/previews`,
     v`storage/thumbnails`,
     v`storage/users`,

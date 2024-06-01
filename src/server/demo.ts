@@ -208,7 +208,6 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       metadata: getSarData(demo),
       ...getChallengeModeData(demo),
       ...getPlayerInfo(demo),
-      inputs: getInputData(demo),
     };
   } catch (err) {
     logger.error(filePath, err);
@@ -545,7 +544,7 @@ export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
   };
 };
 
-export interface TickInputdata {
+export interface TickInputData {
   attack: boolean;
   jump: boolean;
   duck: boolean;
@@ -557,53 +556,54 @@ export interface TickInputdata {
   attack2: boolean;
 }
 
-export interface DemoInputdata {
-  [tick: number]: TickInputdata;
-}
-
-export const getInputData = (demo: SourceDemo): DemoInputdata => {
+export const getInputData = (demo: SourceDemo): Uint32Array | null => {
   try {
-    const inputs: DemoInputdata = [];
+    demo.detectGame()
+      .adjustTicks()
+      .adjustRange()
+      .readUserCmds();
 
-    demo.readUserCmds();
-    const msgs = demo.findMessages(DemoMessages.UserCmd);
-    for (const msg of msgs ?? []) {
-      if (msg.slot === 0 && msg.userCmd?.buttons && msg.tick) {
-        inputs[msg.tick] = {
-          attack: !!(msg.userCmd.buttons & (1 << 0)),
-          jump: !!(msg.userCmd.buttons & (1 << 1)),
-          duck: !!(msg.userCmd.buttons & (1 << 2)),
-          forward: !!(msg.userCmd.buttons & (1 << 3)),
-          back: !!(msg.userCmd.buttons & (1 << 4)),
-          use: !!(msg.userCmd.buttons & (1 << 5)),
-          moveleft: !!(msg.userCmd.buttons & (1 << 9)),
-          moveright: !!(msg.userCmd.buttons & (1 << 10)),
-          attack2: !!(msg.userCmd.buttons & (1 << 11)),
-        };
-      }
+    const msgs = demo.findMessages<Messages.UserCmd>((msg) => {
+      return msg instanceof DemoMessages.UserCmd &&
+        msg.slot === 0 &&
+        !!msg.userCmd?.buttons &&
+        !!msg.tick;
+    });
+
+    // Tick  = bit  0..19 = 20 bits (more than enough for demo length)
+    // Input = bit 20..31 = 12 bits (9 input types at the moment)
+    const tickMask = 0b0000_0000_0000_1111_1111_1111_1111_1111;
+    const buttonsOffset = 20;
+
+    const inputs = new Uint32Array(msgs.length + 2);
+
+    inputs[0] = 1; // Version
+
+    let idx = 1;
+
+    for (const { tick, userCmd } of msgs) {
+      const buttons = userCmd!.buttons!;
+      inputs[idx++] = (tick! & tickMask) |
+        ((buttons & 0b0000_0000_0001) << buttonsOffset) | // attack
+        ((buttons & 0b0000_0000_0010) << buttonsOffset) | // jump
+        ((buttons & 0b0000_0000_0100) << buttonsOffset) | // duck
+        ((buttons & 0b0000_0000_1000) << buttonsOffset) | // forward
+        ((buttons & 0b0000_0001_0000) << buttonsOffset) | // back
+        ((buttons & 0b0000_0010_0000) << buttonsOffset) | // use
+        ((buttons & 0b0010_0000_0000) << buttonsOffset) | // moveleft
+        ((buttons & 0b0100_0000_0000) << buttonsOffset) | // moveright
+        ((buttons & 0b1000_0000_0000) << buttonsOffset); // attack2
     }
 
     // Write last tick for syncing
-    if (demo.playbackTicks) {
-      inputs[demo.playbackTicks] = {
-        attack: false,
-        jump: false,
-        duck: false,
-        forward: false,
-        back: false,
-        use: false,
-        moveleft: false,
-        moveright: false,
-        attack2: false,
-      };
-    }
+    inputs[idx] = demo.playbackTicks! & tickMask;
 
     return inputs;
   } catch (err) {
     logger.error(err);
   }
 
-  return [];
+  return null;
 };
 
 // Imported from: https://github.com/NeKzor/sdp/blob/master/examples/repair.ts

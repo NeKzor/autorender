@@ -210,7 +210,7 @@ export const VideoView = () => {
                 >
                   <source src={data.video_url} itemType='video/mp4'></source>
                 </video>
-                <div className={tw`absolute pointer-events-none`} x-input-data={data?.demo_inputs}>
+                <div className={tw`absolute pointer-events-none`}>
                   <canvas id='inputs'></canvas>
                 </div>
               </div>

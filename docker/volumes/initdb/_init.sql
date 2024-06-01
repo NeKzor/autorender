@@ -112,7 +112,6 @@ CREATE TABLE videos (
     demo_partner_steam_id VARCHAR(64),
     demo_is_host INT,
     demo_metadata TEXT,
-    demo_inputs JSON CHECK (JSON_VALID(demo_inputs)),
     demo_requires_repair INT NOT NULL DEFAULT 0,
     board_source INT NOT NULL DEFAULT 0,
     board_source_domain VARCHAR(32) AS (

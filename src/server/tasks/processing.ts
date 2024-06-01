@@ -8,13 +8,23 @@
  *  - Generate thumbnail
  *  - Generate preview
  *  - Delete local video file
+ *  - Parse demo inputs
  */
 
 import 'dotenv/load.ts';
+import { SourceDemoParser } from '@nekz/sdp';
 import { db } from '../db.ts';
 import { PendingStatus, Video } from '~/shared/models.ts';
 import { installLogger, logger } from '../logger.ts';
-import { getVideoFilePath, getVideoPreviewPath, getVideoThumbnailPath, getVideoThumbnailSmallPath } from '../utils.ts';
+import {
+  getDemoFilePath,
+  getDemoInputsFilePath,
+  getVideoFilePath,
+  getVideoPreviewPath,
+  getVideoThumbnailPath,
+  getVideoThumbnailSmallPath,
+} from '../utils.ts';
+import { getInputData } from '../demo.ts';
 
 const POST_PROCESS_UPDATE_INTERVAL = 60 * 1_000;
 const FFMPEG_PROCESS_TIMEOUT = 5 * 60 * 1_000;
@@ -31,6 +41,7 @@ addEventListener('unhandledrejection', (ev) => {
 type VideoSelect = Pick<Video, 'video_id' | 'share_id' | 'created_at' | 'video_external_id'>;
 
 const decoder = new TextDecoder();
+const parser = SourceDemoParser.default();
 
 const getVideoLength = async (video: VideoSelect) => {
   try {
@@ -243,6 +254,24 @@ const processVideos = async () => {
       } catch (err) {
         logger.error('Failed to remove video file', filePath, ':', err);
       }
+    }
+
+    try {
+      const file = getDemoFilePath(video);
+      logger.info(`Parsing : ${video.share_id} : ${file}`);
+
+      const buffer = await Deno.readFile(file);
+      const demo = parser.parse(buffer);
+      const inputs = getInputData(demo);
+      if (!inputs) {
+        continue;
+      }
+
+      using inputsFile = await Deno.open(getDemoInputsFilePath(video), { create: true, write: true });
+      await inputsFile.writable.getWriter().write(new Uint8Array(inputs.buffer));
+    } catch (err) {
+      logger.error(`Failed to write inputs ${video.share_id}`);
+      logger.error(err);
     }
   }
 };

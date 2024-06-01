@@ -9,6 +9,7 @@ import { User, Video } from '~/shared/models.ts';
 
 export const Storage = {
   Demos: Deno.realPathSync(Deno.env.get('AUTORENDER_DEMOS_FOLDER')!),
+  Inputs: Deno.realPathSync(Deno.env.get('AUTORENDER_DEMOS_INPUTS')!),
   Files: Deno.realPathSync(Deno.env.get('AUTORENDER_FILES_FOLDER')!),
   Videos: Deno.realPathSync(Deno.env.get('AUTORENDER_VIDEOS_FOLDER')!),
   Previews: Deno.realPathSync(Deno.env.get('AUTORENDER_PREVIEWS_FOLDER')!),
@@ -28,6 +29,7 @@ export const validateShareId = (shareId: string) => {
 };
 
 export const getDemoFilePath = (video: Pick<Video, 'share_id'>) => join(Storage.Demos, `${video.share_id}.dem`);
+export const getDemoInputsFilePath = (video: Pick<Video, 'share_id'>) => join(Storage.Inputs, `${video.share_id}.bin`);
 export const getFixedDemoFilePath = (video: Pick<Video, 'share_id'>) =>
   join(Storage.Demos, `${video.share_id}_fixed.dem`);
 export const getStorageFilePath = (filename: string) => join(Storage.Files, filename);

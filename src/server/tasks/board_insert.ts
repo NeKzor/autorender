@@ -191,7 +191,6 @@ export const insertVideo = async (boardSource: BoardSource, entry: ChangelogEntr
 
     const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
     const demoMetadata = JSON.stringify(demoInfo.metadata);
-    const demoInputs = JSON.stringify(demoInfo.inputs);
     const boardChangelogId = entry.id;
     const boardProfileNumber = entry.profile_number;
     const boardRank = entry.post_rank;
@@ -222,7 +221,6 @@ export const insertVideo = async (boardSource: BoardSource, entry: ChangelogEntr
       demoInfo.partnerSteamId,
       demoInfo.isHost,
       demoMetadata,
-      demoInputs,
       boardSource,
       boardChangelogId,
       boardProfileNumber,
@@ -257,7 +255,6 @@ export const insertVideo = async (boardSource: BoardSource, entry: ChangelogEntr
             , demo_partner_steam_id
             , demo_is_host
             , demo_metadata
-            , demo_inputs
             , board_source
             , board_changelog_id
             , board_profile_number

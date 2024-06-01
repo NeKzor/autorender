@@ -96,6 +96,12 @@ server {
         }
     }
 
+    location ~ "^/storage/inputs/([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])$" {
+        alias /storage/inputs/$1.bin;
+        add_header content-type "application/octet-stream";
+        add_header content-disposition filename="$1.bin";
+    }
+
     location ~ "^/storage/previews/([0-9A-Za-z_-]{10}[048AEIMQUYcgkosw])$" {
         alias /storage/previews/$1.webp;
         add_header content-type "image/webp";

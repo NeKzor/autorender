@@ -49,6 +49,7 @@ import { basename } from 'path/mod.ts';
 import {
   generateShareId,
   getDemoFilePath,
+  getDemoInputsFilePath,
   getFixedDemoFilePath,
   getStorageFilePath,
   getUserAvatarPath,
@@ -360,7 +361,6 @@ apiV1
     ];
     const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
     const demoMetadata = JSON.stringify(demoInfo.metadata);
-    const demoInputs = JSON.stringify(demoInfo.inputs);
 
     const fields = [
       videoId,
@@ -394,7 +394,6 @@ apiV1
       demoInfo.partnerSteamId,
       demoInfo.isHost,
       demoMetadata,
-      demoInputs,
       PendingStatus.RequiresRender,
     ];
 
@@ -431,7 +430,6 @@ apiV1
           , demo_partner_steam_id
           , demo_is_host
           , demo_metadata
-          , demo_inputs
           , pending
         ) values (UUID_TO_BIN(?), ${new Array(fields.length - 1).fill('?').join(',')})`,
       fields,
@@ -894,7 +892,6 @@ apiV1
 
       const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
       const demoMetadata = JSON.stringify(demoInfo.metadata);
-      const demoInputs = JSON.stringify(demoInfo.inputs);
 
       const { affectedRows } = await db.execute(
         `update videos
@@ -921,7 +918,6 @@ apiV1
             , demo_partner_steam_id = ?
             , demo_is_host = ?
             , demo_metadata = ?
-            , demo_inputs = ?
             , demo_requires_repair = ?
         where video_id = UUID_TO_BIN(?)
           and pending = ?`,
@@ -944,7 +940,6 @@ apiV1
           demoInfo.partnerSteamId,
           demoInfo.isHost,
           demoMetadata,
-          demoInputs,
           demoRepair ? 1 : 0,
           video.video_id,
           PendingStatus.FinishedRender,
@@ -2599,6 +2594,31 @@ AUTORENDER_SERVE_STORAGE && router.get('/storage/banners/:id([0-9]+)', async (ct
   } catch (err) {
     if (err instanceof Deno.errors.NotFound) {
       return Err(ctx, Status.NotFound, 'Banner not found.');
+    } else {
+      logger.error(err);
+    }
+  }
+});
+AUTORENDER_SERVE_STORAGE && router.get('/storage/inputs/:share_id', async (ctx) => {
+  const share_id = ctx.params.share_id!;
+
+  if (!validateShareId(share_id)) {
+    return Err(ctx, Status.BadRequest, 'Invalid share ID.');
+  }
+
+  try {
+    const path = getDemoInputsFilePath({ share_id });
+    const preview = await Deno.readFile(path);
+
+    ctx.response.headers.set(
+      'Content-Disposition',
+      `filename="${encodeURIComponent(basename(path))}"`,
+    );
+
+    Ok(ctx, preview, 'application/octet-stream');
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      return Err(ctx, Status.NotFound, 'File not found.');
     } else {
       logger.error(err);
     }

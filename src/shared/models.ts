@@ -208,7 +208,6 @@ export interface Video {
   demo_partner_steam_id: string;
   demo_is_host: number;
   demo_metadata: string;
-  demo_inputs: string;
   demo_requires_repair: number;
   board_source: BoardSource;
   board_source_domain: string;

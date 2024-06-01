@@ -607,59 +607,108 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
     const shouldDraw = document.getElementById('ihud-checkbox');
     const canvas = document.getElementById('inputs');
     const ctx = canvas.getContext('2d');
-    const inputDataElement = document.querySelector('[x-input-data]');
-    const inputData = inputDataElement ? JSON.parse(inputDataElement.getAttribute('x-input-data')) : null;
 
-    const drawButton = (text, column, row, width, height, active) => {
-      ctx.fillStyle = active ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.5)';
-      const rx = btnSize * column + btnPadding * column;
-      const ry = btnSize * row + btnPadding * row;
-      ctx.fillRect(rx, ry, width, height);
-
-      ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineWidth = 2;
-      ctx.lineJoin = 'round';
-      ctx.strokeText(text, rx + width / 2, ry + height / 2);
-      ctx.fillText(text, rx + width / 2, ry + height / 2);
-    };
-
-    const drawInputs = (_, metadata) => {
-      const frame = Math.round(metadata.mediaTime * fps);
-      const lastFrame = Math.round(video.duration * fps);
-      const ticks = Object.keys(inputData);
-      const lastTick = ticks[ticks.length - 1];
-      const offset = lastTick - lastFrame;
-      const tick = frame + offset + 3;
-
-      canvas.width = (btnSize + btnPadding) * 6;
-      canvas.height = (btnSize + btnPadding) * 3;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (shouldDraw.checked) {
-        let tickData = {};
-        if (inputData[tick]) {
-          tickData = inputData[tick];
+    fetch(`/storage/inputs/${location.pathname.slice(location.pathname.lastIndexOf('/') + 1)}`)
+      .then((res) => {
+        if (!res.ok) {
+          return;
         }
 
-        drawButton('W', 2, 0, btnSize, btnSize, tickData.forward);
-        drawButton('E', 3, 0, btnSize, btnSize, tickData.use);
-        drawButton('A', 1, 1, btnSize, btnSize, tickData.moveleft);
-        drawButton('S', 2, 1, btnSize, btnSize, tickData.back);
-        drawButton('D', 3, 1, btnSize, btnSize, tickData.moveright);
-        drawButton('C', 0, 2, btnSize, btnSize, tickData.duck);
-        drawButton('S', 1, 2, btnSize * 3 + btnPadding * 2, btnSize, tickData.jump);
-        drawButton('L', 4, 2, btnSize, btnSize, tickData.attack);
-        drawButton('R', 5, 2, btnSize, btnSize, tickData.attack2);
-      }
+        res.arrayBuffer()
+          .then((buffer) => {
+            const drawButton = (text, column, row, width, height, active) => {
+              ctx.fillStyle = active ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 0.5)';
+              const rx = btnSize * column + btnPadding * column;
+              const ry = btnSize * row + btnPadding * row;
+              ctx.fillRect(rx, ry, width, height);
 
-      video.requestVideoFrameCallback(drawInputs);
-    };
+              ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+              ctx.font = '12px Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.lineWidth = 2;
+              ctx.lineJoin = 'round';
+              ctx.strokeText(text, rx + width / 2, ry + height / 2);
+              ctx.fillText(text, rx + width / 2, ry + height / 2);
+            };
 
-    inputData && video.requestVideoFrameCallback(drawInputs);
+            const tickMask = 0b1111_1111_1111_1111_1111;
+            const buttonMaskShifted = 0b1111_1111_1111;
+
+            const attack = 0b1;
+            const jump = 0b10;
+            const duck = 0b100;
+            const forward = 0b1000;
+            const back = 0b1_0000;
+            const use = 0b10_0000;
+            const moveleft = 0b10_0000_0000;
+            const moveright = 0b100_0000_0000;
+            const attack2 = 0b1000_0000_0000;
+
+            let previousTick = 0;
+            let previousIndex = 0;
+
+            const version = new DataView(buffer).getUint8(0);
+            if (version !== 1) {
+              return;
+            }
+
+            const inputData = new Uint32Array(buffer.slice(4));
+
+            const drawInputs = (_, metadata) => {
+              canvas.width = (btnSize + btnPadding) * 6;
+              canvas.height = (btnSize + btnPadding) * 3;
+
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+              if (!shouldDraw.checked) {
+                video.requestVideoFrameCallback(drawInputs);
+                return;
+              }
+
+              const frame = Math.round(metadata.mediaTime * fps);
+              const lastFrame = Math.round(video.duration * fps);
+              const lastTick = inputData.at(-1) & tickMask;
+              const offset = lastTick - lastFrame;
+              const tick = frame + offset + 3;
+
+              if (previousTick < tick) {
+                previousIndex = 0;
+              }
+
+              let index = -1;
+
+              for (let i = previousIndex; i < inputData.length; ++i) {
+                if ((inputData[i] & tickMask) === tick) {
+                  index = i;
+                  break;
+                }
+              }
+
+              const input = inputData[index];
+              const buttons = input ? (input >> 20) & buttonMaskShifted : 0;
+
+              previousIndex = index !== -1 && tick >= previousTick ? index : previousIndex;
+              previousTick = tick;
+
+              drawButton('W', 2, 0, btnSize, btnSize, buttons & forward);
+              drawButton('E', 3, 0, btnSize, btnSize, buttons & use);
+              drawButton('A', 1, 1, btnSize, btnSize, buttons & moveleft);
+              drawButton('S', 2, 1, btnSize, btnSize, buttons & back);
+              drawButton('D', 3, 1, btnSize, btnSize, buttons & moveright);
+              drawButton('C', 0, 2, btnSize, btnSize, buttons & duck);
+              drawButton('S', 1, 2, btnSize * 3 + btnPadding * 2, btnSize, buttons & jump);
+              drawButton('L', 4, 2, btnSize, btnSize, buttons & attack);
+              drawButton('R', 5, 2, btnSize, btnSize, buttons & attack2);
+
+              video.requestVideoFrameCallback(drawInputs);
+            };
+
+            video.requestVideoFrameCallback(drawInputs);
+          })
+          .catch(console.error);
+      })
+      .catch(console.error);
 
     fetch(`/api/v1${location.pathname}/views`, { method: 'POST' });
 
