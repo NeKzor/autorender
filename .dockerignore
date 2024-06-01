@@ -4,6 +4,7 @@ docker/
 src/client/bin/
 
 # from .gitignore
+.vim/
 .vscode/
 board-net*
 log/
