@@ -32,6 +32,7 @@ const getCSP = (nonce: string) => {
   return [
     `default-src 'self';`,
     `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https:;`,
+    `style-src-elem 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https:;`,
     `style-src 'nonce-${nonce}';`,
     `font-src 'self' https://fonts.gstatic.com;`,
     `media-src 'self' blob: *.backblazeb2.com;`,
@@ -73,10 +74,11 @@ export const Head = ({ initialState }: HeadProps) => {
         })}
       <title>{title}</title>
       <meta name='description' content='Render Portal 2 demos on-demand!' />
-      <link rel='icon' type='image/x-icon' href='/favicon.ico' />
+      <link rel='preconnect' href='https://fonts.googleapis.com' />
+      <link rel='preconnect' href='https://fonts.gstatic.com' crossOrigin='anonymous' />
       <link
+        href='https://fonts.googleapis.com/css2?family=Inter:wght@300..600&display=swap'
         rel='stylesheet'
-        href='https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap'
         nonce={state.nonce}
       />
       <link

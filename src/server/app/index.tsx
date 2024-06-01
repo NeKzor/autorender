@@ -22,7 +22,7 @@ const sheet = virtualSheet();
 setup({
   theme: {
     fontFamily: {
-      sans: ['Roboto', 'sans-serif'],
+      sans: ['Inter', 'sans-serif'],
     },
     colors: {
       discord: {
