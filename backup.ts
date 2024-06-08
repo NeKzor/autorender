@@ -4,6 +4,7 @@
 // Requirements: .env (see .env.example)
 // Example usage: deno run --env -A ./docker/volumes/backups/autorender_db_latest.sql.gz ./kv_db_latest.zip.gz
 
+import { format } from 'jsr:@std/fmt/bytes';
 import { parseArgs } from 'jsr:@std/cli/parse-args';
 import { basename } from 'jsr:@std/path/windows';
 import { retry } from 'jsr:@std/async';
@@ -76,7 +77,7 @@ try {
           embeds: [
             {
               color: 0x0480A5,
-              description: `Uploaded file \`${fileName}\` ${upload.fileId}`,
+              description: `Uploaded file \`${fileName}\` (${format(upload.contentLength)}) ${upload.contentMd5}`,
             },
           ],
         }),
