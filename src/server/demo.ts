@@ -544,18 +544,6 @@ export const getPlayerInfo = (demo: SourceDemo): PlayerInfoData => {
   };
 };
 
-export interface TickInputData {
-  attack: boolean;
-  jump: boolean;
-  duck: boolean;
-  forward: boolean;
-  back: boolean;
-  use: boolean;
-  moveleft: boolean;
-  moveright: boolean;
-  attack2: boolean;
-}
-
 export const getInputData = (demo: SourceDemo): Uint32Array | null => {
   try {
     demo.detectGame()
