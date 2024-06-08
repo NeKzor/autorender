@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Video } from '~/shared/models.ts';
+import { BoardSource, Video } from '~/shared/models.ts';
 import { validateShareId } from '../utils.ts';
 
 export const toAgo = (date: Date | null) => {
@@ -86,5 +86,14 @@ export const parseSortableId = (id: string): SortableId | false => {
     return { shareId, date };
   } catch {
     return false;
+  }
+};
+
+export const getAutorenderAvatar = (source: BoardSource) => {
+  switch (source) {
+    case BoardSource.Mel:
+      return 'mel_avatar.webp';
+    default:
+      return 'autorender_avatar.webp';
   }
 };

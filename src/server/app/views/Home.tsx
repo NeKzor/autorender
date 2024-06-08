@@ -28,6 +28,7 @@ type LatestVideo =
     | 'thumbnail_url_large'
     | 'video_length'
     | 'board_changelog_id'
+    | 'board_source'
   >
   & {
     requested_by_username: string | null;
@@ -56,6 +57,7 @@ const getVideos = async (db: Database, sortableId?: SortableId) => {
           , videos.thumbnail_url_large
           , videos.video_length
           , videos.board_changelog_id
+          , videos.board_source
           , requester.username as requested_by_username
           , requester.discord_avatar_url as requested_by_discord_avatar_url
        from videos
@@ -88,7 +90,10 @@ export const Home = () => {
         <>
           <div className={tw`flex justify-center`}>
             <div
-              className={tw`grid grid-cols sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4`}
+              id='videos'
+              className={tw`grid grid-cols gap-x-2 gap-y-4
+                            sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5
+                            sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4`}
               x-last-video={getSortableIdByRendered(data.latestVideos.at(-1))}
             >
               {data.latestVideos.map((video) => <VideoCard video={video} />)}

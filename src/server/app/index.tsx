@@ -62,7 +62,7 @@ export const index = (
   const styleTag = getStyleTag(sheet, { nonce });
 
   const themeScriptTag =
-    `<script nonce="${nonce}">localStorage.getItem('color-theme')==='light'&&document.documentElement.classList.remove('dark')</script>`;
+    `<script nonce="${nonce}">const theme=localStorage.getItem('color-theme')??'dark';theme==='light'&&document.documentElement.classList.remove('dark');document.documentElement.style.setProperty('color-scheme',theme)</script>`;
 
   const moduleScriptTag =
     `<script nonce="${nonce}" src="/assets/js/module.js?v=${jsModuleVersion}" type="module"></script>`;

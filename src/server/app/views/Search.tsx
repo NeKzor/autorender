@@ -32,6 +32,7 @@ type JoinedVideo =
     | 'thumbnail_url_large'
     | 'video_length'
     | 'board_changelog_id'
+    | 'board_source'
   >
   & {
     requested_by_username: string | null;
@@ -69,6 +70,7 @@ const searchVideos = async (db: Database, query: string, sortableId?: SortableId
             , thumbnail_url_large
             , video_length
             , board_changelog_id
+            , board_source
             , requester.username as requested_by_username
             , requester.discord_avatar_url as requested_by_discord_avatar_url
          from videos

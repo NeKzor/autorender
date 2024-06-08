@@ -85,7 +85,7 @@ export const loader: DataLoader = async ({ params, context }) => {
   return json<Data>(video);
 };
 
-const formatRenderTime = (data: Data) => {
+const _formatRenderTime = (data: Data) => {
   if (!data?.render_time) return `-`;
   return data.render_time < 60 ? `${data.render_time} seconds` : `${(data.render_time / 60).toFixed(2)} minutes`;
 };
@@ -142,7 +142,7 @@ export const VideoView = () => {
   const state = React.useContext(AppStateContext);
   const metadata = getDemoMetadata(data);
   const hasVideo = data.video_url !== null;
-  const videoHeight = data.render_quality === RenderQuality.SD_480p ? '480' : '720';
+  const _videoHeight = data.render_quality === RenderQuality.SD_480p ? '480' : '720';
 
   const userPermissions = state?.user?.permissions ?? 0;
   const isAllowedToRerender = (userPermissions & UserPermissions.RerenderVideos) !== 0;
@@ -151,7 +151,7 @@ export const VideoView = () => {
 
   return (
     <>
-      <div className={tw`xl:flex`}>
+      <div className={tw`xl:flex xl:justify-center`}>
         <div className={tw`xl:w-[1280px]`}>
           {!hasVideo &&
             data.pending === PendingStatus.FinishedRender && (
@@ -202,9 +202,9 @@ export const VideoView = () => {
           )}
           {hasVideo && (
             <>
-              <div className={tw`rounded-[12px] h-[56.25vw] xl:h-[${videoHeight}px]`}>
+              <div className={tw``}>
                 <video
-                  className={tw`absolute`}
+                  className={tw`rounded-[12px]`}
                   controls
                   autoPlay
                 >
@@ -241,26 +241,28 @@ export const VideoView = () => {
               }
             </>
           )}
-          <div className={tw`flex items-center mr-4 mb-2 mt-2`}>
-            <input
-              id='ihud-checkbox'
-              type='checkbox'
-              className={tw`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600`}
-            />
-            <label
-              htmlFor='ihud-checkbox'
-              className={tw`ml-2 text-sm font-medium text-gray-900 dark:text-gray-300`}
-            >
-              Show inputs
-            </label>
-          </div>
+          {hasVideo && (
+            <div className={tw`flex items-center mr-4 mb-2 mt-2`}>
+              <input
+                id='ihud-checkbox'
+                type='checkbox'
+                className={tw`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600`}
+              />
+              <label
+                htmlFor='ihud-checkbox'
+                className={tw`ml-2 text-sm font-medium text-gray-900 dark:text-gray-300`}
+              >
+                Show inputs
+              </label>
+            </div>
+          )}
           <div className={tw`mt-6 relative text-[20px]`}>
             <div>
               {hasVideo && <span className={tw`float-right ml-8`}>{data.views} views</span>}
               <span className={tw`break-words`}>{data.title}</span>
             </div>
           </div>
-          <div className={tw`my-6 flex gap-2 float-right`}>
+          <div className={tw`flex-wrap my-6 flex gap-2 float-right`}>
             {data.demo_required_fix === FixedDemoStatus.Required && (
               <>
                 <div>
@@ -314,7 +316,7 @@ export const VideoView = () => {
                 >
                   <button
                     type='button'
-                    className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                    className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                   >
                     <svg
                       className={tw`w-4 h-4 text-white dark:text-white`}
@@ -343,7 +345,7 @@ export const VideoView = () => {
                   data-modal-toggle='share-modal'
                   id={`video-share-button-${data.share_id}`}
                   type='button'
-                  className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                  className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                 >
                   <svg
                     className={tw`w-4 h-4 text-white dark:text-white`}
@@ -371,7 +373,7 @@ export const VideoView = () => {
                   data-modal-toggle='rerender-modal'
                   id='video-rerender-button'
                   type='button'
-                  className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                  className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                 >
                   <svg
                     className={tw`w-4 h-4 text-white dark:text-white`}
@@ -399,10 +401,10 @@ export const VideoView = () => {
                   data-modal-toggle='delete-modal'
                   id='video-delete-button'
                   type='button'
-                  className={tw`flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800`}
+                  className={tw`flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800`}
                 >
                   <svg
-                    className={tw`w-[18px] h-[18px] text-gray-800 dark:text-white`}
+                    className={tw`w-[18px] h-[18px] text-white dark:text-white`}
                     aria-hidden='true'
                     xmlns='http://www.w3.org/2000/svg'
                     fill='none'
@@ -572,7 +574,7 @@ export const VideoView = () => {
                         .slice(0, index + 1)
                         .reduce((total, segment) => (total += segment.ticks), 0);
                       return (
-                        <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
+                        <tr className={tw`bg-gray-200 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
                           <th
                             scope='row'
                             className={tw`px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white`}

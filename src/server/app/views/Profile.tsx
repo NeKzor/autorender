@@ -30,6 +30,7 @@ type JoinedVideo =
     | 'thumbnail_url_large'
     | 'video_length'
     | 'board_changelog_id'
+    | 'board_source'
     | 'pending'
   >
   & {
@@ -73,6 +74,7 @@ const getVideos = async (
           , thumbnail_url_large
           , video_length
           , board_changelog_id
+          , board_source
           , pending
           , requester.username as requested_by_username
           , requester.discord_avatar_url as requested_by_discord_avatar_url
@@ -245,9 +247,8 @@ export const Profile = () => {
               >
               </style>
             )}
-            {/* TODO: This shouldn't be rounded on all sides for 2xl but max-* does not work in twind */}
             <div
-              className={tw`p-4 flex rounded profile-bg ${
+              className={tw`p-4 flex rounded-[12px] profile-bg ${
                 !user.discord_banner ? getProfileColor(user) : ''
               } dark:text-white col-span-1 justify-center items-center gap-2`}
             >

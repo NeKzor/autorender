@@ -108,7 +108,7 @@ export const Body = ({ initialState, children }: BodyProps) => {
         <div className={tw`flex flex-col h-screen`}>
           <Navbar />
           <Sidebar queued={state.clients.length} />
-          <main className={tw`pr-4 mt-[70px] sm:ml-64 grow`}>
+          <main className={tw`p-4 mt-[70px] lg:ml-60 grow`}>
             {children}
           </main>
         </div>

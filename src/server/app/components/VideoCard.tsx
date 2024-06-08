@@ -8,7 +8,7 @@ import * as React from 'react';
 import { tw } from 'twind';
 import { Video } from '~/shared/models.ts';
 import { VideoLength } from './VideoLength.tsx';
-import { toAgo } from '../utils.ts';
+import { getAutorenderAvatar, toAgo } from '../utils.ts';
 
 type VideoCardData =
   & Pick<
@@ -23,6 +23,7 @@ type VideoCardData =
     | 'thumbnail_url_large'
     | 'video_length'
     | 'board_changelog_id'
+    | 'board_source'
   >
   & {
     requested_by_discord_avatar_url: string | null;
@@ -30,9 +31,12 @@ type VideoCardData =
 
 export const VideoCard = ({ video }: { video: VideoCardData }) => {
   return (
-    <a href={`/videos/${video.share_id}`}>
+    <a
+      href={`/videos/${video.share_id}`}
+      className={tw`rounded-[12px]`}
+    >
       <div
-        className={tw`p-4 rounded-[12px] cursor-pointer transform transition duration-300 hover:bg-gray-200 dark:hover:bg-gray-800 dark:bg-gray-900 dark:text-white max-w-[378px]`}
+        className={tw`hover:bg-white-400 dark:hover:bg-gray-800 hover:bg-opacity-10 p-4 rounded-[12px] cursor-pointer transform transition duration-300 dark:bg-gray-900 dark:text-white max-w-[378px]`}
       >
         <div
           className={tw`relative flex items-center justify-center h-48 mb-4${
@@ -86,7 +90,7 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
               ? (
                 <img
                   className={tw`w-10 h-10 text-gray-200 dark:text-gray-700 rounded-full`}
-                  src='/storage/files/autorender_avatar.webp'
+                  src={`/storage/files/${getAutorenderAvatar(video.board_source)}`}
                   alt='Avatar of autorender'
                 />
               )

@@ -140,6 +140,35 @@ const navItemsRight = document.getElementById('nav-items-right');
 const themeToggleButton = document.getElementById('theme-toggle-button');
 const userMenuButton = document.getElementById('user-menu-button');
 const loginButton = document.getElementById('login-button');
+const sidebarButton = document.getElementById('sidebar-button');
+const defaultSidebar = document.getElementById('default-sidebar');
+
+if (sidebarButton) {
+  const main = document.querySelector('main');
+  const videos = document.getElementById('videos');
+
+  sidebarButton.addEventListener('click', () => {
+    if (window.innerWidth > minWidthBreakpoints.md) {
+      if (defaultSidebar.classList.contains('hidden')) {
+        defaultSidebar.classList.remove('hidden');
+        main.classList.add('lg:ml-60');
+        defaultSidebar.removeAttribute('data-drawer-toggle');
+        if (videos) {
+          videos.className =
+            'grid grid-cols gap-x-2 gap-y-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4';
+        }
+      } else {
+        defaultSidebar.classList.add('hidden');
+        main.classList.remove('lg:ml-60');
+        defaultSidebar.setAttribute('data-drawer-toggle', 'default-sidebar');
+        if (videos) {
+          videos.className =
+            'grid grid-cols gap-x-2 gap-y-4 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
+        }
+      }
+    }
+  });
+}
 
 const search = {
   isOpen: false,
@@ -260,6 +289,7 @@ if (themeToggleButton) {
     const setDarkMode = (colorTheme && colorTheme !== 'dark') || !document.documentElement.classList.contains('dark');
 
     document.documentElement.classList[setDarkMode ? 'add' : 'remove']('dark');
+    document.documentElement.style.setProperty('color-scheme', setDarkMode ? 'dark' : 'light');
     localStorage.setItem('color-theme', setDarkMode ? 'dark' : 'light');
   });
 }

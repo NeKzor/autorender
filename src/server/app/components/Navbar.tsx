@@ -15,16 +15,17 @@ const Navbar = () => {
 
   return (
     <nav
-      className={tw`bg-white opacity-95 dark:bg-gray-900 fixed w-full z-50 top-0 left-0 pr-[16px]`}
+      className={tw`bg-white dark:bg-gray-900 fixed w-full z-50 top-0 left-0 pr-[16px]`}
     >
       <div className={tw`flex flex-wrap items-center justify-between mx-auto p-2`}>
         <div id='nav-items-left' className={tw`flex items-center`}>
           <button
-            id='nav-sidebar'
+            id='sidebar-button'
+            className={tw`focus:outline-none focus-visible:ring-2 hover:bg-gray-200 hover:dark:bg-gray-700 dark:bg-gray-900 rounded-lg text-sm p-2.5 mr-4`}
+            aria-controls='default-sidebar'
             aria-label='Sidebar'
             type='button'
             aria-expanded='false'
-            className={tw`text-gray-500 dark:text-gray-400 rounded-lg text-sm p-2.5 mr-4`}
           >
             <svg
               className={tw`w-6 h-6 text-gray-800 dark:text-white`}
@@ -49,7 +50,7 @@ const Navbar = () => {
           <a
             href='/'
             aria-label='Go to home'
-            className={tw`self-center pl-1 pt-1 text-2xl font-semibold whitespace-nowrap dark:text-white`}
+            className={tw`hidden md:block self-center pl-1 pt-1 text-2xl font-semibold whitespace-nowrap dark:text-white`}
           >
             Autorender
           </a>
@@ -155,7 +156,7 @@ const Navbar = () => {
             id='theme-toggle-button'
             aria-label='Toggle theme'
             type='button'
-            className={tw`z-100 text-gray-500 inline-flex items-center justify-center dark:text-gray-400 hover:bg-gray-100 w-10 h-10 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-4`}
+            className={tw`z-100 text-gray-500 inline-flex items-center justify-center dark:text-gray-400 hover:bg-gray-100 w-10 h-10 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 mr-4`}
             data-tooltip-target='theme-toggle-button-tooltip'
           >
             <svg

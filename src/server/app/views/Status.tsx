@@ -173,7 +173,7 @@ export const Status = () => {
               const clientState = state?.clientStates.get(token.access_token_id);
 
               return (
-                <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
+                <tr className={tw`bg-gray-200 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
                   <th
                     scope='row'
                     className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}
@@ -267,7 +267,7 @@ export const Status = () => {
               {queuedVideos.map((video) => {
                 const createdAt = new Date(video.created_at);
                 return (
-                  <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
+                  <tr className={tw`bg-gray-200 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
                     <th
                       scope='row'
                       className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}
@@ -349,7 +349,7 @@ export const Status = () => {
               {failedAutorenderVideos.map((video) => {
                 const createdAt = new Date(video.created_at);
                 return (
-                  <tr className={tw`bg-white border-gray-100 dark:bg-gray-900 dark:border-gray-800`}>
+                  <tr className={tw`bg-gray-200 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
                     <th
                       scope='row'
                       className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}

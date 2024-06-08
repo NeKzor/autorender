@@ -11,8 +11,8 @@ import Footer from './Footer.tsx';
 const Sidebar = ({ queued, username }: { queued: number; username?: string }) => {
   return (
     <aside
-      id='logo-sidebar'
-      className={tw`flex w-full flex-col justify-between fixed top-0 left-0 z-40 w-60 h-screen transition-transform -translate-x-full bg-white sm:translate-x-0 dark:bg-gray-900 dark:border-gray-900`}
+      id='default-sidebar'
+      className={tw`flex w-full flex-col justify-between fixed top-0 left-0 z-40 w-60 h-screen transition-transform -translate-x-full bg-white lg:translate-x-0 dark:bg-gray-900 dark:border-gray-900`}
       aria-label='Sidebar'
     >
       <div className={tw`h-full mt-[70px] px-3 pb-4 pt-4 overflow-y-auto bg-white dark:bg-gray-900`}>
@@ -95,7 +95,8 @@ const Sidebar = ({ queued, username }: { queued: number; username?: string }) =>
               </a>
             </li>
           )}
-          <li>
+          {
+            /* <li>
             <a
               href='/history'
               className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 group`}
@@ -119,7 +120,8 @@ const Sidebar = ({ queued, username }: { queued: number; username?: string }) =>
               </svg>
               <span className={tw`flex-1 ml-3 whitespace-nowrap`}>History</span>
             </a>
-          </li>
+          </li> */
+          }
           {username !== undefined && (
             <li>
               <a
