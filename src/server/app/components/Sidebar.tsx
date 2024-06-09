@@ -8,19 +8,30 @@ import * as React from 'react';
 import { tw } from 'twind';
 import Footer from './Footer.tsx';
 
-const Sidebar = ({ queued, username }: { queued: number; username?: string }) => {
+const Sidebar = (
+  { queued, pathname, hidden, username }: { queued: number; pathname: string; hidden: boolean; username?: string },
+) => {
   return (
     <aside
       id='default-sidebar'
-      className={tw`flex w-full flex-col justify-between fixed top-0 left-0 z-40 w-60 h-screen transition-transform -translate-x-full bg-white lg:translate-x-0 dark:bg-gray-900 dark:border-gray-900`}
+      tabIndex={-1}
+      className={tw`
+        
+        ${!hidden ? 'lg:translate-x-0' : ''}
+        fixed top-0 left-0 flex w-full flex-col justify-between fixed top-0 left-0 z-40 w-60 h-screen transition-transform -translate-x-full bg-white dark:bg-gray-900 dark:border-gray-900
+        `}
       aria-label='Sidebar'
     >
       <div className={tw`h-full mt-[70px] px-3 pb-4 pt-4 overflow-y-auto bg-white dark:bg-gray-900`}>
-        <ul className={tw`space-y-2 font-medium`}>
+        <ul className={tw`font-medium`}>
           <li>
             <a
               href='/'
-              className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 group`}
+              className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white ${
+                pathname === '/'
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } group`}
             >
               <svg
                 className={tw`w-6 h-6 text-gray-800 dark:text-white`}
@@ -45,7 +56,11 @@ const Sidebar = ({ queued, username }: { queued: number; username?: string }) =>
           <li>
             <a
               href='/status'
-              className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 group`}
+              className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white ${
+                pathname === '/status'
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } group`}
             >
               <svg
                 className={tw`w-6 h-6 text-gray-800 dark:text-white`}
@@ -68,11 +83,17 @@ const Sidebar = ({ queued, username }: { queued: number; username?: string }) =>
               )}
             </a>
           </li>
+        </ul>
+        <ul className={tw`pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700`}>
           {username !== undefined && (
             <li>
               <a
                 href={`/profile/${username}`}
-                className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-200 dark:hover:bg-gray-800 group`}
+                className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white ${
+                  pathname === `/profile/${username}`
+                    ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                    : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+                } group`}
               >
                 <svg
                   className={tw`w-6 h-6 text-gray-800 dark:text-white`}
@@ -99,7 +120,7 @@ const Sidebar = ({ queued, username }: { queued: number; username?: string }) =>
             /* <li>
             <a
               href='/history'
-              className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 group`}
+              className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white ${pathname === '/history' ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-800'} group`}
             >
               <svg
                 className={tw`w-6 h-6 text-gray-800 dark:text-white`}
@@ -122,34 +143,36 @@ const Sidebar = ({ queued, username }: { queued: number; username?: string }) =>
             </a>
           </li> */
           }
-          {username !== undefined && (
-            <li>
-              <a
-                href='/bookmarks'
-                className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 group`}
-              >
-                <svg
-                  className={tw`w-6 h-6 text-gray-800 dark:text-white`}
-                  aria-hidden='true'
-                  xmlns='http://www.w3.org/2000/svg'
-                  width='24'
-                  height='24'
-                  fill='none'
-                  viewBox='0 0 24 24'
+          {
+            /* {username !== undefined && (
+              <li>
+                <a
+                  href='/bookmarks'
+                  className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white ${pathname === '/bookmarks' ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-800'} group`}
                 >
-                  <path
-                    stroke='currentColor'
-                    stroke-linecap='round'
-                    stroke-linejoin='round'
-                    stroke-width='2'
-                    d='m17 21-5-4-5 4V3.889a.92.92 0 0 1 .244-.629.808.808 0 0 1 .59-.26h8.333a.81.81 0 0 1 .589.26.92.92 0 0 1 .244.63V21Z'
-                  />
-                </svg>
+                  <svg
+                    className={tw`w-6 h-6 text-gray-800 dark:text-white`}
+                    aria-hidden='true'
+                    xmlns='http://www.w3.org/2000/svg'
+                    width='24'
+                    height='24'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      stroke='currentColor'
+                      stroke-linecap='round'
+                      stroke-linejoin='round'
+                      stroke-width='2'
+                      d='m17 21-5-4-5 4V3.889a.92.92 0 0 1 .244-.629.808.808 0 0 1 .59-.26h8.333a.81.81 0 0 1 .589.26.92.92 0 0 1 .244.63V21Z'
+                    />
+                  </svg>
 
-                <span className={tw`flex-1 ml-3 whitespace-nowrap`}>Bookmarks</span>
-              </a>
-            </li>
-          )}
+                  <span className={tw`flex-1 ml-3 whitespace-nowrap`}>Bookmarks</span>
+                </a>
+              </li>
+            )} */
+          }
         </ul>
       </div>
       <Footer />

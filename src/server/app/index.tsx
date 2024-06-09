@@ -61,6 +61,9 @@ export const index = (
 
   const styleTag = getStyleTag(sheet, { nonce });
 
+  const extraStyleTag =
+    `<style nonce="${nonce}">.video-card:hover{box-shadow:0 0 0 10px #E5E7EB;}:is(.dark .video-card:hover){box-shadow:0 0 0 10px #1F2937;}</style>`;
+
   const themeScriptTag =
     `<script nonce="${nonce}">const theme=localStorage.getItem('color-theme')??'dark';theme==='light'&&document.documentElement.classList.remove('dark');document.documentElement.style.setProperty('color-scheme',theme)</script>`;
 
@@ -71,7 +74,8 @@ export const index = (
     ? `<script nonce="${nonce}" src="/assets/js/hot_reload.js" type="module"></script>`
     : '';
 
-  const headTag = `<head>${head}${styleTag}${themeScriptTag}${moduleScriptTag}${hotReloadScriptTag}</head>`;
+  const headTag =
+    `<head>${head}${styleTag}${extraStyleTag}${themeScriptTag}${moduleScriptTag}${hotReloadScriptTag}</head>`;
   const bodyTag = `<body class="dark:bg-gray-900 dark:text-white">${body}</body>`;
 
   return `<!DOCTYPE html><html lang='en' dir='ltr' class="dark">${headTag}${bodyTag}</html>`;

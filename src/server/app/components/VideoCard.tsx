@@ -36,7 +36,7 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
       className={tw`rounded-[12px]`}
     >
       <div
-        className={tw`hover:bg-white-400 dark:hover:bg-gray-800 hover:bg-opacity-10 p-4 rounded-[12px] cursor-pointer transform transition duration-300 dark:bg-gray-900 dark:text-white max-w-[378px]`}
+        className={tw`video-card pb-4 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-[12px] cursor-pointer transform transition duration-300 dark:bg-gray-900 dark:text-white max-w-[378px]`}
       >
         <div
           className={tw`relative flex items-center justify-center h-48 mb-4${

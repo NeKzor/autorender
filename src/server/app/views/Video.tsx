@@ -202,9 +202,9 @@ export const VideoView = () => {
           )}
           {hasVideo && (
             <>
-              <div className={tw``}>
+              <div className={tw`h-[56.25vw] xl:h-[${_videoHeight}px]`}>
                 <video
-                  className={tw`rounded-[12px]`}
+                  className={tw`absolute rounded-[12px]`}
                   controls
                   autoPlay
                 >
@@ -242,7 +242,7 @@ export const VideoView = () => {
             </>
           )}
           {hasVideo && (
-            <div className={tw`flex items-center mr-4 mb-2 mt-2`}>
+            <div className={tw`mt-2`}>
               <input
                 id='ihud-checkbox'
                 type='checkbox'
@@ -254,174 +254,174 @@ export const VideoView = () => {
               >
                 Show inputs
               </label>
-            </div>
-          )}
-          <div className={tw`mt-6 relative text-[20px]`}>
-            <div>
-              {hasVideo && <span className={tw`float-right ml-8`}>{data.views} views</span>}
-              <span className={tw`break-words`}>{data.title}</span>
-            </div>
-          </div>
-          <div className={tw`flex-wrap my-6 flex gap-2 float-right`}>
-            {data.demo_required_fix === FixedDemoStatus.Required && (
-              <>
-                <div>
-                  <a
-                    href={`/storage/demos/${data.share_id}/fixed`}
-                    target='_blank'
-                  >
-                    <button
-                      type='button'
-                      className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+              <div className={tw`flex-wrap mt-3 flex gap-2 float-right`}>
+                {data.demo_required_fix === FixedDemoStatus.Required && (
+                  <>
+                    <div>
+                      <a
+                        href={`/storage/demos/${data.share_id}/fixed`}
+                        target='_blank'
+                      >
+                        <button
+                          type='button'
+                          className={tw`text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                        >
+                          Download Fixed Demo
+                        </button>
+                      </a>
+                    </div>
+                    <div>
+                      <a
+                        href={`/storage/demos/${data.share_id}`}
+                        target='_blank'
+                      >
+                        <button
+                          type='button'
+                          className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                        >
+                          <svg
+                            className={tw`w-4 h-4 text-white dark:text-white`}
+                            aria-hidden='true'
+                            xmlns='http://www.w3.org/2000/svg'
+                            fill='none'
+                            viewBox='0 0 20 19'
+                          >
+                            <path
+                              stroke='currentColor'
+                              stroke-linecap='round'
+                              stroke-linejoin='round'
+                              stroke-width='2'
+                              d='M15 15h.01M4 12H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-3M9.5 1v10.93m4-3.93-4 4-4-4'
+                            />
+                          </svg>
+                          Download Original Demo
+                        </button>
+                      </a>
+                    </div>
+                  </>
+                )}
+                {data.demo_required_fix === FixedDemoStatus.NotRequired && (
+                  <div>
+                    <a
+                      href={`/storage/demos/${data.share_id}`}
+                      target='_blank'
                     >
-                      Download Fixed Demo
-                    </button>
-                  </a>
-                </div>
-                <div>
-                  <a
-                    href={`/storage/demos/${data.share_id}`}
-                    target='_blank'
-                  >
+                      <button
+                        type='button'
+                        className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                      >
+                        <svg
+                          className={tw`w-4 h-4 text-white dark:text-white`}
+                          aria-hidden='true'
+                          xmlns='http://www.w3.org/2000/svg'
+                          fill='none'
+                          viewBox='0 0 20 19'
+                        >
+                          <path
+                            stroke='currentColor'
+                            stroke-linecap='round'
+                            stroke-linejoin='round'
+                            stroke-width='2'
+                            d='M15 15h.01M4 12H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-3M9.5 1v10.93m4-3.93-4 4-4-4'
+                          />
+                        </svg>
+                        Download Demo
+                      </button>
+                    </a>
+                  </div>
+                )}
+                {hasVideo && (
+                  <div>
                     <button
+                      data-modal-target='share-modal'
+                      data-modal-toggle='share-modal'
+                      id={`video-share-button-${data.share_id}`}
                       type='button'
-                      className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                      className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                     >
                       <svg
                         className={tw`w-4 h-4 text-white dark:text-white`}
                         aria-hidden='true'
                         xmlns='http://www.w3.org/2000/svg'
                         fill='none'
-                        viewBox='0 0 20 19'
+                        viewBox='0 0 18 16'
                       >
                         <path
                           stroke='currentColor'
                           stroke-linecap='round'
                           stroke-linejoin='round'
                           stroke-width='2'
-                          d='M15 15h.01M4 12H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-3M9.5 1v10.93m4-3.93-4 4-4-4'
+                          d='M1.248 15C.22 11.77 2.275 4.232 9.466 4.232V2.079a1.025 1.025 0 0 1 1.644-.862l5.479 4.307a1.108 1.108 0 0 1 0 1.723l-5.48 4.307a1.026 1.026 0 0 1-1.643-.861V8.539C2.275 9.616 1.248 15 1.248 15Z'
                         />
                       </svg>
-                      Download Original Demo
+                      Share Video
                     </button>
-                  </a>
-                </div>
-              </>
-            )}
-            {data.demo_required_fix === FixedDemoStatus.NotRequired && (
-              <div>
-                <a
-                  href={`/storage/demos/${data.share_id}`}
-                  target='_blank'
-                >
-                  <button
-                    type='button'
-                    className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
-                  >
-                    <svg
-                      className={tw`w-4 h-4 text-white dark:text-white`}
-                      aria-hidden='true'
-                      xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
-                      viewBox='0 0 20 19'
+                  </div>
+                )}
+                {hasVideo && data.pending === PendingStatus.FinishedRender && isAllowedToRerender && (
+                  <div>
+                    <button
+                      data-modal-target='rerender-modal'
+                      data-modal-toggle='rerender-modal'
+                      id='video-rerender-button'
+                      type='button'
+                      className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                     >
-                      <path
-                        stroke='currentColor'
-                        stroke-linecap='round'
-                        stroke-linejoin='round'
-                        stroke-width='2'
-                        d='M15 15h.01M4 12H2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1h-3M9.5 1v10.93m4-3.93-4 4-4-4'
-                      />
-                    </svg>
-                    Download Demo
-                  </button>
-                </a>
+                      <svg
+                        className={tw`w-4 h-4 text-white dark:text-white`}
+                        aria-hidden='true'
+                        xmlns='http://www.w3.org/2000/svg'
+                        fill='none'
+                        viewBox='0 0 18 20'
+                      >
+                        <path
+                          stroke='currentColor'
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          stroke-width='2'
+                          d='M16 1v5h-5M2 19v-5h5m10-4a8 8 0 0 1-14.947 3.97M1 10a8 8 0 0 1 14.947-3.97'
+                        />
+                      </svg>
+                      Rerender
+                    </button>
+                  </div>
+                )}
+                {data.pending === PendingStatus.FinishedRender && isAllowedToDelete && (
+                  <div>
+                    <button
+                      data-modal-target='delete-modal'
+                      data-modal-toggle='delete-modal'
+                      id='video-delete-button'
+                      type='button'
+                      className={tw`flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800`}
+                    >
+                      <svg
+                        className={tw`w-[18px] h-[18px] text-white dark:text-white`}
+                        aria-hidden='true'
+                        xmlns='http://www.w3.org/2000/svg'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                      >
+                        <path
+                          stroke='currentColor'
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          stroke-width='2'
+                          d='M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z'
+                        />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-            {hasVideo && (
-              <div>
-                <button
-                  data-modal-target='share-modal'
-                  data-modal-toggle='share-modal'
-                  id={`video-share-button-${data.share_id}`}
-                  type='button'
-                  className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
-                >
-                  <svg
-                    className={tw`w-4 h-4 text-white dark:text-white`}
-                    aria-hidden='true'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 18 16'
-                  >
-                    <path
-                      stroke='currentColor'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      stroke-width='2'
-                      d='M1.248 15C.22 11.77 2.275 4.232 9.466 4.232V2.079a1.025 1.025 0 0 1 1.644-.862l5.479 4.307a1.108 1.108 0 0 1 0 1.723l-5.48 4.307a1.026 1.026 0 0 1-1.643-.861V8.539C2.275 9.616 1.248 15 1.248 15Z'
-                    />
-                  </svg>
-                  Share Video
-                </button>
-              </div>
-            )}
-            {hasVideo && data.pending === PendingStatus.FinishedRender && isAllowedToRerender && (
-              <div>
-                <button
-                  data-modal-target='rerender-modal'
-                  data-modal-toggle='rerender-modal'
-                  id='video-rerender-button'
-                  type='button'
-                  className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
-                >
-                  <svg
-                    className={tw`w-4 h-4 text-white dark:text-white`}
-                    aria-hidden='true'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 18 20'
-                  >
-                    <path
-                      stroke='currentColor'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      stroke-width='2'
-                      d='M16 1v5h-5M2 19v-5h5m10-4a8 8 0 0 1-14.947 3.97M1 10a8 8 0 0 1 14.947-3.97'
-                    />
-                  </svg>
-                  Rerender
-                </button>
-              </div>
-            )}
-            {data.pending === PendingStatus.FinishedRender && isAllowedToDelete && (
-              <div>
-                <button
-                  data-modal-target='delete-modal'
-                  data-modal-toggle='delete-modal'
-                  id='video-delete-button'
-                  type='button'
-                  className={tw`flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800`}
-                >
-                  <svg
-                    className={tw`w-[18px] h-[18px] text-white dark:text-white`}
-                    aria-hidden='true'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      stroke='currentColor'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      stroke-width='2'
-                      d='M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z'
-                    />
-                  </svg>
-                  Delete
-                </button>
-              </div>
-            )}
+            </div>
+          )}
+          <div className={tw`mt-12 relative text-[20px]`}>
+            <div>
+              {hasVideo && <span className={tw`float-right ml-8`}>{data.views} views</span>}
+              <span className={tw`break-words`}>{data.title}</span>
+            </div>
           </div>
           <br />
           {(data.board_changelog_id !== null || data.workshop_file_id !== null) && (

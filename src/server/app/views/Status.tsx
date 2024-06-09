@@ -144,94 +144,101 @@ export const Status = () => {
   const { tokens, queuedVideos, failedAutorenderVideos } = useLoaderData<Data>();
 
   return (
-    <div className={tw`sm:flex`}>
+    <div className={tw`flex justify-center`}>
       <div className={tw`md:w-[75%]`}>
         <h2 className={tw`text-2xl mb-6`}>
           Status
         </h2>
-        <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
-          <thead
-            className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
-          >
-            <tr>
-              <th scope='col' className={tw`px-6 py-3`}>
-                Render node
-              </th>
-              <th scope='col' className={tw`px-6 py-3`}>
-                Status
-              </th>
-              <th scope='col' className={tw`px-6 py-3`}>
-                Renders
-              </th>
-              <th scope='col' className={tw`px-6 py-3`}>
-                Provider
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {tokens.map((token) => {
-              const clientState = state?.clientStates.get(token.access_token_id);
+        {tokens.length === 0 && (
+          <div>
+            No videos have been rendered in the last 7 days.
+          </div>
+        )}
+        {tokens.length !== 0 && (
+          <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
+            <thead
+              className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
+            >
+              <tr>
+                <th scope='col' className={tw`px-6 py-3`}>
+                  Render node
+                </th>
+                <th scope='col' className={tw`px-6 py-3`}>
+                  Status
+                </th>
+                <th scope='col' className={tw`px-6 py-3`}>
+                  Renders
+                </th>
+                <th scope='col' className={tw`px-6 py-3`}>
+                  Provider
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {tokens.map((token) => {
+                const clientState = state?.clientStates.get(token.access_token_id);
 
-              return (
-                <tr className={tw`bg-gray-200 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
-                  <th
-                    scope='row'
-                    className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}
-                  >
-                    {(clientState?.games?.length ?? 0) === 0 && <span>{token.token_name}</span>}
-                    {(clientState?.games?.length ?? 0) !== 0 && (
-                      <>
-                        <span
-                          data-popover-target='token-name-popover'
-                          data-popover-placement='left'
-                          className={tw`cursor-help`}
-                        >
-                          {token.token_name}
-                        </span>
-                        <div
-                          data-popover
-                          id='token-name-popover'
-                          role='tooltip'
-                          className={tw`absolute z-10 invisible inline-block w-64 text-sm text-black transition-opacity duration-300 bg-gray-50 rounded-lg shadow-sm opacity-0 dark:text-white dark:bg-gray-700`}
-                        >
-                          <div className={tw`px-3 py-2`}>
-                            Supported Games
-                            <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
-                              {clientState!.games.map((game) => {
-                                return <li>{game}</li>;
-                              })}
-                            </ul>
-                            Render Qualities
-                            <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
-                              {clientState!.renderQualities.map((game) => {
-                                return <li>{game}</li>;
-                              })}
-                            </ul>
-                          </div>
-                          <div data-popper-arrow></div>
-                        </div>
-                      </>
-                    )}
-                  </th>
-                  <td className={tw`px-6 py-4`}>
-                    {state?.clients.includes(token.access_token_id) ? 'Connected' : 'Offline'}
-                  </td>
-                  <td className={tw`px-6 py-4`}>
-                    {token.render_count}
-                  </td>
-                  <td className={tw`px-6 py-4`}>
-                    <a
-                      href={`/profile/${token.username}`}
-                      className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                return (
+                  <tr className={tw`bg-gray-200 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
+                    <th
+                      scope='row'
+                      className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}
                     >
-                      {token.username}
-                    </a>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                      {(clientState?.games?.length ?? 0) === 0 && <span>{token.token_name}</span>}
+                      {(clientState?.games?.length ?? 0) !== 0 && (
+                        <>
+                          <span
+                            data-popover-target='token-name-popover'
+                            data-popover-placement='left'
+                            className={tw`cursor-help`}
+                          >
+                            {token.token_name}
+                          </span>
+                          <div
+                            data-popover
+                            id='token-name-popover'
+                            role='tooltip'
+                            className={tw`absolute z-10 invisible inline-block w-64 text-sm text-black transition-opacity duration-300 bg-gray-50 rounded-lg shadow-sm opacity-0 dark:text-white dark:bg-gray-700`}
+                          >
+                            <div className={tw`px-3 py-2`}>
+                              Supported Games
+                              <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
+                                {clientState!.games.map((game) => {
+                                  return <li>{game}</li>;
+                                })}
+                              </ul>
+                              Render Qualities
+                              <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
+                                {clientState!.renderQualities.map((game) => {
+                                  return <li>{game}</li>;
+                                })}
+                              </ul>
+                            </div>
+                            <div data-popper-arrow></div>
+                          </div>
+                        </>
+                      )}
+                    </th>
+                    <td className={tw`px-6 py-4`}>
+                      {state?.clients.includes(token.access_token_id) ? 'Connected' : 'Offline'}
+                    </td>
+                    <td className={tw`px-6 py-4`}>
+                      {token.render_count}
+                    </td>
+                    <td className={tw`px-6 py-4`}>
+                      <a
+                        href={`/profile/${token.username}`}
+                        className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                      >
+                        {token.username}
+                      </a>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
         <h2 className={tw`text-2xl mt-12 mb-6`}>
           In Queue{queuedVideos.length ? ` (${queuedVideos.length})` : ''}
         </h2>

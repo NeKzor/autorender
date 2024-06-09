@@ -150,20 +150,24 @@ if (sidebarButton) {
   sidebarButton.addEventListener('click', () => {
     if (window.innerWidth > minWidthBreakpoints.md) {
       if (defaultSidebar.classList.contains('hidden')) {
+        // Show
+        defaultSidebar.classList.add('lg:translate-x-0');
         defaultSidebar.classList.remove('hidden');
+
         main.classList.add('lg:ml-60');
-        defaultSidebar.removeAttribute('data-drawer-toggle');
+
         if (videos) {
           videos.className =
-            'grid grid-cols gap-x-2 gap-y-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4';
+            'grid grid-cols gap-x-4 gap-y-8 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4';
         }
       } else {
         defaultSidebar.classList.add('hidden');
+
         main.classList.remove('lg:ml-60');
-        defaultSidebar.setAttribute('data-drawer-toggle', 'default-sidebar');
+
         if (videos) {
           videos.className =
-            'grid grid-cols gap-x-2 gap-y-4 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
+            'grid grid-cols gap-x-4 gap-y-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
         }
       }
     }
@@ -596,7 +600,6 @@ const initDeleteModal = () => {
 
 if (location.pathname.startsWith('/videos/') && location.pathname.length === 19) {
   const video = document.querySelector('video');
-  //const videoLoadingStatus = document.getElementById('video-loading-status');
 
   if (video) {
     const videoVolume = parseFloat(localStorage.getItem('video-volume'));
@@ -630,11 +633,23 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       }
     });
 
-    const btnSize = 50;
+    let btnSize = 50;
+    let fontSize = 12;
+
+    const updateSize = () => {
+      const height = video.clientHeight;
+      btnSize = height / 14.4;
+      fontSize = Math.floor(height / 60);
+    };
+
+    video.addEventListener('loadedmetadata', updateSize);
+    globalThis.addEventListener('resize', updateSize);
+
     const btnPadding = 2;
     const fps = 60; // TODO: fetch this from video (60 should work for default autorender presets)
 
     const shouldDraw = document.getElementById('ihud-checkbox');
+    /** @type {HTMLCanvasElement} */
     const canvas = document.getElementById('inputs');
     const ctx = canvas.getContext('2d');
 
@@ -653,7 +668,7 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
               ctx.fillRect(rx, ry, width, height);
 
               ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-              ctx.font = '12px Arial';
+              ctx.font = `${fontSize}px Arial`;
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.lineWidth = 2;

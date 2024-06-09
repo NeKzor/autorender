@@ -22,10 +22,12 @@ const Navbar = () => {
           <button
             id='sidebar-button'
             className={tw`focus:outline-none focus-visible:ring-2 hover:bg-gray-200 hover:dark:bg-gray-700 dark:bg-gray-900 rounded-lg text-sm p-2.5 mr-4`}
-            aria-controls='default-sidebar'
             aria-label='Sidebar'
             type='button'
             aria-expanded='false'
+            data-drawer-target='default-sidebar'
+            data-drawer-show='default-sidebar'
+            aria-controls='default-sidebar'
           >
             <svg
               className={tw`w-6 h-6 text-gray-800 dark:text-white`}

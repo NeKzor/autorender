@@ -9,7 +9,7 @@ import { tw } from 'twind';
 
 const Footer = () => {
   return (
-    <footer className={tw`fixed floating bottom-0 left-0 z-50 w-full bg-white dark:bg-gray-900`}>
+    <footer className={tw`floating bottom-0 left-0 z-50 bg-white dark:bg-gray-900`}>
       <div className={tw`w-full mx-auto max-w-screen-xl p-4 flex items-center justify-between`}>
         <ul
           className={tw`flex flex-wrap items-center gap-2 text-sm font-medium text-gray-500 mb-0 dark:text-gray-400`}
