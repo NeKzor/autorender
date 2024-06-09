@@ -574,7 +574,7 @@ export const VideoView = () => {
                         .slice(0, index + 1)
                         .reduce((total, segment) => (total += segment.ticks), 0);
                       return (
-                        <tr className={tw`bg-gray-200 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
+                        <tr className={tw`bg-blue-50 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
                           <th
                             scope='row'
                             className={tw`px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white`}
