@@ -607,9 +607,12 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
       video.volume = videoVolume;
     }
 
+    video.muted = localStorage.getItem('video-muted') === 'true';
+
     video.addEventListener('volumechange', (event) => {
       if (event.target) {
         localStorage.setItem('video-volume', event.target.volume.toString());
+        localStorage.setItem('video-muted', event.target.muted.toString());
       }
     });
 
