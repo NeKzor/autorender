@@ -651,10 +651,17 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
     const btnPadding = 2;
     const fps = 60; // TODO: fetch this from video (60 should work for default autorender presets)
 
-    const shouldDraw = document.getElementById('ihud-checkbox');
+    /** @type {HTMLInputElement} */
+    const ihudCheckbox = document.getElementById('ihud-checkbox');
     /** @type {HTMLCanvasElement} */
     const canvas = document.getElementById('inputs');
     const ctx = canvas.getContext('2d');
+
+    ihudCheckbox.checked = localStorage.getItem('show-inputs') === 'true';
+
+    ihudCheckbox.addEventListener('change', (ev) => {
+      ev.target && localStorage.setItem('show-inputs', ev.target.checked.toString());
+    });
 
     fetch(`/storage/inputs/${location.pathname.slice(location.pathname.lastIndexOf('/') + 1)}`)
       .then((res) => {
@@ -709,7 +716,7 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
 
               ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-              if (!shouldDraw.checked) {
+              if (!ihudCheckbox.checked) {
                 video.requestVideoFrameCallback(drawInputs);
                 return;
               }
