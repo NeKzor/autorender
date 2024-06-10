@@ -41,27 +41,28 @@ export interface ChangelogEntry {
   player_name: string;
   avatar: string;
   profile_number: string;
-  score: string;
-  id: string;
-  pre_rank: string;
-  post_rank: string;
-  wr_gain: string;
+  score: number;
+  id: number;
+  pre_rank: number;
+  post_rank: number;
+  wr_gain: number;
   time_gained: string;
-  hasDemo: string;
+  hasDemo: number;
   youtubeID: string | null;
   note: string;
-  banned: string;
-  submission: string;
-  pending: string;
-  previous_score: string | null;
+  banned: number;
+  submission: number;
+  pending: number;
+  previous_score: number | null;
   chamberName: string;
-  chapterId: string;
+  chapterId: number;
   mapid: string;
   improvement: number;
   rank_improvement: number | null;
   pre_points: number | null;
   post_point: number | null;
   point_improvement: number | null;
+  autorender_id: string | null;
 }
 
 export const getChangelog = async (options?: ChangelogOptions) => {

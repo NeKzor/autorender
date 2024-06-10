@@ -172,7 +172,7 @@ export const insertVideo = async (boardSource: BoardSource, entry: ChangelogEntr
       map = newMap!;
     }
 
-    const title = `${entry.chamberName} in ${formatCmTime(parseInt(entry.score, 10))} by ${entry.player_name}`;
+    const title = `${entry.chamberName} in ${formatCmTime(entry.score)} by ${entry.player_name}`;
     const comment = entry.note;
     const renderQuality = RenderQuality.HD_720p;
     const renderOptions = [

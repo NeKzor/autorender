@@ -10,19 +10,16 @@ import 'dotenv/load.ts';
 import { db } from '../db.ts';
 import { BoardSource, PendingStatus } from '~/shared/models.ts';
 import { installLogger, logger } from '../logger.ts';
-import { getChangelog } from './portal2_sr.ts';
+import { ChangelogOptions, getChangelog } from './portal2_sr.ts';
 import { insertVideo } from './board_insert.ts';
 import { getMelChangelog } from './mel.ts';
 
 const BOARD_INTEGRATION_UPDATE_INTERVAL = 60 * 1_000;
-const BOARD_INTEGRATION_START_DATE = '2023-08-25';
-const MEL_BOARD_INTEGRATION_START_DATE = '2024-05-12';
+
+const MEL_BOARD_MAXIMUM_SCORE = 4 * 60 * 100;
 
 const FAILED_RENDER_MIN_RETRY_MINUTES = 15;
 const FAILED_RENDER_MAX_RETRY_MINUTES = 60;
-
-// TODO: Remove this at some point
-const MAP_ID_ADVANCED_FAITH_PLATE = '36';
 
 installLogger('board');
 
@@ -31,45 +28,32 @@ addEventListener('unhandledrejection', (ev) => {
   logger.error('unhandledrejection', { reason: ev.reason });
 });
 
-const checkChangelogUpdates = async () => {
-  const changelog = await getChangelog({
-    endRank: 200,
-    maxDaysAgo: 1,
-    banned: 0,
-    pending: 0,
-  });
+const options = {
+  endRank: 200,
+  maxDaysAgo: 1,
+  banned: 0,
+  pending: 0,
+} satisfies ChangelogOptions;
 
+const checkChangelogUpdates = async () => {
+  const changelog = await getChangelog(options);
   if (!changelog) {
     return;
   }
 
   for (const entry of changelog) {
-    if (entry.time_gained.slice(0, 10) < BOARD_INTEGRATION_START_DATE) {
-      continue;
-    }
-
     await insertVideo(BoardSource.Portal2, entry);
   }
 };
 
 const checkMelChangelogUpdates = async () => {
-  const changelog = await getMelChangelog({
-    endRank: 3,
-    maxDaysAgo: 1,
-    banned: 0,
-    pending: 0,
-  });
-
+  const changelog = await getMelChangelog(options);
   if (!changelog) {
     return;
   }
 
   for (const entry of changelog) {
-    if (entry.time_gained.slice(0, 10) < MEL_BOARD_INTEGRATION_START_DATE) {
-      continue;
-    }
-
-    if (entry.mapid === MAP_ID_ADVANCED_FAITH_PLATE) {
+    if (entry.score > MEL_BOARD_MAXIMUM_SCORE) {
       continue;
     }
 
