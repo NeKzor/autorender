@@ -103,7 +103,6 @@ export const Body = ({ initialState, children }: BodyProps) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
   const pathname = state.url.pathname;
-  const hideSidebar = pathname.startsWith('/videos/') || pathname.startsWith('/queue/') || false;
 
   return (
     <AppStateContext.Provider value={state}>
@@ -113,10 +112,9 @@ export const Body = ({ initialState, children }: BodyProps) => {
           <Sidebar
             queued={state.clients.length}
             pathname={pathname}
-            hidden={hideSidebar}
             username={state.user?.username}
           />
-          <main className={tw`p-4 mt-[70px] ${!hideSidebar ? 'lg:ml-60' : ''} grow`}>
+          <main className={tw`m-4 mt-[70px] lg:ml-60 grow`}>
             {children}
           </main>
         </div>

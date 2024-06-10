@@ -9,17 +9,13 @@ import { tw } from 'twind';
 import Footer from './Footer.tsx';
 
 const Sidebar = (
-  { queued, pathname, hidden, username }: { queued: number; pathname: string; hidden: boolean; username?: string },
+  { queued, pathname, username }: { queued: number; pathname: string; username?: string },
 ) => {
   return (
     <aside
       id='default-sidebar'
       tabIndex={-1}
-      className={tw`
-        
-        ${!hidden ? 'lg:translate-x-0' : ''}
-        fixed top-0 left-0 flex w-full flex-col justify-between fixed top-0 left-0 z-40 w-60 h-screen transition-transform -translate-x-full bg-white dark:bg-gray-900 dark:border-gray-900
-        `}
+      className={tw`lg:translate-x-0 fixed top-0 left-0 flex w-full flex-col justify-between fixed top-0 left-0 z-40 w-60 h-screen transition-transform -translate-x-full bg-white dark:bg-gray-900 dark:border-gray-900`}
       aria-label='Sidebar'
     >
       <div className={tw`h-full mt-[70px] px-3 pb-4 pt-4 overflow-y-auto bg-white dark:bg-gray-900`}>
