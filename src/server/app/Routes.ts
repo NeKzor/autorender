@@ -121,24 +121,28 @@ export const routes: Route<RequestContext>[] = [
   },
   {
     path: '/search',
+    caseSensitive: true,
     Component: Search.Search,
     meta: Search.meta,
     loader: Search.loader,
   },
   {
     path: '/profile/:username',
+    caseSensitive: true,
     Component: ProfileView.Profile,
     meta: ProfileView.meta,
     loader: ProfileView.loader,
   },
   {
     path: '/tokens',
+    caseSensitive: true,
     Component: Tokens.Tokens,
     meta: Tokens.meta,
     loader: Tokens.loader,
   },
   {
     path: '/tokens/:access_token_id',
+    caseSensitive: true,
     Component: Token.Token,
     meta: Token.meta,
     loader: Token.loader,
@@ -146,34 +150,40 @@ export const routes: Route<RequestContext>[] = [
   },
   {
     path: '/tokens/:access_token_id/delete',
+    caseSensitive: true,
     meta: Token.meta,
     action: Token.actionDelete,
   },
   {
     path: '/tokens/create',
+    caseSensitive: true,
     meta: Token.meta,
     Component: Token.Token,
     loader: Token.loaderCreate,
   },
   {
     path: '/tokens/new',
+    caseSensitive: true,
     meta: Token.meta,
     action: Token.actionNew,
   },
   {
     path: '/queue/:share_id',
+    caseSensitive: true,
     Component: VideoView.VideoView,
     meta: VideoView.meta,
     loader: VideoView.loader,
   },
   {
     path: '/videos/:share_id',
+    caseSensitive: true,
     Component: VideoView.VideoView,
     meta: VideoView.meta,
     loader: VideoView.loader,
   },
   {
     path: '/privacy',
+    caseSensitive: true,
     Component: Privacy.Privacy,
     meta: () => ({
       title: 'Privacy',
@@ -181,6 +191,7 @@ export const routes: Route<RequestContext>[] = [
   },
   {
     path: '/status',
+    caseSensitive: true,
     Component: StatusView.Status,
     meta: StatusView.meta,
     loader: StatusView.loader,
