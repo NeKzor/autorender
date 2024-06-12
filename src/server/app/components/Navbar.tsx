@@ -21,10 +21,30 @@ const Navbar = () => {
         <div id='nav-items-left' className={tw`flex items-center`}>
           <button
             id='sidebar-button'
-            className={tw`focus:outline-none focus-visible:ring-2 hover:bg-gray-200 hover:dark:bg-gray-700 dark:bg-gray-900 rounded-lg text-sm p-2.5 mr-4`}
+            className={tw`hidden lg:block focus:outline-none focus-visible:ring-2 hover:bg-gray-200 hover:dark:bg-gray-700 dark:bg-gray-900 rounded-lg text-sm p-2.5 mr-4`}
             type='button'
             data-drawer-target='default-sidebar'
-            data-drawer-show='default-sidebar'
+            aria-controls='default-sidebar'
+            aria-label='Sidebar'
+          >
+            <svg
+              className={tw`w-6 h-6 text-gray-800 dark:text-white`}
+              aria-hidden='true'
+              xmlns='http://www.w3.org/2000/svg'
+              width='24'
+              height='24'
+              fill='none'
+              viewBox='0 0 24 24'
+            >
+              <path stroke='currentColor' stroke-linecap='round' stroke-width='2' d='M5 7h14M5 12h14M5 17h14' />
+            </svg>
+          </button>
+          <button
+            id='mobile-sidebar-button'
+            className={tw`lg:hidden focus:outline-none focus-visible:ring-2 hover:bg-gray-200 hover:dark:bg-gray-700 dark:bg-gray-900 rounded-lg text-sm p-2.5 mr-4`}
+            type='button'
+            data-drawer-target='default-sidebar'
+            data-drawer-toggle='default-sidebar'
             aria-controls='default-sidebar'
             aria-label='Sidebar'
           >

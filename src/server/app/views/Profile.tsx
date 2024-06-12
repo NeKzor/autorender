@@ -53,7 +53,7 @@ type Data = {
 
 export const meta: PageMeta<Data> = ({ data }) => {
   return {
-    title: data.user?.username ?? 'Profile not found :(',
+    title: data.user?.username ?? 'Profile not found',
   };
 };
 
@@ -226,109 +226,116 @@ export const Profile = () => {
     (video) => video.pending === PendingStatus.FinishedRender,
   );
 
+  if (!user) {
+    return (
+      <div className={tw`lg:flex lg:justify-center`}>
+        <div>
+          Profile not found
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={tw`flex justify-center`}>
+    <div className={tw`lg:flex lg:justify-center`}>
       <div>
-        {!user && 'Profile not found'}
-        {user && (
-          <div
-            className={tw`grid grid-cols grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 2xl:grid-cols-4 gap-y-4`}
-          >
-            {user.discord_banner && (
-              <style
-                nonce={state?.nonce}
-                dangerouslySetInnerHTML={{
-                  __html: `.profile-bg {
+        <div
+          className={tw`grid grid-cols grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 2xl:grid-cols-4 gap-y-4`}
+        >
+          {user.discord_banner && (
+            <style
+              nonce={state?.nonce}
+              dangerouslySetInnerHTML={{
+                __html: `.profile-bg {
                   background: url('${user.discord_banner_url}?size=4096');
                   background-repeat: no-repeat;
                   background-size: cover;
                 }`,
-                }}
-              >
-              </style>
-            )}
-            <div
-              className={tw`p-4 flex rounded-[12px] profile-bg ${
-                !user.discord_banner ? getProfileColor(user) : ''
-              } dark:text-white col-span-1 justify-center items-center gap-2`}
+              }}
             >
-              <img
-                className={tw`w-24 h-24 mt-3 rounded-full shadow-lg`}
-                src={user.discord_avatar_url}
-                alt='avatar'
-              />
-              <div className={tw`pl-3 pr-3 py-1 bg-white dark:bg-gray-900 rounded-full shadow-lg`}>
-                <span className={tw`p-6 text-4xl font-medium`}>
-                  {user.username}
-                </span>
-              </div>
+            </style>
+          )}
+          <div
+            className={tw`p-4 flex rounded-[12px] profile-bg ${
+              !user.discord_banner ? getProfileColor(user) : ''
+            } dark:text-white col-span-1 justify-center items-center gap-2`}
+          >
+            <img
+              className={tw`hidden sm:block w-24 h-24 mt-3 rounded-full shadow-lg`}
+              src={user.discord_avatar_url}
+              alt='avatar'
+            />
+            <div className={tw`pl-3 pr-3 py-1 bg-white dark:bg-gray-900 rounded-full shadow-lg`}>
+              <span className={tw`p-6 text-4xl font-medium`}>
+                {user.username}
+              </span>
             </div>
-            <div
-              className={tw`p-4 rounded bg-white dark:bg-gray-900 dark:text-white col-span-3`}
-            >
-              <div className={tw`flex flex-col`}>
-                <div className={tw`border-gray-200 dark:border-gray-600`}>
-                  <div>
-                    <dl
-                      className={tw`grid max-w-screen-xl grid-cols-2 gap-8 mx-auto text-gray-900 sm:grid-cols-3 xl:grid-cols-6 dark:text-white p-8`}
-                    >
-                      <div className={tw`flex flex-col items-center justify-center`}>
-                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                          {stats.rendered_videos}
-                        </dt>
-                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                          Rendered Videos
-                        </dd>
-                      </div>
-                      <div className={tw`flex flex-col items-center justify-center`}>
-                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                          {stats.total_views}
-                        </dt>
-                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                          Total Views
-                        </dd>
-                      </div>
-                      <div className={tw`flex flex-col items-center justify-center`}>
-                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                          {stats.provided_videos}
-                        </dt>
-                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                          Provided Videos
-                        </dd>
-                      </div>
-                      <div className={tw`flex flex-col items-center justify-center`}>
-                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                          {formatRank(stats.renderer_rank)}
-                        </dt>
-                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                          Renderer Rank
-                        </dd>
-                      </div>
-                      <div className={tw`flex flex-col items-center justify-center`}>
-                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                          {formatRank(stats.views_rank)}
-                        </dt>
-                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                          Views Rank
-                        </dd>
-                      </div>
-                      <div className={tw`flex flex-col items-center justify-center`}>
-                        <dt className={tw`mb-2 text-3xl font-extrabold`}>
-                          {formatRank(stats.provider_rank)}
-                        </dt>
-                        <dd className={tw`text-gray-500 dark:text-gray-400`}>
-                          Provider Rank
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
+          </div>
+          <div
+            className={tw`p-4 rounded bg-white dark:bg-gray-900 dark:text-white col-span-3`}
+          >
+            <div className={tw`flex flex-col`}>
+              <div className={tw`border-gray-200 dark:border-gray-600`}>
+                <div>
+                  <dl
+                    className={tw`grid max-w-screen-xl grid-cols-2 gap-8 mx-auto text-gray-900 sm:grid-cols-3 xl:grid-cols-6 dark:text-white p-8`}
+                  >
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {stats.rendered_videos}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400 text-center`}>
+                        Rendered Videos
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {stats.total_views}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400 text-center`}>
+                        Total Views
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {stats.provided_videos}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400 text-center`}>
+                        Provided Videos
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {formatRank(stats.renderer_rank)}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400 text-center`}>
+                        Renderer Rank
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {formatRank(stats.views_rank)}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400 text-center`}>
+                        Views Rank
+                      </dd>
+                    </div>
+                    <div className={tw`flex flex-col items-center justify-center`}>
+                      <dt className={tw`mb-2 text-3xl font-extrabold`}>
+                        {formatRank(stats.provider_rank)}
+                      </dt>
+                      <dd className={tw`text-gray-500 dark:text-gray-400 text-center`}>
+                        Provider Rank
+                      </dd>
+                    </div>
+                  </dl>
                 </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
         <div
-          className={tw`grid mt-4 grid-cols sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4`}
+          className={tw`justify-items-center grid mt-4 grid-cols sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4`}
           x-last-video={getSortableIdByCreated(videos.at(-1))}
         >
           {renderedVideos.map((video) => <VideoCard video={video} />)}

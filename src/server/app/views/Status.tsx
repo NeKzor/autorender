@@ -144,8 +144,8 @@ export const Status = () => {
   const { tokens, queuedVideos, failedAutorenderVideos } = useLoaderData<Data>();
 
   return (
-    <div className={tw`flex justify-center`}>
-      <div className={tw`md:w-[75%]`}>
+    <div className={tw`lg:flex lg:justify-center`}>
+      <div className={tw`lg:w-[75%]`}>
         <h2 className={tw`text-2xl mb-6`}>
           Status
         </h2>
@@ -155,89 +155,91 @@ export const Status = () => {
           </div>
         )}
         {tokens.length !== 0 && (
-          <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
-            <thead
-              className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
-            >
-              <tr>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Render node
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Status
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Renders
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Provider
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {tokens.map((token) => {
-                const clientState = state?.clientStates.get(token.access_token_id);
+          <div className={tw`relative overflow-x-auto`}>
+            <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
+              <thead
+                className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
+              >
+                <tr>
+                  <th scope='col' className={tw`px-6 py-3 whitespace-nowrap`}>
+                    Render node
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3`}>
+                    Status
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3`}>
+                    Renders
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3`}>
+                    Provider
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {tokens.map((token) => {
+                  const clientState = state?.clientStates.get(token.access_token_id);
 
-                return (
-                  <tr className={tw`bg-blue-50 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
-                    <th
-                      scope='row'
-                      className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}
-                    >
-                      {(clientState?.games?.length ?? 0) === 0 && <span>{token.token_name}</span>}
-                      {(clientState?.games?.length ?? 0) !== 0 && (
-                        <>
-                          <span
-                            data-popover-target='token-name-popover'
-                            data-popover-placement='left'
-                            className={tw`cursor-help`}
-                          >
-                            {token.token_name}
-                          </span>
-                          <div
-                            data-popover
-                            id='token-name-popover'
-                            role='tooltip'
-                            className={tw`absolute z-10 invisible inline-block w-64 text-sm text-black transition-opacity duration-300 bg-gray-50 rounded-lg shadow-sm opacity-0 dark:text-white dark:bg-gray-700`}
-                          >
-                            <div className={tw`px-3 py-2`}>
-                              Supported Games
-                              <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
-                                {clientState!.games.map((game) => {
-                                  return <li>{game}</li>;
-                                })}
-                              </ul>
-                              Render Qualities
-                              <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
-                                {clientState!.renderQualities.map((game) => {
-                                  return <li>{game}</li>;
-                                })}
-                              </ul>
-                            </div>
-                            <div data-popper-arrow></div>
-                          </div>
-                        </>
-                      )}
-                    </th>
-                    <td className={tw`px-6 py-4`}>
-                      {state?.clients.includes(token.access_token_id) ? 'Connected' : 'Offline'}
-                    </td>
-                    <td className={tw`px-6 py-4`}>
-                      {token.render_count}
-                    </td>
-                    <td className={tw`px-6 py-4`}>
-                      <a
-                        href={`/profile/${token.username}`}
-                        className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                  return (
+                    <tr className={tw`bg-blue-50 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
+                      <th
+                        scope='row'
+                        className={tw`px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white`}
                       >
-                        {token.username}
-                      </a>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        {(clientState?.games?.length ?? 0) === 0 && <span>{token.token_name}</span>}
+                        {(clientState?.games?.length ?? 0) !== 0 && (
+                          <>
+                            <span
+                              data-popover-target='token-name-popover'
+                              data-popover-placement='left'
+                              className={tw`cursor-help`}
+                            >
+                              {token.token_name}
+                            </span>
+                            <div
+                              data-popover
+                              id='token-name-popover'
+                              role='tooltip'
+                              className={tw`absolute z-10 invisible inline-block w-64 text-sm text-black transition-opacity duration-300 bg-gray-50 rounded-lg shadow-sm opacity-0 dark:text-white dark:bg-gray-700`}
+                            >
+                              <div className={tw`px-3 py-2`}>
+                                Supported Games
+                                <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
+                                  {clientState!.games.map((game) => {
+                                    return <li>{game}</li>;
+                                  })}
+                                </ul>
+                                Render Qualities
+                                <ul className={tw`max-w-md space-y-1 list-disc list-inside`}>
+                                  {clientState!.renderQualities.map((game) => {
+                                    return <li>{game}</li>;
+                                  })}
+                                </ul>
+                              </div>
+                              <div data-popper-arrow></div>
+                            </div>
+                          </>
+                        )}
+                      </th>
+                      <td className={tw`px-6 py-4`}>
+                        {state?.clients.includes(token.access_token_id) ? 'Connected' : 'Offline'}
+                      </td>
+                      <td className={tw`px-6 py-4`}>
+                        {token.render_count}
+                      </td>
+                      <td className={tw`px-6 py-4`}>
+                        <a
+                          href={`/profile/${token.username}`}
+                          className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                        >
+                          {token.username}
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
         <h2 className={tw`text-2xl mt-12 mb-6`}>
           In Queue{queuedVideos.length ? ` (${queuedVideos.length})` : ''}
@@ -248,81 +250,83 @@ export const Status = () => {
           </div>
         )}
         {queuedVideos.length !== 0 && (
-          <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
-            <thead
-              className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
-            >
-              <tr>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Title
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Status
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Requested by
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Requested at
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Render node
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {queuedVideos.map((video) => {
-                const createdAt = new Date(video.created_at);
-                return (
-                  <tr className={tw`bg-blue-50 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
-                    <th
-                      scope='row'
-                      className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}
-                    >
-                      <a
-                        href={`/videos/${video.share_id}`}
-                        className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+          <div className={tw`relative overflow-x-auto`}>
+            <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
+              <thead
+                className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
+              >
+                <tr>
+                  <th scope='col' className={tw`px-6 py-3`}>
+                    Title
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3`}>
+                    Status
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3 whitespace-nowrap`}>
+                    Requested by
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3 whitespace-nowrap`}>
+                    Requested at
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3 whitespace-nowrap`}>
+                    Render node
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {queuedVideos.map((video) => {
+                  const createdAt = new Date(video.created_at);
+                  return (
+                    <tr className={tw`bg-blue-50 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
+                      <th
+                        scope='row'
+                        className={tw`px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white`}
                       >
-                        {video.title}
-                      </a>
-                    </th>
-                    <td className={tw`px-6 py-4`}>
-                      {formatPendingStatus(video.pending)}
-                    </td>
-                    <td className={tw`px-6 py-4`}>
-                      {video.requested_by_username
-                        ? (
-                          <a
-                            className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                            href={`/profile/${video.requested_by_username}`}
-                          >
-                            {video.requested_by_username}
-                          </a>
-                        )
-                        : <>{video.requested_by_name}</>}
-                    </td>
-                    <td className={tw`px-6 py-4`}>
-                      <span title={createdAt.toLocaleTimeString()}>
-                        {createdAt.toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className={tw`px-6 py-4`}>
-                      {video.rendered_by_username !== null
-                        ? (
-                          <a
-                            className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                            href={`/profile/${video.rendered_by_username}`}
-                          >
-                            {video.render_node}@{video.rendered_by_username}
-                          </a>
-                        )
-                        : <>-</>}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        <a
+                          href={`/videos/${video.share_id}`}
+                          className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                        >
+                          {video.title}
+                        </a>
+                      </th>
+                      <td className={tw`px-6 py-4`}>
+                        {formatPendingStatus(video.pending)}
+                      </td>
+                      <td className={tw`px-6 py-4`}>
+                        {video.requested_by_username
+                          ? (
+                            <a
+                              className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                              href={`/profile/${video.requested_by_username}`}
+                            >
+                              {video.requested_by_username}
+                            </a>
+                          )
+                          : <>{video.requested_by_name}</>}
+                      </td>
+                      <td className={tw`px-6 py-4`}>
+                        <span title={createdAt.toLocaleTimeString()}>
+                          {createdAt.toLocaleDateString()}
+                        </span>
+                      </td>
+                      <td className={tw`px-6 py-4`}>
+                        {video.rendered_by_username !== null
+                          ? (
+                            <a
+                              className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                              href={`/profile/${video.rendered_by_username}`}
+                            >
+                              {video.render_node}@{video.rendered_by_username}
+                            </a>
+                          )
+                          : <>-</>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
         <h2 className={tw`text-2xl mt-12 mb-6`}>
           Failed Autorenders{failedAutorenderVideos.length ? ` (${failedAutorenderVideos.length})` : ''}
@@ -333,72 +337,74 @@ export const Status = () => {
           </div>
         )}
         {failedAutorenderVideos.length !== 0 && (
-          <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
-            <thead
-              className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
-            >
-              <tr>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Title
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Changelog ID
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Submitted at
-                </th>
-                <th scope='col' className={tw`px-6 py-3`}>
-                  Render node
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {failedAutorenderVideos.map((video) => {
-                const createdAt = new Date(video.created_at);
-                return (
-                  <tr className={tw`bg-blue-50 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
-                    <th
-                      scope='row'
-                      className={tw`px-6 py-4 break-all font-medium text-gray-900 dark:text-white`}
-                    >
-                      <a
-                        href={`/videos/${video.share_id}`}
-                        className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+          <div className={tw`relative overflow-x-auto`}>
+            <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
+              <thead
+                className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
+              >
+                <tr>
+                  <th scope='col' className={tw`px-6 py-3`}>
+                    Title
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3 whitespace-nowrap`}>
+                    Changelog ID
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3 whitespace-nowrap`}>
+                    Submitted at
+                  </th>
+                  <th scope='col' className={tw`px-6 py-3 whitespace-nowrap`}>
+                    Render node
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {failedAutorenderVideos.map((video) => {
+                  const createdAt = new Date(video.created_at);
+                  return (
+                    <tr className={tw`bg-blue-50 border-gray-100 dark:bg-gray-800 dark:border-gray-800`}>
+                      <th
+                        scope='row'
+                        className={tw`px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white`}
                       >
-                        {video.title}
-                      </a>
-                    </th>
-                    <td className={tw`px-6 py-4`}>
-                      <a
-                        className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                        href={`https://${video.board_source_domain}/changelog?id=${video.board_changelog_id}`}
-                        target='_blank'
-                      >
-                        {video.board_changelog_id}
-                      </a>
-                    </td>
-                    <td className={tw`px-6 py-4`}>
-                      <span title={createdAt.toLocaleTimeString()}>
-                        {createdAt.toLocaleDateString()}
-                      </span>
-                    </td>
-                    <td className={tw`px-6 py-4`}>
-                      {video.rendered_by_username !== null
-                        ? (
-                          <a
-                            className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
-                            href={`/profile/${video.rendered_by_username}`}
-                          >
-                            {video.render_node}@{video.rendered_by_username}
-                          </a>
-                        )
-                        : <>-</>}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        <a
+                          href={`/videos/${video.share_id}`}
+                          className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                        >
+                          {video.title}
+                        </a>
+                      </th>
+                      <td className={tw`px-6 py-4`}>
+                        <a
+                          className={tw`font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                          href={`https://${video.board_source_domain}/changelog?id=${video.board_changelog_id}`}
+                          target='_blank'
+                        >
+                          {video.board_changelog_id}
+                        </a>
+                      </td>
+                      <td className={tw`px-6 py-4`}>
+                        <span title={createdAt.toLocaleTimeString()}>
+                          {createdAt.toLocaleDateString()}
+                        </span>
+                      </td>
+                      <td className={tw`px-6 py-4`}>
+                        {video.rendered_by_username !== null
+                          ? (
+                            <a
+                              className={tw`whitespace-nowrap font-medium text-blue-600 dark:text-blue-400 hover:underline`}
+                              href={`/profile/${video.rendered_by_username}`}
+                            >
+                              {video.render_node}@{video.rendered_by_username}
+                            </a>
+                          )
+                          : <>-</>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

@@ -533,10 +533,10 @@ export const VideoView = () => {
                       <th scope='col' className={tw`px-6 py-3 text-right`}>
                         Ticks
                       </th>
-                      <th scope='col' className={tw`px-6 py-3 text-right`}>
+                      <th scope='col' className={tw`px-6 py-3 text-right whitespace-nowrap`}>
                         Total Seconds
                       </th>
-                      <th scope='col' className={tw`px-6 py-3 text-right`}>
+                      <th scope='col' className={tw`px-6 py-3 text-right whitespace-nowrap`}>
                         Total Ticks
                       </th>
                     </tr>

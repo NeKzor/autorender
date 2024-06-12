@@ -80,8 +80,8 @@ const Sidebar = (
             </a>
           </li>
         </ul>
-        <ul className={tw`pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700`}>
-          {username !== undefined && (
+        {username !== undefined && (
+          <ul className={tw`pt-4 mt-4 space-y-2 font-medium border-t border-gray-200 dark:border-gray-700`}>
             <li>
               <a
                 href={`/profile/${username}`}
@@ -111,65 +111,69 @@ const Sidebar = (
                 <span className={tw`flex-1 ml-3 whitespace-nowrap`}>Your renders</span>
               </a>
             </li>
-          )}
-          {
-            /* <li>
-            <a
-              href='/history'
-              className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white ${pathname === '/history' ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-800'} group`}
-            >
-              <svg
-                className={tw`w-6 h-6 text-gray-800 dark:text-white`}
-                aria-hidden='true'
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                fill='none'
-                viewBox='0 0 24 24'
+            {
+              /* <li>
+              <a
+                href='/history'
+                className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white ${
+                  pathname === '/history'
+                    ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                    : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+                } group`}
               >
-                <path
-                  stroke='currentColor'
-                  stroke-linecap='round'
-                  stroke-linejoin='round'
-                  stroke-width='2'
-                  d='M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
-                />
-              </svg>
-              <span className={tw`flex-1 ml-3 whitespace-nowrap`}>History</span>
-            </a>
-          </li> */
-          }
-          {
-            /* {username !== undefined && (
-              <li>
-                <a
-                  href='/bookmarks'
-                  className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white ${pathname === '/bookmarks' ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700' : 'hover:bg-gray-200 dark:hover:bg-gray-800'} group`}
+                <svg
+                  className={tw`w-6 h-6 text-gray-800 dark:text-white`}
+                  aria-hidden='true'
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='24'
+                  height='24'
+                  fill='none'
+                  viewBox='0 0 24 24'
                 >
-                  <svg
-                    className={tw`w-6 h-6 text-gray-800 dark:text-white`}
-                    aria-hidden='true'
-                    xmlns='http://www.w3.org/2000/svg'
-                    width='24'
-                    height='24'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      stroke='currentColor'
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      stroke-width='2'
-                      d='m17 21-5-4-5 4V3.889a.92.92 0 0 1 .244-.629.808.808 0 0 1 .59-.26h8.333a.81.81 0 0 1 .589.26.92.92 0 0 1 .244.63V21Z'
-                    />
-                  </svg>
+                  <path
+                    stroke='currentColor'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                    stroke-width='2'
+                    d='M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+                  />
+                </svg>
+                <span className={tw`flex-1 ml-3 whitespace-nowrap`}>History</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href='/bookmarks'
+                className={tw`flex items-center p-2 text-gray-900 rounded-lg dark:text-white ${
+                  pathname === '/bookmarks'
+                    ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                    : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+                } group`}
+              >
+                <svg
+                  className={tw`w-6 h-6 text-gray-800 dark:text-white`}
+                  aria-hidden='true'
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='24'
+                  height='24'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                >
+                  <path
+                    stroke='currentColor'
+                    stroke-linecap='round'
+                    stroke-linejoin='round'
+                    stroke-width='2'
+                    d='m17 21-5-4-5 4V3.889a.92.92 0 0 1 .244-.629.808.808 0 0 1 .59-.26h8.333a.81.81 0 0 1 .589.26.92.92 0 0 1 .244.63V21Z'
+                  />
+                </svg>
 
-                  <span className={tw`flex-1 ml-3 whitespace-nowrap`}>Bookmarks</span>
-                </a>
-              </li>
-            )} */
-          }
-        </ul>
+                <span className={tw`flex-1 ml-3 whitespace-nowrap`}>Bookmarks</span>
+              </a>
+            </li> */
+            }
+          </ul>
+        )}
       </div>
       <Footer />
     </aside>

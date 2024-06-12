@@ -9,6 +9,7 @@ import 'https://esm.sh/v135/rvfc-polyfill@1.0.7/es2022/rvfc-polyfill.mjs';
 
 const minWidthBreakpoints = {
   md: 768,
+  lg: 1024,
 };
 
 /** @param {HTMLElement} last */
@@ -167,7 +168,7 @@ if (sidebarButton) {
 
         if (videos) {
           videos.className =
-            'grid grid-cols gap-x-4 gap-y-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
+            'grid grid-cols gap-x-4 gap-y-8 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5';
         }
       }
     }

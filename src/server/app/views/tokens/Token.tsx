@@ -165,8 +165,8 @@ export const Token = () => {
   }
 
   return (
-    <div className={tw`sm:flex justify-center`}>
-      <div className={tw`md:w-[50%]`}>
+    <div className={tw`lg:flex lg:justify-center`}>
+      <div className={tw`lg:w-[50%]`}>
         <form action={`/tokens/${token.access_token_id ?? 'new'}`} method='post'>
           <div className={tw`text-[20px] mb-4`}>
             {token.access_token_id ? 'Update ' : 'Create '} Access Token
