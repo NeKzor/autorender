@@ -235,7 +235,13 @@ const downloadRemoteFiles = async () => {
  */
 const downloadStorageFiles = async () => {
   const remoteStorageFiles = 'docker/volumes/storage/files/';
+  await downloadFromRepository(`${remoteStorageFiles}404.webp`, 'storage/files/404.webp');
+  await downloadFromRepository(`${remoteStorageFiles}aptag_avatar.webp`, 'storage/files/aptag_avatar.webp');
+  await downloadFromRepository(`${remoteStorageFiles}autorender_avatar.webp`, 'storage/files/autorender_avatar.webp');
   await downloadFromRepository(`${remoteStorageFiles}autorender.cfg`, 'storage/files/autorender.cfg');
+  await downloadFromRepository(`${remoteStorageFiles}autorender_logo.webp`, 'storage/files/autorender_logo.webp');
+  await downloadFromRepository(`${remoteStorageFiles}favicon.ico`, 'storage/files/favicon.ico');
+  await downloadFromRepository(`${remoteStorageFiles}mel_avatar.webp`, 'storage/files/mel_avatar.webp');
   await downloadFromRepository(`${remoteStorageFiles}portal2_benchmark.dem`, 'storage/files/portal2_benchmark.dem');
   await downloadFromRepository(`${remoteStorageFiles}quickhud.zip`, 'storage/files/quickhud.zip');
   await downloadFromRepository(`${remoteStorageFiles}security.txt`, 'storage/files/security.txt');
