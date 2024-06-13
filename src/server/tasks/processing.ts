@@ -256,21 +256,26 @@ const processVideos = async () => {
       }
     }
 
-    try {
-      const file = getDemoFilePath(video);
-      logger.info(`Parsing : ${video.share_id} : ${file}`);
+    const demoFile = getDemoFilePath(video);
 
-      const buffer = await Deno.readFile(file);
+    try {
+      logger.info(`Parsing : ${video.share_id} : ${demoFile}`);
+
+      const buffer = await Deno.readFile(demoFile);
       const demo = parser.parse(buffer);
       const inputs = getInputData(demo);
-      if (!inputs) {
-        continue;
+      if (inputs) {
+        using inputsFile = await Deno.open(getDemoInputsFilePath(video), { create: true, write: true });
+        await inputsFile.writable.getWriter().write(new Uint8Array(inputs.buffer));
       }
-
-      using inputsFile = await Deno.open(getDemoInputsFilePath(video), { create: true, write: true });
-      await inputsFile.writable.getWriter().write(new Uint8Array(inputs.buffer));
     } catch (err) {
       logger.error(`Failed to write inputs ${video.share_id}`);
+      logger.error(err);
+    }
+
+    try {
+      await Deno.remove(demoFile);
+    } catch (err) {
       logger.error(err);
     }
   }
