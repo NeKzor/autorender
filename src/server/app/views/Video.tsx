@@ -22,6 +22,7 @@ import RerenderModal from '../components/RerenderModal.tsx';
 import ShareModal from '../components/ShareModal.tsx';
 import { AppStateContext } from '../AppState.ts';
 import { NotFound } from './NotFound.tsx';
+import { getDemoDownloadLink } from '../utils.ts';
 
 type JoinedVideo = Video & {
   requested_by_username: string | null;
@@ -245,7 +246,7 @@ export const VideoView = () => {
                     </div>
                     <div>
                       <a
-                        href={`/storage/demos/${data.share_id}`}
+                        href={getDemoDownloadLink(data)}
                         target='_blank'
                       >
                         <button
@@ -276,7 +277,7 @@ export const VideoView = () => {
                 {data.demo_required_fix === FixedDemoStatus.NotRequired && (
                   <div>
                     <a
-                      href={`/storage/demos/${data.share_id}`}
+                      href={getDemoDownloadLink(data)}
                       target='_blank'
                     >
                       <button

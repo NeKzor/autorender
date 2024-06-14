@@ -97,3 +97,9 @@ export const getAutorenderAvatar = (source: BoardSource) => {
       return 'autorender_avatar.webp';
   }
 };
+
+export const getDemoDownloadLink = (video: Pick<Video, 'board_source_domain' | 'board_changelog_id' | 'share_id'>) => {
+  return video.board_source_domain
+    ? `https://${video.board_source_domain}/getDemo?id=${video.board_changelog_id}`
+    : `/storage/demos/${video.share_id}`;
+};
