@@ -210,6 +210,9 @@ const processVideos = async () => {
           , share_id
           , created_at
           , video_external_id
+          , video_preview_url
+          , thumbnail_url_large
+          , thumbnail_url_small
        from videos
       where processed = 0
         and pending = ?
