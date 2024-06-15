@@ -155,7 +155,7 @@ export const Status = () => {
           </div>
         )}
         {tokens.length !== 0 && (
-          <div className={tw`relative overflow-x-auto`}>
+          <div className={tw`overflow-x-auto`}>
             <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
               <thead
                 className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
@@ -250,7 +250,7 @@ export const Status = () => {
           </div>
         )}
         {queuedVideos.length !== 0 && (
-          <div className={tw`relative overflow-x-auto`}>
+          <div className={tw`overflow-x-auto`}>
             <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
               <thead
                 className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
@@ -337,7 +337,7 @@ export const Status = () => {
           </div>
         )}
         {failedAutorenderVideos.length !== 0 && (
-          <div className={tw`relative overflow-x-auto`}>
+          <div className={tw`overflow-x-auto`}>
             <table className={tw`w-full text-sm text-left text-black dark:text-white`}>
               <thead
                 className={tw`text-xs uppercase text-white bg-blue-700 dark:text-white`}
