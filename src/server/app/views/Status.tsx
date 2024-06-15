@@ -199,7 +199,7 @@ export const Status = () => {
                               data-popover
                               id='token-name-popover'
                               role='tooltip'
-                              className={tw`absolute z-10 invisible inline-block w-64 text-sm text-black transition-opacity duration-300 bg-gray-50 rounded-lg shadow-sm opacity-0 dark:text-white dark:bg-gray-700`}
+                              className={tw`absolute z-50 invisible inline-block w-64 text-sm text-black transition-opacity duration-300 bg-gray-50 rounded-lg shadow-sm opacity-0 dark:text-white dark:bg-gray-700`}
                             >
                               <div className={tw`px-3 py-2`}>
                                 Supported Games
