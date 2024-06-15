@@ -164,6 +164,7 @@ CREATE TABLE videos (
     deleted_video_url VARCHAR(1024),
     PRIMARY KEY (video_id),
     UNIQUE KEY(share_id),
+    UNIQUE KEY(board_source, board_changelog_id),
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     FOREIGN KEY (map_id) REFERENCES maps(map_id),
     FOREIGN KEY (rendered_by) REFERENCES users(user_id),
