@@ -642,7 +642,7 @@ apiV1
             logger.info(`CDN upload video ${cdnVideo.guid} : ${upload.statusCode} : ${upload.message}`);
 
             if (upload.success) {
-              videoUrl = cdn.getOriginalFileUrl(BUNNY_CDN_VIDEOS_PULL_ZONE, cdnVideo);
+              videoUrl = cdn.getMp4VideoUrl(BUNNY_CDN_VIDEOS_PULL_ZONE, cdnVideo, '720');
             }
           } catch (err) {
             logger.error(err);
