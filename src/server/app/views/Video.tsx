@@ -468,15 +468,7 @@ export const VideoView = () => {
           )}
           {data.board_rank !== null && <div>Rank at time of upload: {formatRank(data.board_rank)}</div>}
           <br />
-          {
-            /* {data.comment?.length ? <div className={tw`break-words`}>Comment: {data.comment}</div> : (
-            <div>
-              Comment: <i>No comment</i>
-            </div>
-          )}
-          <br />
-          <div>Quality: {data.render_quality}</div>
-          <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>
+          {metadata.timestamp === null && <div>Date: {new Date(data.created_at).toLocaleDateString()}</div>}
           {data.requested_by_username !== null && (
             <div>
               Requested by: {data.requested_by_username
@@ -497,9 +489,8 @@ export const VideoView = () => {
               {data.requested_in_channel_name}
             </div>
           )}
-          {(data.render_options?.length ?? 0) !== 0 && <div>Render options: {data.render_options}</div>}
-          {!!data.render_time && <div>Render time: {formatRenderTime(data)}</div>}
-          {(data.rendered_by_username || data.render_node) && (
+          {
+            /* {(data.rendered_by_username || data.render_node) && (
             <div>
               Render node: {data.rendered_by_username !== null
                 ? (
