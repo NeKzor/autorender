@@ -110,7 +110,6 @@ export const Body = ({ initialState, children }: BodyProps) => {
         <div className={tw`flex flex-col h-screen`}>
           <Navbar />
           <Sidebar
-            queued={state.clients.length}
             pathname={pathname}
             username={state.user?.username}
           />

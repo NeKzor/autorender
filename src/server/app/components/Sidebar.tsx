@@ -9,7 +9,7 @@ import { tw } from 'twind';
 import Footer from './Footer.tsx';
 
 const Sidebar = (
-  { queued, pathname, username }: { queued: number; pathname: string; username?: string },
+  { pathname, username }: { pathname: string; username?: string },
 ) => {
   return (
     <aside
@@ -70,13 +70,6 @@ const Sidebar = (
                 <path stroke='currentColor' stroke-linecap='round' stroke-width='2' d='M5 7h14M5 12h14M5 17h10' />
               </svg>
               <span className={tw`flex-1 ml-3 whitespace-nowrap`}>Queue</span>
-              {queued > 0 && (
-                <span
-                  className={tw`inline-flex items-center justify-center w-3 h-3 p-3 ml-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300`}
-                >
-                  {queued}
-                </span>
-              )}
             </a>
           </li>
         </ul>
