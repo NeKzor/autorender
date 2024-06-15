@@ -19,7 +19,7 @@ export const NotFound = ({ resource }: { resource?: string }) => {
             {resource ?? 'Page'} not found
           </h1>
           <p className={tw`mt-4 text-gray-500 dark:text-gray-400`}>
-            The {resource?.toLowerCase() ?? 'page'} you are looking for does not exist or has been moved.
+            The {resource?.toLowerCase() ?? 'page'} you are looking for does not exist or has been (re)moved.
           </p>
           <div className={tw`flex items-center mt-6 gap-x-3`}>
             <button

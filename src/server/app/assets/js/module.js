@@ -769,9 +769,9 @@ if (location.pathname.startsWith('/videos/') && location.pathname.length === 19)
     fetch(`/api/v1${location.pathname}/views`, { method: 'POST' });
 
     initShareModal();
-    initDeleteModal();
   }
 
+  initDeleteModal();
   initRerenderModal();
 }
 

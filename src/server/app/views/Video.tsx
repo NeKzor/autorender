@@ -160,18 +160,18 @@ export const VideoView = () => {
               <div>
                 Failed to render video
               </div>
-              {isAllowedToRerender &&
-                (
-                  <div className={tw`mt-4`}>
+              <div className={tw`flex-wrap mt-3 flex gap-2`}>
+                {isAllowedToRerender && (
+                  <div>
                     <button
                       data-modal-target='rerender-modal'
                       data-modal-toggle='rerender-modal'
                       id='video-try-rerender-button'
                       type='button'
-                      className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                      className={tw`flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
                     >
                       <svg
-                        className={tw`w-4 h-4 text-gray-800 dark:text-white`}
+                        className={tw`w-[18px] h-[18px] text-gray-800 dark:text-white`}
                         aria-hidden='true'
                         xmlns='http://www.w3.org/2000/svg'
                         fill='none'
@@ -189,6 +189,35 @@ export const VideoView = () => {
                     </button>
                   </div>
                 )}
+                {isAllowedToDelete && (
+                  <div>
+                    <button
+                      data-modal-target='delete-modal'
+                      data-modal-toggle='delete-modal'
+                      id='video-delete-button'
+                      type='button'
+                      className={tw`flex items-center gap-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800`}
+                    >
+                      <svg
+                        className={tw`w-[18px] h-[18px] text-white dark:text-white`}
+                        aria-hidden='true'
+                        xmlns='http://www.w3.org/2000/svg'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                      >
+                        <path
+                          stroke='currentColor'
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          stroke-width='2'
+                          d='M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z'
+                        />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           )}
           {data.pending !== PendingStatus.FinishedRender && (
@@ -304,35 +333,33 @@ export const VideoView = () => {
                     </a>
                   </div>
                 )}
-                {hasVideo && (
-                  <div>
-                    <button
-                      data-modal-target='share-modal'
-                      data-modal-toggle='share-modal'
-                      id={`video-share-button-${data.share_id}`}
-                      type='button'
-                      className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                <div>
+                  <button
+                    data-modal-target='share-modal'
+                    data-modal-toggle='share-modal'
+                    id={`video-share-button-${data.share_id}`}
+                    type='button'
+                    className={tw`video-share-button flex items-center gap-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800`}
+                  >
+                    <svg
+                      className={tw`w-4 h-4 text-white dark:text-white`}
+                      aria-hidden='true'
+                      xmlns='http://www.w3.org/2000/svg'
+                      fill='none'
+                      viewBox='0 0 18 16'
                     >
-                      <svg
-                        className={tw`w-4 h-4 text-white dark:text-white`}
-                        aria-hidden='true'
-                        xmlns='http://www.w3.org/2000/svg'
-                        fill='none'
-                        viewBox='0 0 18 16'
-                      >
-                        <path
-                          stroke='currentColor'
-                          stroke-linecap='round'
-                          stroke-linejoin='round'
-                          stroke-width='2'
-                          d='M1.248 15C.22 11.77 2.275 4.232 9.466 4.232V2.079a1.025 1.025 0 0 1 1.644-.862l5.479 4.307a1.108 1.108 0 0 1 0 1.723l-5.48 4.307a1.026 1.026 0 0 1-1.643-.861V8.539C2.275 9.616 1.248 15 1.248 15Z'
-                        />
-                      </svg>
-                      Share Video
-                    </button>
-                  </div>
-                )}
-                {hasVideo && data.pending === PendingStatus.FinishedRender && isAllowedToRerender && (
+                      <path
+                        stroke='currentColor'
+                        stroke-linecap='round'
+                        stroke-linejoin='round'
+                        stroke-width='2'
+                        d='M1.248 15C.22 11.77 2.275 4.232 9.466 4.232V2.079a1.025 1.025 0 0 1 1.644-.862l5.479 4.307a1.108 1.108 0 0 1 0 1.723l-5.48 4.307a1.026 1.026 0 0 1-1.643-.861V8.539C2.275 9.616 1.248 15 1.248 15Z'
+                      />
+                    </svg>
+                    Share Video
+                  </button>
+                </div>
+                {data.pending === PendingStatus.FinishedRender && isAllowedToRerender && (
                   <div>
                     <button
                       data-modal-target='rerender-modal'

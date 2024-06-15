@@ -1102,7 +1102,7 @@ apiV1
 
     const authUser = ctx.state.session.get('user')!;
 
-    if (video.requested_by_id !== authUser.discord_id || !hasPermission(ctx, UserPermissions.DeleteVideos)) {
+    if (video.requested_by_id !== authUser.discord_id && !hasPermission(ctx, UserPermissions.DeleteVideos)) {
       return Err(ctx, Status.Unauthorized, 'You are not allowed to delete this resource.');
     }
 
