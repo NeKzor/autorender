@@ -25,6 +25,7 @@ import * as Token from './views/tokens/Token.tsx';
 import * as Tokens from './views/tokens/Index.tsx';
 import * as Privacy from './views/Privacy.tsx';
 import * as ProfileView from './views/Profile.tsx';
+import * as Render from './views/Render.tsx';
 import * as VideoView from './views/Video.tsx';
 import * as StatusView from './views/Status.tsx';
 import { Database } from '../db.ts';
@@ -132,6 +133,14 @@ export const routes: Route<RequestContext>[] = [
     Component: ProfileView.Profile,
     meta: ProfileView.meta,
     loader: ProfileView.loader,
+  },
+  {
+    path: '/render/:game/:id',
+    caseSensitive: true,
+    Component: Render.Render,
+    meta: Render.meta,
+    loader: Render.loader,
+    action: Render.action,
   },
   {
     path: '/tokens',

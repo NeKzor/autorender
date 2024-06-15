@@ -2772,6 +2772,7 @@ AUTORENDER_SERVE_STORAGE && router.get('/favicon.ico', async (ctx) => {
   }
 });
 
+router.post('/render/(portal2|mel)/:board_changelog_id(\\d+)', useSession, routeToApp);
 router.post('/tokens/:access_token_id(\\d+)', useSession, routeToApp);
 router.post('/tokens/:access_token_id(\\d+/delete)', useSession, routeToApp);
 router.post('/tokens/new', useSession, routeToApp);
