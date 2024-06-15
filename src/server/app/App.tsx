@@ -35,8 +35,8 @@ const getCSP = (nonce: string) => {
     `style-src-elem 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' https:;`,
     `style-src 'nonce-${nonce}';`,
     `font-src 'self' https://fonts.gstatic.com;`,
-    `media-src 'self' blob: *.backblazeb2.com;`,
-    `img-src 'self' data: cdn.discordapp.com *.backblazeb2.com;`,
+    `media-src 'self' blob: *.backblazeb2.com *.b-cdn.net;`,
+    `img-src 'self' data: cdn.discordapp.com *.backblazeb2.com *.b-cdn.net;`,
     `object-src 'none';`,
     `base-uri 'none';`,
   ].join(' ');

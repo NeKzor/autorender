@@ -72,6 +72,7 @@ import { loadMoreHome } from './app/views/Home.tsx';
 import { loadMoreSearch } from './app/views/Search.tsx';
 import { loadMoreProfile } from './app/views/Profile.tsx';
 import { parseSortableId } from './app/utils.ts';
+import { BunnyClient } from './bunny.ts';
 
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
@@ -104,6 +105,9 @@ const BOARD_API_TOKEN = Deno.env.get('BOARD_API_TOKEN')!;
 const MEL_BOARD_DOMAIN = Deno.env.get('MEL_BOARD_DOMAIN')!;
 const MEL_BOARD_API_TOKEN = Deno.env.get('MEL_BOARD_API_TOKEN')!;
 const B2_ENABLED = Deno.env.get('B2_ENABLED')!.toLowerCase() === 'true';
+const BUNNY_CDN_VIDEOS_API_KEY = Deno.env.get('BUNNY_CDN_VIDEOS_API_KEY')!;
+const BUNNY_CDN_VIDEOS_PULL_ZONE = Deno.env.get('BUNNY_CDN_VIDEOS_PULL_ZONE')!;
+const BUNNY_CDN_VIDEOS_LIBRARY_ID = parseInt(Deno.env.get('BUNNY_CDN_VIDEOS_LIBRARY_ID')!, 10);
 const B2_BUCKET_ID = Deno.env.get('B2_BUCKET_ID')!;
 const BOARD_INTEGRATION_START_DATE = '2023-08-25';
 const AUTORENDER_RUN_DEMO_REPAIR = Deno.env.get('AUTORENDER_RUN_DEMO_REPAIR')?.toLowerCase() === 'true';
@@ -167,6 +171,8 @@ if (B2_ENABLED) {
 } else {
   logger.info('⚠️  Connection to b2 disabled. Using directory to store videos.');
 }
+
+const cdn = new BunnyClient(Deno.env.get('USER_AGENT')!);
 
 installLogger('server');
 
@@ -584,6 +590,9 @@ apiV1
       let videoUrl = '';
       let videoExternalId = null;
       let videoSize = 0;
+      let videoPreviewUrl = null;
+      let thumbnailUrlLarge = null;
+      let thumbnailUrlSmall = null;
 
       if (B2_ENABLED) {
         // TODO: Use implementation from jsr:@nekz/b2
@@ -607,8 +616,40 @@ apiV1
 
         logger.info('Uploaded', filePath, upload, videoUrl);
       } else {
-        videoUrl = `${AUTORENDER_PUBLIC_URI}/storage/videos/${video.share_id}`;
         videoSize = (await Deno.stat(filePath)).size;
+
+        if (BUNNY_CDN_VIDEOS_API_KEY !== 'none') {
+          try {
+            const cdnVideo = await cdn.createVideo({
+              accessKey: BUNNY_CDN_VIDEOS_API_KEY,
+              libraryId: BUNNY_CDN_VIDEOS_LIBRARY_ID,
+              title: video.title,
+            });
+
+            videoExternalId = cdnVideo.guid;
+            videoPreviewUrl = cdn.getPreviewAnimationUrl(BUNNY_CDN_VIDEOS_PULL_ZONE, cdnVideo);
+            thumbnailUrlLarge = thumbnailUrlSmall = cdn.getThumbnailUrl(BUNNY_CDN_VIDEOS_PULL_ZONE, cdnVideo);
+
+            logger.info(`CDN create video ${cdnVideo.guid}`);
+
+            const upload = await cdn.uploadVideo({
+              accessKey: BUNNY_CDN_VIDEOS_API_KEY,
+              libraryId: BUNNY_CDN_VIDEOS_LIBRARY_ID,
+              videoId: cdnVideo.guid,
+              filePath,
+            });
+
+            logger.info(`CDN upload video ${cdnVideo.guid} : ${upload.statusCode} : ${upload.message}`);
+
+            if (upload.success) {
+              videoUrl = cdn.getOriginalFileUrl(BUNNY_CDN_VIDEOS_PULL_ZONE, cdnVideo);
+            }
+          } catch (err) {
+            logger.error(err);
+          }
+        } else {
+          videoUrl = `${AUTORENDER_PUBLIC_URI}/storage/videos/${video.share_id}`;
+        }
       }
 
       const { affectedRows } = await db.execute(
@@ -618,12 +659,18 @@ apiV1
               , video_external_id = ?
               , video_size = ?
               , rendered_at = current_timestamp()
+              , video_preview_url = ?
+              , thumbnail_url_large = ?
+              , thumbnail_url_small = ?
            where video_id = UUID_TO_BIN(?)`,
         [
           PendingStatus.FinishedRender,
           videoUrl,
           videoExternalId,
           videoSize,
+          videoPreviewUrl,
+          thumbnailUrlLarge,
+          thumbnailUrlSmall,
           video.video_id,
         ],
       );

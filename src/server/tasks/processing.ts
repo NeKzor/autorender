@@ -38,7 +38,16 @@ addEventListener('unhandledrejection', (ev) => {
   logger.error('unhandledrejection', { reason: ev.reason });
 });
 
-type VideoSelect = Pick<Video, 'video_id' | 'share_id' | 'created_at' | 'video_external_id'>;
+type VideoSelect = Pick<
+  Video,
+  | 'video_id'
+  | 'share_id'
+  | 'created_at'
+  | 'video_external_id'
+  | 'video_preview_url'
+  | 'thumbnail_url_large'
+  | 'thumbnail_url_small'
+>;
 
 const decoder = new TextDecoder();
 const parser = SourceDemoParser.default();
@@ -219,9 +228,18 @@ const processVideos = async () => {
     logger.info('Video', { video });
 
     const videoLength = await getVideoLength(video);
-    const previewUrl = videoLength && videoLength >= MIN_SECONDS_FOR_VIDEO_PREVIEW ? await getPreviewUrl(video) : null;
-    const thumbnailUrl = videoLength ? await getThumbnailUrl(video, { videoLength }) : null;
-    const thumbnailSmallUrl = videoLength ? await getThumbnailUrl(video, { videoLength, small: true }) : null;
+
+    const previewUrl = !video.video_preview_url && videoLength && videoLength >= MIN_SECONDS_FOR_VIDEO_PREVIEW
+      ? await getPreviewUrl(video)
+      : null;
+
+    const thumbnailUrl = !video.thumbnail_url_large && videoLength
+      ? await getThumbnailUrl(video, { videoLength })
+      : null;
+
+    const thumbnailSmallUrl = !video.thumbnail_url_small && videoLength
+      ? await getThumbnailUrl(video, { videoLength, small: true })
+      : null;
 
     logger.info('Updating video', video.video_id, {
       videoLength,
@@ -234,15 +252,15 @@ const processVideos = async () => {
       `update videos
           set processed = 1
             , video_length = ?
-            , video_preview_url = ?
-            , thumbnail_url_large = ?
-            , thumbnail_url_small = ?
+            ${previewUrl ? ', video_preview_url = ?' : ''}
+            ${thumbnailUrl ? ', thumbnail_url_large = ?' : ''}
+            ${thumbnailSmallUrl ? ', thumbnail_url_small = ?' : ''}
         where video_id = UUID_TO_BIN(?)`,
       [
         videoLength,
-        previewUrl,
-        thumbnailUrl,
-        thumbnailSmallUrl,
+        ...(previewUrl ? [previewUrl] : []),
+        ...(thumbnailUrl ? [thumbnailUrl] : []),
+        ...(thumbnailSmallUrl ? [thumbnailSmallUrl] : []),
         video.video_id,
       ],
     );
