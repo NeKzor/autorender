@@ -247,7 +247,7 @@ export const Profile = () => {
               nonce={state?.nonce}
               dangerouslySetInnerHTML={{
                 __html: `.profile-bg {
-                  background: url('${user.discord_banner_url}?size=4096');
+                  background: url('${user.discord_banner_url}');
                   background-repeat: no-repeat;
                   background-size: cover;
                 }`,
