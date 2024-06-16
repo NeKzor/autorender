@@ -42,7 +42,7 @@ for (const user of users) {
     const userPath = getUserPath(user);
     await tryMakeDir(userPath);
     const banner = user.discord_banner + (user.discord_banner.startsWith('a_') ? '.gif' : '.png');
-    const url = `https://cdn.discordapp.com/banners/${user.discord_id}/${banner}`;
+    const url = `https://cdn.discordapp.com/banners/${user.discord_id}/${banner}?size=4096`;
     const res = await fetch(url, {
       headers: {
         'User-Agent': Deno.env.get('USER_AGENT')!,
@@ -53,7 +53,7 @@ for (const user of users) {
       await res.body?.pipeTo(file.writable);
       console.log('[+] Downloaded', url);
     } else {
-      console.error('Failed to fetch banner', res.statusText, url, await res.text());
+      console.error('[-] Failed to fetch banner', res.statusText, url, await res.text());
     }
   }
 }
