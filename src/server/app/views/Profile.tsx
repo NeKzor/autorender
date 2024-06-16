@@ -82,6 +82,7 @@ const getVideos = async (
        left join users requester
             on requester.discord_id = videos.requested_by_id
       where ${'discordUserId' in options ? 'requested_by_id' : 'requester.username'} = ?
+        and pending = ?
         and video_url is not null
         and deleted_at is null
         ${sortableId ? 'and (videos.created_at < ? or (videos.created_at = ? and videos.share_id > ?))' : ''}
@@ -90,6 +91,7 @@ const getVideos = async (
       limit ${MAX_VIDEOS_PER_REQUEST}`,
     [
       'discordUserId' in options ? options.discordUserId : options.discordUserName,
+      PendingStatus.FinishedRender,
       ...(sortableId ? [sortableId.date, sortableId.date, sortableId.shareId] : []),
     ],
   );
@@ -222,10 +224,6 @@ export const Profile = () => {
   const state = React.useContext(AppStateContext);
   const { user, videos, stats } = useLoaderData<Data>();
 
-  const renderedVideos = videos.filter(
-    (video) => video.pending === PendingStatus.FinishedRender,
-  );
-
   if (!user) {
     return (
       <div className={tw`lg:flex lg:justify-center`}>
@@ -338,9 +336,9 @@ export const Profile = () => {
           className={tw`justify-items-center grid mt-4 grid-cols sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4`}
           x-last-video={getSortableIdByCreated(videos.at(-1))}
         >
-          {renderedVideos.map((video) => <VideoCard video={video} />)}
+          {videos.map((video) => <VideoCard video={video} />)}
         </div>
-        {renderedVideos.length === MAX_VIDEOS_PER_REQUEST && (
+        {videos.length === MAX_VIDEOS_PER_REQUEST && (
           <div id='loading' className={tw`text-center mt-10 mb-10`}>
             <div role='status'>
               <svg
