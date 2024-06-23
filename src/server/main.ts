@@ -1153,6 +1153,27 @@ apiV1
 
     return Ok(ctx);
   })
+  // Get the URL of a video.
+  .get('/videos/embed/:share_id', async (ctx) => {
+    if (!validateShareId(ctx.params.share_id!)) {
+      return Err(ctx, Status.BadRequest, 'Invalid share ID.');
+    }
+
+    const [video] = await db.query<Pick<Video, 'video_url'>>(
+      `select video_url
+         from videos
+        where share_id = ?`,
+      [
+        ctx.params.share_id,
+      ],
+    );
+
+    if (!video) {
+      return Err(ctx, Status.NotFound, 'Video not found.');
+    }
+
+    ctx.response.redirect(video.video_url);
+  })
   // Get back changelog IDs of renders that exist.
   .post('/check-videos-exist', async (ctx) => {
     if (!ctx.request.hasBody) {
