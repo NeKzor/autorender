@@ -22,6 +22,8 @@ import { getRelease } from './github.ts';
 const isWindows = Deno.build.os === 'windows';
 
 export const supportedQualities: RenderQuality[] = [
+  RenderQuality.UHD_2160p,
+  RenderQuality.QHD_1440p,
   RenderQuality.FHD_1080p,
   RenderQuality.HD_720p,
   RenderQuality.SD_480p,
@@ -427,9 +429,15 @@ const createConfig = async () => {
     },
     {
       name: 'supported_quality',
-      message: '📺️ What is the maximum quality you want to support? (default: 1080p)',
+      message: '📺️ What is the maximum quality you want to support?',
       type: Select,
-      options: ['1080p (default)', '720p', '480p'],
+      options: [
+        { name: '1080p (default)', value: RenderQuality.FHD_1080p },
+        { name: '480p', value: RenderQuality.SD_480p },
+        { name: '720p', value: RenderQuality.HD_720p },
+        { name: '1440p', value: RenderQuality.QHD_1440p },
+        { name: '4K', value: RenderQuality.UHD_2160p },
+      ],
     },
     {
       name: 'game_mod',
@@ -527,7 +535,7 @@ const createConfig = async () => {
       'base-api': baseApi,
       'folder-name': 'autorender',
       'protocol': 'autorender-v1',
-      'max-supported-quality': RenderQuality.FHD_1080p,
+      'max-supported-quality': setup.supported_quality as RenderQuality,
       'check-interval': 1,
       'scale-timeout': 9,
       'load-timeout': 5,

@@ -683,16 +683,14 @@ const qualityOptionChoices: ApplicationCommandOptionChoice[] = [
     name: '1080p (FHD)',
     value: '1080p',
   },
-  // TODO: Client render might or might not support these resolutions.
-  //       Allowing these would also mean we need more storage...
-  // {
-  //   name: "1440p (QHD)",
-  //   value: "1440p",
-  // },
-  // {
-  //   name: "2160p (UHD)",
-  //   value: "2160p",
-  // },
+  {
+    name: '1440p (QHD)',
+    value: '1440p',
+  },
+  {
+    name: '2160p (4K UHD)',
+    value: '2160p',
+  },
 ];
 
 const validateQualityOption = (
