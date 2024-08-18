@@ -354,6 +354,7 @@ apiV1
     const requestedInChannelName = data.fields.requested_in_channel_name ??
       null;
     const renderQuality = data.fields.quality ?? RenderQuality.HD_720p;
+    const targetTokenId = data.fields.client ?? null;
     const renderOptions = [
       ...(map.auto_fullbright && !data.fields.render_options?.includes('mat_fullbright')
         ? [
@@ -401,6 +402,7 @@ apiV1
       demoInfo.isHost,
       demoMetadata,
       PendingStatus.RequiresRender,
+      targetTokenId,
     ];
 
     const { affectedRows } = await db.execute(
@@ -437,6 +439,7 @@ apiV1
           , demo_is_host
           , demo_metadata
           , pending
+          , target_token_id
         ) values (UUID_TO_BIN(?), ${new Array(fields.length - 1).fill('?').join(',')})`,
       fields,
     );
@@ -1714,7 +1717,12 @@ router.get('/connect/bot', async (ctx) => {
   }
 
   if (discordBot) {
-    discordBot.close();
+    try {
+      discordBot.close();
+    } catch (err) {
+      logger.error(err);
+    }
+
     discordBot = null;
   }
 
@@ -1723,7 +1731,7 @@ router.get('/connect/bot', async (ctx) => {
   discordBot.onopen = () => {
     logger.info('Bot connected');
 
-    discordBot!.send(
+    discordBot && discordBot.readyState === WebSocket.OPEN && discordBot.send(
       JSON.stringify({
         type: 'config',
         data: {
@@ -1734,12 +1742,22 @@ router.get('/connect/bot', async (ctx) => {
   };
 
   discordBot.onmessage = (message) => {
-    logger.info('Bot:', message.data);
-
+    let messageType = '';
     try {
+      if (typeof message.data !== 'string') {
+        throw new Error('Invalid payload data type');
+      }
+
+      // FIXME: Protocol types
       const { type } = JSON.parse(message.data);
 
+      messageType = type;
+
       switch (type) {
+        case 'clients': {
+          sendClientsToBot();
+          break;
+        }
         default: {
           discordBot && discordBot.readyState === WebSocket.OPEN &&
             discordBot.send(
@@ -1748,10 +1766,18 @@ router.get('/connect/bot', async (ctx) => {
                 data: { status: Status.BadRequest },
               }),
             );
+          break;
         }
       }
     } catch (err) {
-      logger.error(err);
+      logger.error(`Error while processing message "${messageType}" from bot.`, err);
+
+      discordBot && discordBot.readyState === WebSocket.OPEN && discordBot.send(
+        JSON.stringify({
+          type: 'error',
+          data: { status: Status.InternalServerError },
+        }),
+      );
     }
   };
 
@@ -1775,11 +1801,28 @@ router.get('/connect/bot', async (ctx) => {
 
 interface ClientState {
   accessTokenId: number;
+  accessTokenName: string;
+  accessTokenUsername: string;
   gameMods: string[];
   renderQualities: RenderQuality[];
 }
 
 const clients = new Map<string, ClientState>();
+
+const sendClientsToBot = () => {
+  discordBot && discordBot.readyState === WebSocket.OPEN &&
+    discordBot.send(
+      JSON.stringify({
+        type: 'clients',
+        data: [...clients.values()].map((client) => ({
+          clientId: client.accessTokenId,
+          name: client.accessTokenName,
+          username: client.accessTokenUsername,
+          maxRenderQuality: client.renderQualities.at(-1) ?? '',
+        })),
+      }),
+    );
+};
 
 router.get('/connect/client', async (ctx) => {
   if (!ctx.isUpgradable) {
@@ -1792,17 +1835,22 @@ router.get('/connect/client', async (ctx) => {
     return Err(ctx, Status.BadRequest, 'Invalid protocol.');
   }
 
-  type TokenSelect = Pick<
-    AccessToken,
-    'access_token_id' | 'user_id' | 'token_name' | 'permissions'
-  >;
+  type TokenSelect =
+    & Pick<
+      AccessToken,
+      'access_token_id' | 'user_id' | 'token_name' | 'permissions'
+    >
+    & Pick<User, 'username'>;
 
   const [accessToken] = await db.query<TokenSelect>(
-    `select access_token_id
-          , user_id
-          , token_name
-          , permissions
+    `select access_tokens.access_token_id
+          , access_tokens.user_id
+          , access_tokens.token_name
+          , access_tokens.permissions
+          , users.username
        from access_tokens
+       join users
+         on users.user_id = access_tokens.user_id
       where token_key = ?`,
     [decodeURIComponent(authToken)],
   );
@@ -1819,9 +1867,13 @@ router.get('/connect/client', async (ctx) => {
 
     clients.set(clientId, {
       accessTokenId: accessToken.access_token_id,
+      accessTokenName: accessToken.token_name,
+      accessTokenUsername: accessToken.username,
       gameMods: [],
       renderQualities: [],
     });
+
+    sendClientsToBot();
   };
 
   ws.onmessage = async (message) => {
@@ -1875,7 +1927,7 @@ router.get('/connect/client', async (ctx) => {
               : renderQualities.slice(0, 3);
 
             let videos = await db.query<
-              Pick<Video, 'video_id' | 'render_quality'>
+              Pick<Video, 'video_id' | 'render_quality' | 'target_token_id'>
             >(
               `select BIN_TO_UUID(video_id) as video_id
                     , render_quality
@@ -1892,6 +1944,13 @@ router.get('/connect/client', async (ctx) => {
                 MAX_VIDEOS_PER_REQUEST,
               ],
             );
+
+            // Filter out targeted render clients.
+
+            videos = videos.filter((video) => {
+              return !video.target_token_id ||
+                video.target_token_id === accessToken.access_token_id;
+            });
 
             // Only send videos of the same render quality.
 
@@ -1914,9 +1973,13 @@ router.get('/connect/client', async (ctx) => {
             } else {
               clients.set(clientId, {
                 accessTokenId: accessToken.access_token_id,
+                accessTokenName: accessToken.token_name,
+                accessTokenUsername: accessToken.username,
                 gameMods: [...clientGameDirs],
                 renderQualities: [...clientRenderQualities],
               });
+
+              sendClientsToBot();
             }
           } else {
             ws.send(

@@ -11,9 +11,26 @@
 /// <reference lib="deno.worker" />
 
 import { delay } from 'async/delay.ts';
+import { WorkerDataType, WorkerMessages } from './protocol.ts';
 
 const AUTORENDER_CONNECT_URI = Deno.env.get('AUTORENDER_CONNECT_URI')!;
 const AUTORENDER_PROTOCOL = Deno.env.get('AUTORENDER_PROTOCOL')!;
+
+self.addEventListener('message', (message: MessageEvent<WorkerMessages>) => {
+  try {
+    const { type } = message.data;
+
+    switch (type) {
+      case WorkerDataType.Clients: {
+        ws && ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify({
+          type: 'clients',
+        }));
+      }
+    }
+  } catch (err) {
+    self.postMessage(err.toString());
+  }
+});
 
 self.postMessage('Running worker thread...');
 

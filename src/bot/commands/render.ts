@@ -156,8 +156,7 @@ const render = async (
   );
 
   try {
-    // FIXME: I wish board.portal2.sr would just return the filename
-    //        in a Content-Disposition header :>
+    // TODO: Fix this via response header
     const useManualRedirect = (new URL(url)).hostname === 'board.portal2.sr';
 
     const maybeRedirect = await fetch(url, {
@@ -217,6 +216,12 @@ const render = async (
       if (value) {
         body.append(option, value.toString());
       }
+    }
+
+    const clientTarget = args.find((arg) => arg.name === 'client')?.value as string | undefined;
+    if (clientTarget) {
+      const client = clientTarget.slice(clientTarget.lastIndexOf('-') + 1);
+      body.append('client', client);
     }
 
     const presetName = args.find((arg) => arg.name === 'preset')?.value as string | undefined;
@@ -379,7 +384,14 @@ const renderOptions: ApplicationCommandOption[] = [
   },
   {
     name: 'preset',
-    description: 'Choose a custom preset.',
+    description: 'Choose custom preset.',
+    type: ApplicationCommandOptionTypes.String,
+    required: false,
+    autocomplete: true,
+  },
+  {
+    name: 'client',
+    description: 'Target specific render client.',
     type: ApplicationCommandOptionTypes.String,
     required: false,
     autocomplete: true,
@@ -456,6 +468,7 @@ createCommand({
             const args = [...(subCommand.options?.values() ?? [])];
             const quality = args.find((arg) => arg.name === 'quality');
             const preset = args.find((arg) => arg.name === 'preset');
+            const client = args.find((arg) => arg.name === 'client');
 
             if (quality?.focused) {
               await bot.helpers.sendInteractionResponse(
@@ -485,6 +498,24 @@ createCommand({
                         return {
                           name: preset.name,
                           value: preset.name,
+                        };
+                      }),
+                    ],
+                  },
+                },
+              );
+            } else if (client?.focused) {
+              await bot.helpers.sendInteractionResponse(
+                interaction.id,
+                interaction.token,
+                {
+                  type: InteractionResponseTypes.ApplicationCommandAutocompleteResult,
+                  data: {
+                    choices: [
+                      ...Server.clients.map((client) => {
+                        return {
+                          name: `${client.name} by @${client.username}`,
+                          value: `${client.name.toLocaleLowerCase()}-${client.username}-${client.clientId}`,
                         };
                       }),
                     ],

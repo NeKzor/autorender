@@ -13,7 +13,7 @@ import 'dotenv/load.ts';
 
 import { log } from './utils/logger.ts';
 import { escapeMaskedLink, getPublicUrl, updateCommands } from './utils/helpers.ts';
-import { BotDataType, BotMessages } from './protocol.ts';
+import { BotDataType, BotMessages, WorkerDataType } from './protocol.ts';
 import { bot } from './bot.ts';
 import { Queue } from './services/queue.ts';
 import { Server } from './services/server.ts';
@@ -102,6 +102,11 @@ worker.addEventListener('message', async (message) => {
       }
       case BotDataType.Config: {
         Server.config = data;
+        worker.postMessage({ type: WorkerDataType.Clients });
+        break;
+      }
+      case BotDataType.Clients: {
+        Server.clients = data;
         break;
       }
       default: {
@@ -114,7 +119,10 @@ worker.addEventListener('message', async (message) => {
   }
 });
 
-setInterval(() => Queue.deleteOutdated(), 60 * 1_000);
+setInterval(() => {
+  Queue.deleteOutdated();
+  worker.postMessage({ type: WorkerDataType.Clients });
+}, 60 * 1_000);
 
 log.info('Started bot');
 

@@ -230,6 +230,7 @@ export interface Video {
   processed: number;
   views: number;
   visibility: VisibilityState;
+  target_token_id: number;
   deleted_by: number;
   deleted_at: Date;
   deleted_reason: string;

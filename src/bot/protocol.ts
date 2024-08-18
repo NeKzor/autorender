@@ -6,12 +6,13 @@
  * This defines the protocol between the server and the bot.
  */
 
-import { Video } from '~/shared/models.ts';
+import { RenderQuality, Video } from '~/shared/models.ts';
 
 export enum BotDataType {
   Upload = 'upload',
   Error = 'error',
   Config = 'config',
+  Clients = 'clients',
 }
 
 export type VideoUpload = Pick<
@@ -36,6 +37,13 @@ export interface ServerConfig {
   maxDemoFileSize: number;
 }
 
+export interface RenderClient {
+  clientId: number;
+  name: string;
+  username: string;
+  maxRenderQuality: RenderQuality;
+}
+
 export type BotMessage<T extends BotDataType, P> = {
   type: T;
   data: P;
@@ -44,4 +52,18 @@ export type BotMessage<T extends BotDataType, P> = {
 export type BotMessageUpload = BotMessage<BotDataType.Upload, VideoUpload>;
 export type BotMessageError = BotMessage<BotDataType.Error, ErrorStatus>;
 export type BotMessageConfig = BotMessage<BotDataType.Config, ServerConfig>;
-export type BotMessages = BotMessageUpload | BotMessageError | BotMessageConfig;
+export type BotMessageClients = BotMessage<BotDataType.Clients, RenderClient[]>;
+export type BotMessages = BotMessageUpload | BotMessageError | BotMessageConfig | BotMessageClients;
+
+export enum WorkerDataType {
+  Clients = 'clients',
+}
+
+export type WorkerMessage<T extends WorkerDataType, P> = {
+  type: T;
+  data: P;
+};
+
+export type WorkerMessageClients = WorkerMessage<WorkerDataType.Clients, undefined>;
+
+export type WorkerMessages = WorkerMessageClients;

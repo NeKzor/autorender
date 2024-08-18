@@ -157,6 +157,7 @@ CREATE TABLE videos (
     processed INT DEFAULT 0,
     views INT NOT NULL DEFAULT 0,
     visibility INT NOT NULL DEFAULT 0,
+    target_token_id BIGINT,
     deleted_by BIGINT,
     deleted_at TIMESTAMP,
     deleted_reason VARCHAR(256),
@@ -169,6 +170,7 @@ CREATE TABLE videos (
     FOREIGN KEY (map_id) REFERENCES maps(map_id),
     FOREIGN KEY (rendered_by) REFERENCES users(user_id),
     FOREIGN KEY (rendered_by_token) REFERENCES access_tokens(access_token_id),
+    FOREIGN KEY (target_token_id) REFERENCES access_tokens(access_token_id),
     FOREIGN KEY (deleted_by) REFERENCES users(user_id),
     FULLTEXT (title)
 );
