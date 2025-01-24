@@ -16,8 +16,7 @@ import {
 } from '@nekz/sdp';
 import { logger } from './logger.ts';
 import { basename, dirname, join } from '@std/path';
-import { readSarData, SarDataType } from './sar.ts';
-import { SteamId } from './steam.ts';
+import { getPlayerSteamData, isSarMessage, readSarMessages, SarDataType, SteamIdResult } from '@nekz/sdp/utils';
 
 const AUTORENDER_MIN_PLAYBACK_TIME = 1;
 const AUTORENDER_MAX_PLAYBACK_TIME = 6 * 60;
@@ -393,12 +392,12 @@ export interface DemoMetadata {
 // Get speedrun + timestamp data from SAR.
 const getSarData = (demo: SourceDemo): DemoMetadata => {
   try {
-    const sar = readSarData(demo);
-    const speedrun = sar.messages.find((message) => message.type === SarDataType.SpeedrunTime);
+    const messages = readSarMessages(demo);
+    const speedrun = messages.find(isSarMessage(SarDataType.SpeedrunTime));
 
     const segments: SarDataSegment[] = [];
 
-    for (const split of speedrun?.speedrunTime?.splits ?? []) {
+    for (const split of speedrun?.splits ?? []) {
       const splits: SarDataSplit[] = [];
       let ticks = 0;
 
@@ -414,18 +413,18 @@ const getSarData = (demo: SourceDemo): DemoMetadata => {
       });
     }
 
-    const timestamp = sar.messages.find((message) => message.type === SarDataType.Timestamp);
+    const timestamp = messages.find(isSarMessage(SarDataType.Timestamp));
 
     return {
       segments,
-      timestamp: timestamp?.timestamp
+      timestamp: timestamp
         ? {
-          year: timestamp.timestamp.year,
-          mon: timestamp.timestamp.mon,
-          day: timestamp.timestamp.day,
-          hour: timestamp.timestamp.hour,
-          min: timestamp.timestamp.min,
-          sec: timestamp.timestamp.sec,
+          year: timestamp.year,
+          mon: timestamp.mon,
+          day: timestamp.day,
+          hour: timestamp.hour,
+          min: timestamp.min,
+          sec: timestamp.sec,
         }
         : null,
     };
@@ -479,7 +478,9 @@ export interface PlayerInfoData {
 }
 
 // Extract Steam name and ID64 from string table entry.
-const extractSteamData = (playerInfo?: StringTables.StringTableEntry): [string | null, string | null] => {
+const extractSteamData = (
+  playerInfo?: StringTables.StringTableEntry,
+): [playerName: string | null, steamId: string | null] => {
   if (!playerInfo) {
     return [null, null];
   }
@@ -490,17 +491,24 @@ const extractSteamData = (playerInfo?: StringTables.StringTableEntry): [string |
     return [null, null];
   }
 
-  const steamId = SteamId.from(guid).toSteamId64();
-  if (steamId === null) {
-    logger.error(`Found invalid SteamID: ${guid}`);
+  const [result, status] = getPlayerSteamData(playerInfo);
+
+  switch (status) {
+    case SteamIdResult.Ok: {
+      return [result.playerName, result.steamId];
+    }
+    case SteamIdResult.NoPlayerInfoGuid: {
+      logger.error(`No player player info guid found`);
+      return [null, null];
+    }
+    case SteamIdResult.InvalidSteamId: {
+      logger.error(`Found invalid SteamID: ${result}`);
+      return [playerInfo.data?.name ?? null, null];
+    }
+    default: {
+      return [null, null];
+    }
   }
-
-  const playerName = playerInfo.data?.name;
-
-  return [
-    playerName ? decodeURIComponent(escape(playerName)) : null,
-    steamId?.toString() ?? null,
-  ];
 };
 
 // Get player names and IDs.
