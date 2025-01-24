@@ -9,7 +9,6 @@
  *    - Serving the web platform (`app/`)
  */
 
-import '@std/dotenv/load';
 import * as uuid from 'uuid/mod.ts';
 import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status } from 'oak/mod.ts';
 import { Response as OakResponse, ResponseBody, ResponseBodyFunction } from 'oak/response.ts';

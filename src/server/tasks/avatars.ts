@@ -6,8 +6,7 @@
  * This downloads and updates all user avatars and banners.
  */
 
-import 'dotenv/load.ts';
-import { join } from 'path/mod.ts';
+import { join } from '@std/path';
 import { db } from '../db.ts';
 import { getUserPath, tryMakeDir } from '../utils.ts';
 import { User } from '~/shared/models.ts';

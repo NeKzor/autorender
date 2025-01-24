@@ -104,7 +104,7 @@ self.addEventListener(
               type: UploadWorkerDataType.Error,
               data: {
                 video_id,
-                message: err.toString(),
+                message: `${err}`,
               },
             });
           }

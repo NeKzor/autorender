@@ -9,8 +9,6 @@
 
 /// <reference lib="deno.unstable" />
 
-import '@std/dotenv/load';
-
 import { log } from './utils/logger.ts';
 import { escapeMaskedLink, getPublicUrl, updateCommands } from './utils/helpers.ts';
 import { BotDataType, BotMessages } from './protocol.ts';

@@ -7,7 +7,6 @@
  * to pick it up or if a client could not finish the render.
  */
 
-import '@std/dotenv/load';
 import { db } from '../db.ts';
 import { PendingStatus, Video } from '~/shared/models.ts';
 import { installLogger, logger } from '../logger.ts';

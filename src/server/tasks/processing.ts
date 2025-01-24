@@ -11,7 +11,6 @@
  *  - Parse demo inputs
  */
 
-import 'dotenv/load.ts';
 import { SourceDemoParser } from '@nekz/sdp';
 import { db } from '../db.ts';
 import { PendingStatus, Video } from '~/shared/models.ts';

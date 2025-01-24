@@ -66,11 +66,6 @@
     "src/app"
   ],
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
     "noUncheckedIndexedAccess": true
-  },
-  "imports": {
-    "@std/async": "jsr:@std/async@^0.221.0"
   }
 }

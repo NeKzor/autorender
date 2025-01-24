@@ -6,7 +6,6 @@
  * This checks if there are any videos to render from board.portal2.sr and mel.board.portal2.sr.
  */
 
-import '@std/dotenv/load';
 import { db } from '../db.ts';
 import { BoardSource, PendingStatus } from '~/shared/models.ts';
 import { installLogger, logger } from '../logger.ts';

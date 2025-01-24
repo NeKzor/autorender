@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { assert } from 'testing/asserts.ts';
+import { assert } from '@std/assert';
 
 const MEL_BOARD_DOMAIN = Deno.env.get('MEL_BOARD_DOMAIN')!;
 const MEL_BOARD_API_TOKEN = Deno.env.get('MEL_BOARD_API_TOKEN')!;

@@ -4,9 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import '@std/dotenv/load';
-
-import { assertEquals } from '@std/testing/asserts';
+import { assertEquals } from '@std/assert';
 import { DemoMetadata } from '../demo.ts';
 
 const testChangelogId = 123;

@@ -64,23 +64,19 @@ events.interactionCreate = async (interaction) => {
     if (command !== undefined) {
       if (source) {
         try {
-          if (command) {
-            command.execute(bot, interaction);
-            log.info(
-              `[Command: ${source} - Success] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
-                guildName !== 'Direct Message' ? ` (${guild.id})` : ``
-              }`,
-            );
-          } else {
-            throw '';
-          }
+          command.execute(bot, interaction);
+          log.info(
+            `[Command: ${source} - Success] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
+              guildName !== 'Direct Message' ? ` (${guild.id})` : ``
+            }`,
+          );
         } catch (err) {
           log.error(
             `[Command: ${source} - Error] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
               guildName !== 'Direct Message' ? ` (${guild.id})` : ``
             }`,
           );
-          err.length ? log.error(err) : undefined;
+          log.error(err);
         }
       } else {
         log.warn(

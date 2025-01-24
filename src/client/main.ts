@@ -328,7 +328,7 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
       type: AutorenderSendDataType.Error,
       data: {
         video_id: videoId,
-        message: err.toString(),
+        message: `${err}`,
       },
     });
   } finally {
@@ -388,7 +388,7 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
     send({
       type: AutorenderSendDataType.Error,
       data: {
-        message: err.toString(),
+        message: `${err}`,
       },
     });
 
