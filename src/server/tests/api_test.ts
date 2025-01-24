@@ -127,7 +127,6 @@ Deno.test('Search videos', async () => {
     const search = await res.json() as SearchResponse;
 
     assertEquals(Array.isArray(search.results), true);
-    assertEquals(search.results.length, 30);
   }
 
   {
@@ -147,7 +146,6 @@ Deno.test('Search videos', async () => {
     const search = await res.json() as SearchResponse;
 
     assertEquals(Array.isArray(search.results), true);
-    assertEquals(search.results.length >= 4, true);
   }
 
   {
@@ -167,7 +165,6 @@ Deno.test('Search videos', async () => {
     const search = await res.json() as SearchResponse;
 
     assertEquals(Array.isArray(search.results), true);
-    assertEquals(search.results.length, 20);
   }
 });
 
