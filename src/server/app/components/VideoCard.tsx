@@ -111,7 +111,7 @@ export const VideoCard = ({ video }: { video: VideoCardData }) => {
               {video.title}
             </div>
             <div className={tw`h-2 mb-3 text-sm`}>
-              {video.views} views | {toAgo(video.rendered_at)}
+              {video.views} view{video.views === 1 ? '' : 's'} | {toAgo(video.rendered_at)}
             </div>
           </div>
         </div>
