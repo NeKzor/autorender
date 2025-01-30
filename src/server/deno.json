@@ -1,6 +1,7 @@
 {
   "tasks": {
     "dev": "deno task dev:stale & deno task dev:processing & deno run --no-prompt --unstable-temporal --env-file --allow-env --allow-read=.env,.env.defaults,.env.example,app/assets,/logs/server,/storage --allow-write=/logs/server,/storage --allow-run=ffprobe --allow-net --unsafely-ignore-certificate-errors=board-server --watch main.ts",
+    "dev:inspect": "deno run --no-prompt --unstable-temporal --env-file --allow-env --allow-read=.env,.env.defaults,.env.example,app/assets,/logs/server,/storage --allow-write=/logs/server,/storage --allow-run=ffprobe --allow-net --unsafely-ignore-certificate-errors=board-server --inspect-brk=0.0.0.0:9229 main.ts",
     "prod": "deno task stale & deno task board & deno task processing & deno run --no-prompt --unstable-temporal --env-file --allow-env --allow-read=.env,.env.defaults,.env.example,app/assets,/logs/server,/storage --allow-write=/logs/server,/storage --allow-run=ffprobe --allow-net main.ts",
     "test": "deno test --allow-net --allow-read --env-file --allow-env --unsafely-ignore-certificate-errors=autorender.portal2.local,board-server",
     "perm": "deno run --no-prompt --env-file --allow-env --allow-read=.env,.env.defaults,.env.example --allow-net=autorender.database:3307 tasks/perm.ts",
