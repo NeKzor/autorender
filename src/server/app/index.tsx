@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
@@ -13,7 +13,7 @@ import { Body, Head } from './App.tsx';
 import { AppState } from './AppState.ts';
 
 // NOTE: Always bump this version before deployment when module.js changed.
-const jsModuleVersion = '1.0.5';
+const jsModuleVersion = '1.0.6';
 
 const isHotReloadEnabled = Deno.env.get('HOT_RELOAD')!.toLowerCase() === 'true';
 

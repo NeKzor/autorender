@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
