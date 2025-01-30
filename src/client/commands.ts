@@ -22,7 +22,6 @@ import {
   supportedGames,
 } from './config.ts';
 import { AutorenderVersion, ReleaseTag, UserAgent } from './constants.ts';
-//import { YAMLError } from '@std/yaml/_error';
 import { Checkbox, Confirm, Input, prompt, Select } from 'cliffy/prompt/mod.ts';
 import * as yaml from '@std/yaml';
 import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
@@ -214,12 +213,11 @@ export const runValidate = async ({ verboseMode }: Options) => {
   } catch (err) {
     verboseMode && logger.error(err);
 
-    // TODO
-    // if (err instanceof Deno.errors.NotFound) {
-    //   console.log(colors.red(`❌️ Config file not found.`));
-    // } else if (err instanceof YAMLError) {
-    //   console.log(colors.red(`❌️ ${err.message}`));
-    // }
+    if (err instanceof Deno.errors.NotFound) {
+      console.log(colors.red(`❌️ Config file not found.`));
+    } else if (err instanceof SyntaxError) {
+      console.log(colors.red(`❌️ ${err.message}`));
+    }
 
     Deno.exit(1);
   }
