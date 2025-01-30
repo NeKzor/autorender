@@ -10,8 +10,8 @@
  */
 
 import * as uuid from 'uuid/mod.ts';
-import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status } from 'oak/mod.ts';
-import { Response as OakResponse, ResponseBody, ResponseBodyFunction } from 'oak/response.ts';
+import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status } from '@oak/oak';
+import { Response as OakResponse, ResponseBody, ResponseBodyFunction } from '@oak/oak/response';
 import Session from 'oak_sessions/src/Session.ts';
 import CookieStore from 'oak_sessions/src/stores/CookieStore.ts';
 import { oakCors } from 'cors/mod.ts';
@@ -76,7 +76,7 @@ import { BunnyClient } from './bunny.ts';
 const SERVER_HOST = Deno.env.get('SERVER_HOST')!;
 const SERVER_PORT = parseInt(Deno.env.get('SERVER_PORT')!, 10);
 const SERVER_SSL_CERT = Deno.env.get('SERVER_SSL_CERT')!;
-const _SERVER_SSL_KEY = Deno.env.get('SERVER_SSL_KEY')!;
+const SERVER_SSL_KEY = Deno.env.get('SERVER_SSL_KEY')!;
 // NOTE: Clients should only handle one video per request.
 const MAX_VIDEOS_PER_REQUEST = 1;
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
@@ -96,8 +96,8 @@ const SERVER_DOMAIN = new URL(AUTORENDER_PUBLIC_URI).host;
 const AUTORENDER_BOT_TOKEN_HASH = await bcrypt.hash(
   Deno.env.get('AUTORENDER_BOT_TOKEN')!,
 );
-const AUTORENDER_MAX_DEMO_FILE_SIZE = Number(Deno.env.get('AUTORENDER_MAX_DEMO_FILE_SIZE')) * 1_000_000;
-const AUTORENDER_MAX_VIDEO_FILE_SIZE = Number(Deno.env.get('AUTORENDER_MAX_VIDEO_FILE_SIZE')) * 1_000_000;
+const AUTORENDER_MAX_DEMO_FILE_SIZE = Number(Deno.env.get('AUTORENDER_MAX_DEMO_FILE_SIZE')) * 1e6;
+const AUTORENDER_MAX_VIDEO_FILE_SIZE = Number(Deno.env.get('AUTORENDER_MAX_VIDEO_FILE_SIZE')) * 1e6;
 const DISCORD_BOARD_INTEGRATION_WEBHOOK_URL = Deno.env.get('DISCORD_BOARD_INTEGRATION_WEBHOOK_URL')!;
 const BOARD_DOMAIN = Deno.env.get('BOARD_DOMAIN')!;
 const BOARD_API_TOKEN = Deno.env.get('BOARD_API_TOKEN')!;
@@ -113,6 +113,8 @@ const AUTORENDER_RUN_DEMO_REPAIR = Deno.env.get('AUTORENDER_RUN_DEMO_REPAIR')?.t
 const AUTORENDER_SERVE_STORAGE = Deno.env.get('AUTORENDER_SERVE_STORAGE');
 
 (() => {
+  // Patching resource leak:
+  //     https://github.com/oakserver/oak/issues/500
   const originalDestroy = OakResponse.prototype.destroy;
   OakResponse.prototype.destroy = function () {
     originalDestroy.bind(this)(true); // Always close resources
@@ -241,34 +243,48 @@ apiV1
       return Err(ctx, Status.UnsupportedMediaType, 'Missing body.');
     }
 
-    const body = ctx.request.body({ type: 'form-data' });
-    const data = await body.value.read({
-      customContentTypes: {
-        'application/octet-stream': 'dem',
-      },
-      outPath: Storage.Demos,
-      maxFileSize: AUTORENDER_MAX_DEMO_FILE_SIZE,
-    });
+    const data = await ctx.request.body.formData();
 
-    // TODO: File cleanup on error
+    const files = data.getAll('files');
+    if (files.some((file) => !(file instanceof File))) {
+      return Err(ctx, Status.BadRequest, 'Invalid form data for files.');
+    }
 
-    logger.info('Received', data.files?.length ?? 0, 'demo(s)');
+    logger.info(`Received ${files.length} demo(s)`);
 
-    const file = data.files?.at(0);
-    if (!file?.filename) {
-      return Err(ctx, Status.BadRequest, 'Missing file.');
+    // TODO: Allow multiple files .dem, .zip etc.
+    const [file] = files as File[];
+    if (!file?.name) {
+      return Err(ctx, Status.BadRequest, 'Missing filename.');
+    }
+
+    if (file.type !== 'application/octet-stream') {
+      return Err(ctx, Status.BadRequest, 'File type must be application/octet-stream.');
+    }
+
+    if (file.size > AUTORENDER_MAX_DEMO_FILE_SIZE) {
+      return Err(
+        ctx,
+        Status.BadRequest,
+        `Exceeded maximum demo file size: ${Math.trunc(AUTORENDER_MAX_DEMO_FILE_SIZE / 1e6)} MB`,
+      );
     }
 
     const videoId = uuid.v1.generate() as string;
     const shareId = generateShareId();
 
     const filePath = getDemoFilePath({ share_id: shareId });
-    await Deno.rename(file.filename, filePath);
+    {
+      // TODO: File cleanup on error
+      using fileOut = await Deno.open(filePath, { createNew: true, write: true });
+      await file.stream().pipeTo(fileOut.writable);
+    }
 
     // TODO: Figure out if UGC changes when the revision of a workshop item updates.
+    // FIXME: Yep it changes. Fix this by allowing /add map <id/link/url> to add to database.
+    //        Also make mirror database local?
 
     const demoInfo = await getDemoInfo(filePath);
-
     if (demoInfo === null || typeof demoInfo === 'string') {
       return Err(ctx, Status.BadRequest, demoInfo ?? 'Unknown demo error.');
     }
@@ -343,18 +359,18 @@ apiV1
       map = newMap!;
     }
 
-    const title = data.fields.title ?? 'untitled video';
-    const comment = data.fields.comment ?? null;
-    const requestedByName = authUser?.username ?? data.fields.requested_by_name;
-    const requestedById = authUser?.discord_id ?? data.fields.requested_by_id;
-    const requestedInGuildId = data.fields.requested_in_guild_id ?? null;
-    const requestedInGuildName = data.fields.requested_in_guild_name ?? null;
-    const requestedInChannelId = data.fields.requested_in_channel_id ?? null;
-    const requestedInChannelName = data.fields.requested_in_channel_name ??
+    const title = data.get('title') ?? 'untitled video';
+    const comment = data.get('comment') ?? null;
+    const requestedByName = authUser?.username ?? data.get('requested_by_name');
+    const requestedById = authUser?.discord_id ?? data.get('requested_by_id');
+    const requestedInGuildId = data.get('requested_in_guild_id') ?? null;
+    const requestedInGuildName = data.get('requested_in_guild_name') ?? null;
+    const requestedInChannelId = data.get('requested_in_channel_id') ?? null;
+    const requestedInChannelName = data.get('requested_in_channel_name') ??
       null;
-    const renderQuality = data.fields.quality ?? RenderQuality.HD_720p;
+    const renderQuality = data.get('quality') ?? RenderQuality.HD_720p;
     const renderOptions = [
-      ...(map.auto_fullbright && !data.fields.render_options?.includes('mat_fullbright')
+      ...(map.auto_fullbright && !data.get('render_options')?.toString()?.includes('mat_fullbright')
         ? [
           `mat_ambient_light_r 0.05`,
           `mat_ambient_light_g 0.05`,
@@ -362,7 +378,7 @@ apiV1
         ]
         : []),
       ...(demoInfo.disableRenderSkipCoopVideos ? ['sar_render_skip_coop_videos 0'] : []),
-      data.fields.render_options ?? null,
+      data.get('render_options') ?? null,
     ];
     const requiredDemoFix = demoInfo.useFixedDemo ? FixedDemoStatus.Required : FixedDemoStatus.NotRequired;
     const demoMetadata = JSON.stringify(demoInfo.metadata);
@@ -382,7 +398,7 @@ apiV1
       requestedInChannelName,
       renderQuality,
       renderOptions.filter((command) => command !== null).join('\n'),
-      file.originalName,
+      file.name,
       demoInfo.workshopInfo?.fileUrl ?? null,
       demoInfo.fullMapName,
       demoInfo.size,
@@ -513,23 +529,74 @@ apiV1
       return Err(ctx, Status.BadRequest, 'Missing request body.');
     }
 
-    const body = ctx.request.body({ type: 'form-data' });
-    const data = await body.value.read({
-      customContentTypes: {
-        'video/mp4': 'mp4',
-      },
-      outPath: Storage.Videos,
-      maxFileSize: AUTORENDER_MAX_VIDEO_FILE_SIZE,
-    });
+    const data = await ctx.request.body.formData();
 
-    logger.info('Received', data.files?.length ?? 0, 'video(s)');
+    const files = data.getAll('files');
+    logger.info(`Received ${files.length} video`);
 
-    const file = data.files?.at(0);
-    if (!file?.filename) {
-      return Err(ctx, Status.BadRequest, 'Missing file.');
+    const [file] = files;
+    if (!(file instanceof File)) {
+      return Err(ctx, Status.BadRequest, 'Invalid form data for files.');
     }
 
-    const command = new Deno.Command('ffprobe', { args: [file.filename], stderr: 'piped' });
+    if (!file.name) {
+      return Err(ctx, Status.BadRequest, 'Missing filename.');
+    }
+
+    if (file.type !== 'video/mp4') {
+      return Err(ctx, Status.BadRequest, 'File type must be video/mp4.');
+    }
+
+    if (file.size > AUTORENDER_MAX_VIDEO_FILE_SIZE) {
+      return Err(
+        ctx,
+        Status.BadRequest,
+        `Exceeded maximum demo file size: ${Math.trunc(AUTORENDER_MAX_VIDEO_FILE_SIZE / 1e6)} MB`,
+      );
+    }
+
+    // Allow test requests to ignore the websocket protocol.
+    const isInternalTestRequest = ctx.request.ip === '127.0.0.1';
+    if (!isInternalTestRequest) {
+      const { affectedRows } = await db.execute(
+        `update videos
+            set pending = ?
+           where video_id = UUID_TO_BIN(?)
+             and rendered_by_token = ?`,
+        [
+          PendingStatus.UploadingRender,
+          data.get('video_id'),
+          accessToken.access_token_id,
+        ],
+      );
+
+      if (affectedRows !== 1) {
+        return Err(ctx, Status.BadRequest, 'Render not started.');
+      }
+    }
+
+    const [video] = await db.query<Video>(
+      `select *
+            , BIN_TO_UUID(video_id) as video_id
+         from videos
+        where video_id = UUID_TO_BIN(?)`,
+      [
+        data.get('video_id'),
+      ],
+    );
+
+    if (!video) {
+      return Err(ctx, Status.NotFound, 'Video not found.');
+    }
+
+    const filePath = getVideoFilePath(video);
+    {
+      // TODO: File cleanup on error
+      using fileOut = await Deno.open(filePath, { createNew: true, write: true });
+      await file.stream().pipeTo(fileOut.writable);
+    }
+
+    const command = new Deno.Command('ffprobe', { args: [filePath], stderr: 'piped' });
     const proc = command.spawn();
     const procTimeout = setTimeout(() => {
       try {
@@ -548,42 +615,9 @@ apiV1
       return Err(ctx, Status.UnsupportedMediaType, 'Unsupported media type.');
     }
 
-    const { affectedRows } = await db.execute(
-      `update videos
-          set pending = ?
-         where video_id = UUID_TO_BIN(?)
-           and rendered_by_token = ?`,
-      [
-        PendingStatus.UploadingRender,
-        data.fields.video_id,
-        accessToken.access_token_id,
-      ],
-    );
-
-    if (affectedRows !== 1) {
-      return Err(ctx, Status.BadRequest, 'Render not started.');
-    }
-
-    const [video] = await db.query<Video>(
-      `select *
-            , BIN_TO_UUID(video_id) as video_id
-         from videos
-        where video_id = UUID_TO_BIN(?)`,
-      [
-        data.fields.video_id,
-      ],
-    );
-
-    if (!video) {
-      return Err(ctx, Status.NotFound, 'Video not found.');
-    }
-
-    const filePath = getVideoFilePath(video);
     const fileName = basename(filePath);
 
     try {
-      await Deno.rename(file.filename, filePath);
-
       logger.info('Uploading video file', filePath);
 
       let videoUrl = '';
@@ -749,7 +783,7 @@ apiV1
               logger.error('Failed to execute board webhook for', video.video_id, ':', await webhook.text());
             }
           }
-        } else {
+        } else if (!isInternalTestRequest) {
           type VideoUpload = Pick<
             Video,
             | 'share_id'
@@ -845,7 +879,7 @@ apiV1
       return Err(ctx, Status.BadRequest, 'Missing body.');
     }
 
-    const { demoRepair, disableSndRestart, disableSkipCoopVideos } = await ctx.request.body({ type: 'json' }).value as {
+    const { demoRepair, disableSndRestart, disableSkipCoopVideos } = await ctx.request.body.json() as {
       demoRepair: boolean;
       disableSndRestart: boolean;
       disableSkipCoopVideos: boolean;
@@ -1071,7 +1105,7 @@ apiV1
       return Err(ctx, Status.BadRequest, 'Missing body.');
     }
 
-    const { reason, reason_type } = await ctx.request.body({ type: 'json' }).value as {
+    const { reason, reason_type } = await ctx.request.body.json() as {
       reason?: string;
       reason_type?: DeleteReason;
     };
@@ -1179,7 +1213,7 @@ apiV1
       return Err(ctx, Status.InternalServerError, 'Missing body.');
     }
 
-    const body = await ctx.request.body({ type: 'json' }).value as { ids?: number[] } | null;
+    const body = await ctx.request.body.json() as { ids?: number[] } | null;
     if (!body || !Array.isArray(body.ids)) {
       return Err(ctx, Status.BadRequest, 'Missing ids.');
     }
@@ -2801,7 +2835,7 @@ router.post('/tokens/test', async (ctx) => {
     return Err(ctx, Status.BadRequest, 'Missing body.');
   }
 
-  const body = await ctx.request.body({ type: 'json' }).value;
+  const body = await ctx.request.body.json();
   if (!body?.token_key) {
     return Err(ctx, Status.BadRequest, 'Missing token_key.');
   }
@@ -2875,8 +2909,8 @@ await app.listen(
       port: SERVER_PORT,
       secure: true,
       // TODO: Fix this.
-      //certFile: SERVER_SSL_CERT,
-      //keyFile: SERVER_SSL_KEY,
+      cert: SERVER_SSL_CERT,
+      key: SERVER_SSL_KEY,
       alpnProtocols: ['h2', 'http/1.1'],
     }
     : {

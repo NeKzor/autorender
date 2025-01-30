@@ -15,7 +15,7 @@ import {
   LoaderFunction as RemixLoaderFunction,
   Params,
 } from '@remix-run/router';
-import { Request as OakRequest, Status, STATUS_TEXT } from 'oak/mod.ts';
+import { Request as OakRequest, Status, STATUS_TEXT } from '@oak/oak';
 import { createStaticHandler } from 'react-router-dom/server';
 
 import * as Home from './views/Home.tsx';
@@ -228,7 +228,7 @@ export const createFetchRequest = async (req: OakRequest) => {
   return new Request(req.url.href, {
     method: req.method,
     headers: new Headers(req.headers),
-    body: req.hasBody ? await req.body().value : null,
+    body: req.hasBody ? await req.body.init() : null,
     //signal: controller.signal,
   });
 };

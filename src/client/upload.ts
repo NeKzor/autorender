@@ -67,9 +67,6 @@ self.addEventListener(
 
             const videoFile = realGameModFolder(game, config.autorender['folder-name'], `${video_id}.mp4`);
 
-            // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
-            //       https://github.com/oakserver/oak/issues/581
-
             const body = new FormData();
 
             body.append(

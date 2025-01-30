@@ -237,9 +237,6 @@ const render = async (
       body.append('title', filename.slice(0, 64));
     }
 
-    // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
-    //       https://github.com/oakserver/oak/issues/581
-
     body.append('files', await demo.blob(), filename);
 
     const requestedByName = interaction.user.discriminator !== '0'

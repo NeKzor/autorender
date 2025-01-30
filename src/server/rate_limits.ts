@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { RouterMiddleware, Status, STATUS_TEXT } from 'oak/mod.ts';
+import { RouterMiddleware, Status, STATUS_TEXT } from '@oak/oak';
 import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
 import { AppState } from './app/AppState.ts';
 
