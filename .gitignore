@@ -13,6 +13,9 @@ src/app/
 .test/
 docker/volumes/storage/users/
 *_backup_latest.zip
+src/server/tasks/upload.ts
+docker/volumes/mysql2
+docker/volumes/storage/inputs2
 
 # Logs
 logs
