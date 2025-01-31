@@ -4,92 +4,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { BitwisePermissionFlags, Bot, CreateApplicationCommand, Guild } from '@discordeno/bot';
-import { log } from './logger.ts';
-import { commands } from '../commands/mod.ts';
-import { BotWithCache } from '../bot.ts';
-
-/**
- * Update global commands.
- *
- * @param bot - The bot object.
- */
-export async function updateCommands(bot: BotWithCache) {
-  const globalCommands = commands
-    .filter(({ scope }) => scope === 'Global' || scope === undefined)
-    .map<CreateApplicationCommand>(({ name, description, type, options }) => ({
-      name,
-      description,
-      type,
-      options,
-    }));
-
-  if (!globalCommands.length) {
-    return;
-  }
-
-  log.info(`Updating ${globalCommands.length} global commands`);
-
-  await bot.helpers.upsertGlobalApplicationCommands(globalCommands)
-    .catch(log.error);
-}
-
-/**
- * Update guild specific commands.
- *
- * @param bot - The bot object.
- * @param guild - The guild object.
- */
-export async function updateGuildCommands(bot: Bot, guild: Guild) {
-  const guildCommands = commands
-    .filter(({ scope, guilds }) => scope === 'Guild' && (!guilds?.length || guilds.includes(guild.id)))
-    .map<CreateApplicationCommand>(({ name, description, type, options }) => ({
-      name,
-      description,
-      type,
-      options,
-    }));
-
-  if (!guildCommands.length) {
-    return;
-  }
-
-  log.info(`Updating ${guildCommands.length} commands for guild ${guild.id}`);
-
-  await bot.helpers.upsertGuildApplicationCommands(guild.id, guildCommands)
-    .catch(log.error);
-}
-
-/**
- * Get the guild by ID.
- *
- * @param bot - The bot object.
- * @param guildId - The ID of the guild.
- * @returns - Guild object.
- */
-export async function getGuildFromId(
-  bot: BotWithCache,
-  guildId: bigint,
-): Promise<Guild> {
-  let returnValue: Guild = {} as Guild;
-
-  if (guildId !== 0n) {
-    const guild = bot.guilds.get(guildId);
-    if (guild) {
-      returnValue = guild;
-    }
-
-    await bot.helpers.getGuild(guildId).then((guild) => {
-      if (guild) {
-        bot.guilds.set(guildId, guild);
-        returnValue = guild;
-      }
-    });
-  }
-
-  return returnValue;
-}
-
 /**
  * Check the permissions of a member.
  *
@@ -97,8 +11,8 @@ export async function getGuildFromId(
  * @param flags - The flags to check against.
  * @returns - Returns true if the flags are set.
  */
-export const hasPermissionFlags = (permissions: bigint | undefined, flags: BitwisePermissionFlags) => {
-  return (permissions ?? 0n) & BigInt(flags);
+export const hasPermissionFlags = (permissions: bigint | undefined, flags: bigint) => {
+  return (permissions ?? 0n) & flags;
 };
 
 /**

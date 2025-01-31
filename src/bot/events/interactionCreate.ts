@@ -6,15 +6,11 @@
 
 import type { Guild } from '@discordeno/bot';
 import { InteractionTypes } from '@discordeno/bot';
-import { events } from './mod.ts';
 import { log } from '../utils/logger.ts';
-import { getGuildFromId } from '../utils/helpers.ts';
-import type { Command } from '../commands/mod.ts';
-import { commands } from '../commands/mod.ts';
-import { BotWithCache } from '../bot.ts';
+import { bot, Command, DiscordBot, getGuildFromId } from '../bot.ts';
 
-events.interactionCreate = async (interaction) => {
-  const bot = interaction.bot as BotWithCache;
+bot.events.interactionCreate = async (interaction) => {
+  const bot = interaction.bot as DiscordBot;
 
   if (interaction.data && interaction.id) {
     let guildName = 'Direct Message';
@@ -56,9 +52,9 @@ events.interactionCreate = async (interaction) => {
       }
 
       const [modalCommand] = interaction.data.customId.split('_', 1) as [string];
-      command = commands.get(modalCommand);
+      command = bot.commands.get(modalCommand);
     } else {
-      command = commands.get(interaction.data.name);
+      command = bot.commands.get(interaction.data.name);
     }
 
     if (command !== undefined) {

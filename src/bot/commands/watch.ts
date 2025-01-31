@@ -4,16 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-import {
-  ApplicationCommandOptionTypes,
-  ApplicationCommandTypes,
-  Bot,
-  Interaction,
-  InteractionResponseTypes,
-} from '@discordeno/bot';
+import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '@discordeno/bot';
 import { escapeMaskedLink, getPublicUrl } from '../utils/helpers.ts';
-import { createCommand } from './mod.ts';
 import { Video } from '~/shared/models.ts';
+import { createCommand, DiscordBot, DiscordInteraction } from '../bot.ts';
 
 const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
 
@@ -34,7 +28,7 @@ createCommand({
       type: ApplicationCommandOptionTypes.SubCommand,
     },
   ],
-  execute: async (bot: Bot, interaction: Interaction) => {
+  execute: async (bot: DiscordBot, interaction: DiscordInteraction) => {
     const subCommand = [...(interaction.data?.options?.values() ?? [])].at(0)!;
 
     switch (subCommand.name) {

@@ -7,14 +7,12 @@
 import {
   ApplicationCommandOptionTypes,
   ApplicationCommandTypes,
-  Bot,
-  Interaction,
   InteractionResponseTypes,
   InteractionTypes,
 } from '@discordeno/bot';
-import { createCommand } from './mod.ts';
 import { escapeMaskedLink, formatCmTime } from '../utils/helpers.ts';
 import { log } from '../utils/logger.ts';
+import { createCommand, DiscordBot, DiscordInteraction } from '../bot.ts';
 
 const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
 const AUTORENDER_PUBLIC_URI = Deno.env.get('AUTORENDER_PUBLIC_URI')!;
@@ -32,7 +30,7 @@ createCommand({
       required: true,
     },
   ],
-  execute: async (bot: Bot, interaction: Interaction) => {
+  execute: async (bot: DiscordBot, interaction: DiscordInteraction) => {
     const command = interaction.data!;
 
     switch (interaction.type) {

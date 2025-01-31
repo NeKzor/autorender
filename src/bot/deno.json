@@ -15,7 +15,10 @@
     "noUncheckedIndexedAccess": true
   },
   "imports": {
-    "@discordeno/bot": "npm:@discordeno/bot@19.0.0-next.2d0f76e",
+    "@discordeno/bot": "npm:@discordeno/bot@21.0.0",
+    "@discordeno/gateway": "npm:@discordeno/gateway@21.0.0",
+    "@discordeno/types": "npm:@discordeno/types@21.0.0",
+    "@discordeno/utils": "npm:@discordeno/utils@21.0.0",
     "@nekz/sdp": "jsr:@nekz/sdp@^0.10.1",
     "@std/async": "jsr:@std/async@^1.0.10",
     "@std/fmt": "jsr:@std/fmt@^1.0.4",

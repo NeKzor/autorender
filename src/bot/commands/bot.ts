@@ -7,13 +7,11 @@
 import {
   ApplicationCommandOptionTypes,
   ApplicationCommandTypes,
-  Bot,
-  Interaction,
   InteractionResponseTypes,
   MessageFlags,
 } from '@discordeno/bot';
 import { getPublicUrl } from '../utils/helpers.ts';
-import { createCommand } from './mod.ts';
+import { createCommand, DiscordBot, DiscordInteraction } from '../bot.ts';
 
 const startTime = Date.now();
 
@@ -29,7 +27,7 @@ createCommand({
       type: ApplicationCommandOptionTypes.SubCommand,
     },
   ],
-  execute: async (bot: Bot, interaction: Interaction) => {
+  execute: async (bot: DiscordBot, interaction: DiscordInteraction) => {
     const sec = (Date.now() - startTime) / 1_000;
     const uptime = sec < 60
       ? `${sec.toFixed(2)} seconds`

@@ -7,9 +7,7 @@
 import {
   ApplicationCommandOptionTypes,
   ApplicationCommandTypes,
-  Bot,
   ButtonStyles,
-  Interaction,
   InteractionResponseTypes,
   InteractionTypes,
   MessageComponentTypes,
@@ -18,7 +16,7 @@ import {
 } from '@discordeno/bot';
 import { Presets, RenderPreset } from '../services/presets.ts';
 import { parseCustomId } from '../utils/helpers.ts';
-import { createCommand } from './mod.ts';
+import { createCommand, DiscordBot, DiscordInteraction } from '../bot.ts';
 
 createCommand({
   name: 'preset',
@@ -79,7 +77,7 @@ createCommand({
       type: ApplicationCommandOptionTypes.SubCommand,
     },
   ],
-  execute: async (bot: Bot, interaction: Interaction) => {
+  execute: async (bot: DiscordBot, interaction: DiscordInteraction) => {
     const subCommand = [...(interaction.data?.options?.values() ?? [])].at(0)!;
 
     switch (interaction.type) {

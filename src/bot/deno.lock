@@ -7,7 +7,7 @@
     "jsr:@std/fs@^1.0.9": "1.0.10",
     "jsr:@std/io@0.225": "0.225.1",
     "jsr:@std/log@~0.224.13": "0.224.13",
-    "npm:@discordeno/bot@19.0.0-next.2d0f76e": "19.0.0-next.2d0f76e"
+    "npm:@discordeno/bot@21.0.0": "21.0.0"
   },
   "jsr": {
     "@nekz/sdp@0.10.1": {
@@ -35,8 +35,8 @@
     }
   },
   "npm": {
-    "@discordeno/bot@19.0.0-next.2d0f76e": {
-      "integrity": "sha512-ei4+hkW87QkB0ENEwLf3pweaLf3IoxQC3R5DBiBW1B5qRnUDaZnJTa1B1MyDOA4btqEv7DITj1Us1Y9N6CuuQQ==",
+    "@discordeno/bot@21.0.0": {
+      "integrity": "sha512-x6EcVHBvWIhjY5/lcwgZzzCiqdpKFZqu2qUaZqKb7RYS8L8Q8zY40hCnbToVehLB8+BGcnHzxCeEvWWg8tnT/g==",
       "dependencies": [
         "@discordeno/gateway",
         "@discordeno/rest",
@@ -44,40 +44,36 @@
         "@discordeno/utils"
       ]
     },
-    "@discordeno/gateway@19.0.0-next.2d0f76e": {
-      "integrity": "sha512-Linhr33cQiF0cRd6XGCnWLWX5ERfF4kp0TKIRp4Uj+9y52Qq33s2Ziytrm3lt3H4WqE14ltZtrJv+0xfwB4eAg==",
+    "@discordeno/gateway@21.0.0": {
+      "integrity": "sha512-ur5Hatd1x86PPI4UnXKghAWat3vS90NvLJcpOSu1B1gYSENRZow8dohZ8Ov58SXWq5nZVuBYDJNCR248pWJvrg==",
       "dependencies": [
         "@discordeno/types",
         "@discordeno/utils",
+        "fzstd",
         "ws"
       ]
     },
-    "@discordeno/rest@19.0.0-next.2d0f76e": {
-      "integrity": "sha512-KCFDiPN6GoUcZtJIWe/S71k/bY1CXZw7rjd/HRnC2f1TbM+pLoq2qoINzQW94gsu8n0xrAoWxb5yyhqpIIeBhA==",
+    "@discordeno/rest@21.0.0": {
+      "integrity": "sha512-ew5ddhUd7Qyv/GSzCy42bEmRv0yr2PspCMsLD/NeMiTLd3+OrVN5pAxBN9z+9JpS/daiiD/PVmvuUAVx/nXTEw==",
       "dependencies": [
         "@discordeno/types",
-        "@discordeno/utils",
-        "dotenv"
+        "@discordeno/utils"
       ]
     },
-    "@discordeno/types@19.0.0-next.2d0f76e": {
-      "integrity": "sha512-fW40w3/il4QGK4c9VbpXIECaCo+46oY7Bi1eY2OOk9X/b1HKo9YUNI1ehpbBE8EERepphiyaqzbx3us5gY2cOg=="
+    "@discordeno/types@21.0.0": {
+      "integrity": "sha512-TUZAEqqlXRNQji+NCaQo8DruzI8rXbBvMaZYsZvN9f03PrdSddzMOy3cjs4eeL6ZMVocmMVRIaVnB713blylCw=="
     },
-    "@discordeno/utils@19.0.0-next.2d0f76e": {
-      "integrity": "sha512-4y7n7E63OD4XFkmCoxPnx37dsS8TWtkQhfhtgb68mFUixA3FAioaJrBNtBGvS0n6RcmiZrDQxtx7Kz3WMcCUKQ==",
+    "@discordeno/utils@21.0.0": {
+      "integrity": "sha512-I7I3Szlk+LkT/CRmJJiLPsjuBUjbuXUCvOzsgWCltkxDMIGmQeNoQtFK7t89V1Gcc4icsrnHVMho1BcaAITijg==",
       "dependencies": [
-        "@discordeno/types",
-        "tweetnacl"
+        "@discordeno/types"
       ]
     },
-    "dotenv@16.4.5": {
-      "integrity": "sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg=="
+    "fzstd@0.1.1": {
+      "integrity": "sha512-dkuVSOKKwh3eas5VkJy1AW1vFpet8TA/fGmVA5krThl8YcOVE/8ZIoEA1+U1vEn5ckxxhLirSdY837azmbaNHA=="
     },
-    "tweetnacl@1.0.3": {
-      "integrity": "sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw=="
-    },
-    "ws@8.16.0": {
-      "integrity": "sha512-HS0c//TP7Ina87TfiPUz1rQzMhHrl/SG2guqRcTOIUYD2q8uhUdNHZYJUaQ8aTGPzCh+c6oawMKW35nFl1dxyQ=="
+    "ws@8.18.0": {
+      "integrity": "sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw=="
     }
   },
   "workspace": {
@@ -86,7 +82,10 @@
       "jsr:@std/async@^1.0.10",
       "jsr:@std/fmt@^1.0.4",
       "jsr:@std/log@~0.224.13",
-      "npm:@discordeno/bot@19.0.0-next.2d0f76e"
+      "npm:@discordeno/bot@21.0.0",
+      "npm:@discordeno/gateway@21.0.0",
+      "npm:@discordeno/types@21.0.0",
+      "npm:@discordeno/utils@21.0.0"
     ]
   }
 }

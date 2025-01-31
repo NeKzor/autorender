@@ -10,9 +10,9 @@
 /// <reference lib="deno.unstable" />
 
 import { log } from './utils/logger.ts';
-import { escapeMaskedLink, getPublicUrl, updateCommands } from './utils/helpers.ts';
+import { escapeMaskedLink, getPublicUrl } from './utils/helpers.ts';
 import { BotDataType, BotMessages } from './protocol.ts';
-import { bot } from './bot.ts';
+import { bot, updateCommands } from './bot.ts';
 import { Queue } from './services/queue.ts';
 import { Server } from './services/server.ts';
 
