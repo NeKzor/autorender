@@ -102,7 +102,7 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
   const buffer = await Deno.readFile(filePath);
 
   try {
-    const buf = parser.prepare(buffer);
+    const buf = parser.prepare(buffer.buffer);
     const demo = SourceDemo.default();
 
     try {
@@ -133,7 +133,7 @@ export const getDemoInfo = async (filePath: string, options?: { isBoardDemo?: bo
       fixupResult = await autoFixupOldPortal2Demo(
         demo,
         parser,
-        buffer,
+        buffer.buffer,
         filePath,
       );
 
@@ -602,8 +602,8 @@ export const getInputData = (demo: SourceDemo): Uint32Array | null => {
   return null;
 };
 
-// Imported from: https://github.com/NeKzor/sdp/blob/master/examples/repair.ts
-export const repairDemo = (buffer: Uint8Array): Uint8Array => {
+// Imported from: https://github.com/NeKzor/sdp/blob/main/examples/tools/repair.ts
+export const repairDemo = (buffer: ArrayBuffer): Uint8Array => {
   const parser = SourceDemoParser.default()
     .setOptions({ packets: true, dataTables: true });
 

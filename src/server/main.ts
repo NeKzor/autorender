@@ -2058,7 +2058,7 @@ router.get('/connect/client', async (ctx) => {
 
             if (AUTORENDER_RUN_DEMO_REPAIR && demo_requires_repair) {
               try {
-                await buffer.write(repairDemo(file));
+                await buffer.write(repairDemo(file.buffer));
               } catch (err) {
                 logger.error('Error while running demo repair');
                 logger.error(err);

@@ -52,7 +52,13 @@
   "lint": {
     "exclude": [
       "docker"
-    ]
+    ],
+    "rules": {
+      "exclude": [
+        "jsx-key",
+        "no-unused-vars"
+      ]
+    }
   },
   "fmt": {
     "useTabs": false,

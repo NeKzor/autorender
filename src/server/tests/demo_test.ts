@@ -11,7 +11,7 @@ import { getPlayerInfo } from '../demo.ts';
 Deno.test('Correctly get player info of a coop demo', () => {
   const demo = SourceDemoParser.default()
     .setOptions({ stringTables: true })
-    .parse(Deno.readFileSync('./tests/demos/coop.dem'));
+    .parse(Deno.readFileSync('./tests/demos/coop.dem').buffer);
 
   const { steamId, partnerSteamId } = getPlayerInfo(demo);
 
@@ -25,7 +25,7 @@ Deno.test('Correctly get player info of a coop demo', () => {
 Deno.test('Correctly get player info of a coop demo (host)', () => {
   const demo = SourceDemoParser.default()
     .setOptions({ stringTables: true })
-    .parse(Deno.readFileSync('./tests/demos/coop_host.dem'));
+    .parse(Deno.readFileSync('./tests/demos/coop_host.dem').buffer);
 
   const { steamId, partnerSteamId } = getPlayerInfo(demo);
 

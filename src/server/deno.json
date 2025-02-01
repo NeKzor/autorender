@@ -15,6 +15,14 @@
     "id": "deno run --no-prompt --env-file --allow-env --allow-read=.env,.env.defaults,.env.example,/storage --allow-net=autorender.database:3307 tasks/id.ts",
     "avatars": "deno run --no-prompt --env-file --allow-env --allow-read=.env,.env.defaults,.env.example,/storage --allow-write=/storage/users --allow-net=autorender.database:3307,cdn.discordapp.com tasks/avatars.ts"
   },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "jsx-key",
+        "no-unused-vars"
+      ]
+    }
+  },
   "fmt": {
     "useTabs": false,
     "lineWidth": 120,

@@ -282,7 +282,7 @@ const processVideos = async () => {
       logger.info(`Parsing : ${video.share_id} : ${demoFile}`);
 
       const buffer = await Deno.readFile(demoFile);
-      const demo = parser.parse(buffer);
+      const demo = parser.parse(buffer.buffer);
       const inputs = getInputData(demo);
       if (inputs) {
         using inputsFile = await Deno.open(getDemoInputsFilePath(video), { create: true, write: true });
