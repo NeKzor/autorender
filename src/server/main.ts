@@ -9,7 +9,7 @@
  *    - Serving the web platform (`app/`)
  */
 
-import * as uuid from 'uuid/mod.ts';
+import * as uuid from '@std/uuid';
 import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status } from '@oak/oak';
 import { Response as OakResponse, ResponseBody, ResponseBodyFunction } from '@oak/oak/response';
 import Session from 'oak_sessions/src/Session.ts';

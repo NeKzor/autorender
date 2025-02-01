@@ -5,7 +5,7 @@
  */
 
 import { assert, assertEquals } from '@std/assert';
-import * as uuid from 'uuid/mod.ts';
+import * as uuid from '@std/uuid';
 import { validateShareId } from '../utils.ts';
 import { Video } from '~/shared/models.ts';
 

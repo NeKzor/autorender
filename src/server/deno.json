@@ -44,6 +44,7 @@
     "@std/io": "jsr:@std/io@^0.225.1",
     "@std/log": "jsr:@std/log@^0.224.13",
     "@std/path": "jsr:@std/path@^1.0.8",
+    "@std/uuid": "jsr:@std/uuid@^1.0.4",
     "bcrypt/": "https://deno.land/x/bcrypt@v0.4.1/",
     "bcrypt/src/": "https://deno.land/x/bcrypt@v0.4.1/src/",
     "cors/": "https://deno.land/x/cors@v1.2.2/",
@@ -57,7 +58,6 @@
     "react/": "https://esm.sh/v131/react@18.2.0/",
     "twind": "https://esm.sh/v131/*twind@0.16.16",
     "twind/": "https://esm.sh/v131/*twind@0.16.16/",
-    "uuid/": "https://deno.land/std@0.198.0/uuid/",
     "~/shared/": "../shared/"
   },
   "scopes": {

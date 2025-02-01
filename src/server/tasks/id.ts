@@ -6,7 +6,7 @@
  * Get Video ID by Share ID or vice versa.
  */
 
-import * as uuid from 'uuid/mod.ts';
+import * as uuid from '@std/uuid';
 import { db } from '../db.ts';
 import { Video } from '~/shared/models.ts';
 import { validateShareId } from '../utils.ts';
