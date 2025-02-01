@@ -5,9 +5,11 @@
  */
 
 import { dirname, join } from '@std/path';
-import { colors } from 'cliffy/ansi/colors.ts';
-import { Cell, Table } from 'cliffy/table/mod.ts';
-import { logger } from './logger.ts';
+import * as yaml from '@std/yaml';
+import { colors } from '@cliffy/ansi/colors';
+import { Checkbox, Confirm, Input, prompt, Select } from '@cliffy/prompt';
+import { Cell, Table } from '@cliffy/table';
+import { Options } from './cli.ts';
 import {
   Config,
   configExplanation,
@@ -22,12 +24,10 @@ import {
   supportedGames,
 } from './config.ts';
 import { AutorenderVersion, ReleaseTag, UserAgent } from './constants.ts';
-import { Checkbox, Confirm, Input, prompt, Select } from 'cliffy/prompt/mod.ts';
-import * as yaml from '@std/yaml';
-import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
-import { Options } from './cli.ts';
-import { getRelease } from './github.ts';
 import { GameProcess } from './game.ts';
+import { getRelease } from './github.ts';
+import { logger } from './logger.ts';
+import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
 
 const isWindows = Deno.build.os === 'windows';
 

@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { Command } from 'cliffy/command/mod.ts';
+import { Command } from '@cliffy/command';
 import { downloadAutorenderConfig, downloadQuickhud, downloadSourceAutoRecord, getConfigOnly } from './config.ts';
 import { AutorenderVersion } from './constants.ts';
 import { addNewGame, launchGame, runBenchmark, runCheck, runExplain } from './commands.ts';

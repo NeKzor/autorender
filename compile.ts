@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { join } from 'https://deno.land/std@0.192.0/path/mod.ts';
-import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
-import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
+import { join } from 'jsr:@std/path';
+import { Command } from 'jsr:@cliffy/command@1.0.0-rc.7';
+import { colors } from 'jsr:@cliffy/ansi@1.0.0-rc.7/colors';
 
 const devHostname = 'autorender.portal2.local';
 
