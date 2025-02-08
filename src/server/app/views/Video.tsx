@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
@@ -420,7 +420,7 @@ export const VideoView = () => {
           )}
           <div className={tw`mt-12 relative text-[20px]`}>
             <div>
-              {hasVideo && <span className={tw`float-right ml-8`}>{data.views} views</span>}
+              {hasVideo && <span className={tw`float-right ml-8`}>{data.views} view{data.views === 1 ? '' : 's'}</span>}
               <span className={tw`break-words`}>{data.title}</span>
             </div>
           </div>

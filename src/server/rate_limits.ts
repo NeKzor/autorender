@@ -1,28 +1,17 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import { RouterMiddleware, Status, STATUS_TEXT } from 'oak/mod.ts';
+import { RouterMiddleware, Status, STATUS_TEXT } from '@oak/oak';
 import { RateLimiterAbstract, RateLimiterMemory, RateLimiterRes } from 'rate-limiter-flexible';
 import { AppState } from './app/AppState.ts';
-
-const buckets = {
-  authorize: new RateLimiterMemory({
-    points: 3,
-    duration: 60,
-  }),
-  views: new RateLimiterMemory({
-    points: 1,
-    duration: 30,
-  }),
-};
 
 // deno-lint-ignore no-explicit-any
 type OakRouterMiddleware = RouterMiddleware<any, any, Record<string, any> & AppState>;
 
-const tryConsume: (bucket: RateLimiterAbstract) => OakRouterMiddleware = (bucket) => async (ctx, next) => {
+const rateLimitMiddleware: (bucket: RateLimiterAbstract) => OakRouterMiddleware = (bucket) => async (ctx, next) => {
   let consumed = false;
 
   try {
@@ -45,7 +34,17 @@ const tryConsume: (bucket: RateLimiterAbstract) => OakRouterMiddleware = (bucket
   }
 };
 
-export const rateLimits: Record<keyof typeof buckets, OakRouterMiddleware> = {
-  authorize: tryConsume(buckets.authorize),
-  views: tryConsume(buckets.views),
-};
+export const rateLimits = {
+  authorize: rateLimitMiddleware(
+    new RateLimiterMemory({
+      points: 3,
+      duration: 60,
+    }),
+  ),
+  views: rateLimitMiddleware(
+    new RateLimiterMemory({
+      points: 1,
+      duration: 30,
+    }),
+  ),
+} as const;

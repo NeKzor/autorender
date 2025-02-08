@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  *
@@ -67,9 +67,6 @@ self.addEventListener(
 
             const videoFile = realGameModFolder(game, config.autorender['folder-name'], `${video_id}.mp4`);
 
-            // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
-            //       https://github.com/oakserver/oak/issues/581
-
             const body = new FormData();
 
             body.append(
@@ -104,7 +101,7 @@ self.addEventListener(
               type: UploadWorkerDataType.Error,
               data: {
                 video_id,
-                message: err.toString(),
+                message: `${err}`,
               },
             });
           }

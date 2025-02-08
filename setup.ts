@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import { Command } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/command/mod.ts';
-import { colors } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/ansi/colors.ts';
-import { Input, Secret, Select } from 'https://deno.land/x/cliffy@v1.0.0-rc.2/prompt/mod.ts';
+import { Command } from 'jsr:@cliffy/command@1.0.0-rc.7';
+import { colors } from 'jsr:@cliffy/ansi@1.0.0-rc.7/colors';
+import { Input, Secret, Select } from 'jsr:@cliffy/prompt@1.0.0-rc.7';
 
 type Environment = 'dev' | 'prod';
 

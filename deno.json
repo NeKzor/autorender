@@ -1,7 +1,10 @@
 {
   "tasks": {
     "check": "deno fmt --check && deno lint && deno task check:types",
-    "check:types": "deno check --no-lock --import-map src/import_map.json src/**/*.ts src/**/*.tsx",
+    "check:types": "deno task check:types:bot && deno task check:types:client && deno task check:types:server",
+    "check:types:bot": "deno check --no-lock --config=src/bot/deno.json src/bot/**/*.ts",
+    "check:types:client": "deno check --no-lock --config=src/client/deno.json src/client/**/*.ts",
+    "check:types:server": "deno check --no-lock --config=src/server/deno.json src/server/**/*.ts src/server/**/*.tsx",
     "client": "deno task --cwd src/client dev",
     "client:test": "deno task --cwd src/client test",
     "compile": "deno run --allow-run=deno compile.ts",
@@ -49,7 +52,13 @@
   "lint": {
     "exclude": [
       "docker"
-    ]
+    ],
+    "rules": {
+      "exclude": [
+        "jsx-key",
+        "no-unused-vars"
+      ]
+    }
   },
   "fmt": {
     "useTabs": false,
@@ -66,8 +75,6 @@
     "src/app"
   ],
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
     "noUncheckedIndexedAccess": true
   }
 }

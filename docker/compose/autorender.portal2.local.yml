@@ -7,6 +7,8 @@ services:
       target: server
     container_name: "${PROJECT_NAME}-server"
     restart: always
+    ports:
+      - '127.0.0.1:9229:9229'
     links:
       - database:autorender.database
     volumes:
@@ -23,6 +25,8 @@ services:
       target: bot
     container_name: "${PROJECT_NAME}-bot"
     restart: always
+    ports:
+      - '127.0.0.1:9230:9229'
     links:
       - server:autorender.server
     volumes:

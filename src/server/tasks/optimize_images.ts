@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import 'dotenv/load.ts';
 import { db } from '../db.ts';
 import { Video } from '~/shared/models.ts';
 import { installLogger, logger } from '../logger.ts';

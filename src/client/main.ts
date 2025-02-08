@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  *
@@ -7,7 +7,7 @@
  * file will be send back to the server once it finished rendering.
  */
 
-import { dirname, join } from 'path/mod.ts';
+import { dirname, join } from '@std/path';
 import { logger } from './logger.ts';
 import {
   AutorenderDataType,
@@ -328,7 +328,7 @@ const handleMessageBuffer = async (buffer: ArrayBuffer) => {
       type: AutorenderSendDataType.Error,
       data: {
         video_id: videoId,
-        message: err.toString(),
+        message: `${err}`,
       },
     });
   } finally {
@@ -388,7 +388,7 @@ const onMessage = async (messageData: ArrayBuffer | string) => {
     send({
       type: AutorenderSendDataType.Error,
       data: {
-        message: err.toString(),
+        message: `${err}`,
       },
     });
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
@@ -127,7 +127,7 @@ export const VideoRow = ({ video }: { video: VideoRowData }) => {
                       </span>
                     </div>
                     <div className={tw`h-2 mb-4 mt-2 text-sm`}>
-                      {video.views} views | {toAgo(video.rendered_at)}
+                      {video.views} view{video.views === 1 ? '' : 's'} | {toAgo(video.rendered_at)}
                     </div>
                   </a>
                 </div>

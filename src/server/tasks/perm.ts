@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  *
@@ -7,7 +7,6 @@
  * A re-login is required after execution.
  */
 
-import 'dotenv/load.ts';
 import { db } from '../db.ts';
 import { UserPermissions } from '~/shared/models.ts';
 

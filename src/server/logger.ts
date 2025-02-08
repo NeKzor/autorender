@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import * as _log from 'log/mod.ts';
-import { blue, bold, red, yellow } from 'fmt/colors.ts';
+import * as _log from '@std/log';
+import { blue, bold, red, yellow } from '@std/fmt/colors';
 
 export const log = _log;
 export const logger = _log;

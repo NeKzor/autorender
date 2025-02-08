@@ -1,8 +1,8 @@
 {
   "tasks": {
-    "dev": "deno run --import-map=../import_map.json --no-prompt --allow-hrtime --allow-env --allow-read=\"autorender.yaml,autorender.cfg,log,worker.ts,logger.ts,upload.ts,protocol.ts,state.ts,../shared/models.ts,config.ts,constants.ts,cli.ts,utils.ts,commands.ts,game.ts,github.ts\" --allow-write=\"autorender.yaml,log\" --allow-run --allow-net=deno.land,autorender.portal2.local,steamusercontent-a.akamaihd.net,api.github.com,github.com,objects.githubusercontent.com,dl.sar.portal2.sr,127.0.0.1:8080 --unsafely-ignore-certificate-errors=autorender.portal2.local --watch main.ts --dev",
-    "test": "deno test --import-map=../import_map.json --allow-net --allow-read --allow-env",
-    "compile": "deno compile --import-map=../import_map.json --output bin/$COMPILATION_BINARY_NAME --target $COMPILATION_TARGET --include ./worker.ts --include ./upload.ts --no-prompt --allow-hrtime --allow-env --allow-read=\"autorender.yaml,autorender.cfg,log,worker.ts$COMPILATION_READ_WRITE_GAME_PATHS\" --allow-write=\"autorender.yaml,log$COMPILATION_READ_WRITE_GAME_PATHS\" --allow-run --allow-net=deno.land,autorender.portal2.local,autorender.portal2.sr,autorender.p2sr.org,steamusercontent-a.akamaihd.net,api.github.com,github.com,objects.githubusercontent.com,dl.sar.portal2.sr $COMPILATION_DEVELOPER_FLAGS main.ts"
+    "dev": "deno run --allow-hrtime --env-file --allow-env --allow-read=\"autorender.yaml,autorender.cfg,log,worker.ts,logger.ts,upload.ts,protocol.ts,state.ts,../shared/models.ts,config.ts,constants.ts,cli.ts,utils.ts,commands.ts,game.ts,github.ts\" --allow-write=\"autorender.yaml,log\" --allow-run --allow-net=deno.land,autorender.portal2.local,steamusercontent-a.akamaihd.net,api.github.com,github.com,objects.githubusercontent.com,dl.sar.portal2.sr,127.0.0.1:8080 --unsafely-ignore-certificate-errors=autorender.portal2.local --watch main.ts --dev",
+    "test": "deno test --allow-net --allow-read --env-file --allow-env",
+    "compile": "deno compile --output bin/$COMPILATION_BINARY_NAME --target $COMPILATION_TARGET --include ./worker.ts --include ./upload.ts --no-prompt --allow-hrtime --env-file --allow-env --allow-read=\"autorender.yaml,autorender.cfg,log,worker.ts$COMPILATION_READ_WRITE_GAME_PATHS\" --allow-write=\"autorender.yaml,log$COMPILATION_READ_WRITE_GAME_PATHS\" --allow-run --allow-net=deno.land,autorender.portal2.local,autorender.portal2.sr,autorender.p2sr.org,steamusercontent-a.akamaihd.net,api.github.com,github.com,objects.githubusercontent.com,dl.sar.portal2.sr $COMPILATION_DEVELOPER_FLAGS main.ts"
   },
   "fmt": {
     "useTabs": false,
@@ -13,5 +13,21 @@
   },
   "compilerOptions": {
     "noUncheckedIndexedAccess": true
+  },
+  "imports": {
+    "@std/async": "jsr:@std/async@^1.0.10",
+    "@std/fmt": "jsr:@std/fmt@^1.0.4",
+    "@std/io": "jsr:@std/io@^0.225.1",
+    "@std/log": "jsr:@std/log@^0.224.13",
+    "@std/path": "jsr:@std/path@^1.0.8",
+    "@std/streams": "jsr:@std/streams@^1.0.8",
+    "@std/yaml": "jsr:@std/yaml@^1.0.5",
+    "@cliffy/ansi": "jsr:@cliffy/ansi@^1.0.0-rc.7",
+    "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.7",
+    "@cliffy/prompt": "jsr:@cliffy/prompt@^1.0.0-rc.7",
+    "@cliffy/table": "jsr:@cliffy/table@^1.0.0-rc.7",
+    "@deno-library/progress": "jsr:@deno-library/progress@^1.5.1",
+    "@zip-js/zip-js": "jsr:@zip-js/zip-js@^2.7.57",
+    "~/shared/": "../shared/"
   }
 }

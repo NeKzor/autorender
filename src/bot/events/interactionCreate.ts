@@ -1,20 +1,16 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
 import type { Guild } from '@discordeno/bot';
 import { InteractionTypes } from '@discordeno/bot';
-import { events } from './mod.ts';
 import { log } from '../utils/logger.ts';
-import { getGuildFromId } from '../utils/helpers.ts';
-import type { Command } from '../commands/mod.ts';
-import { commands } from '../commands/mod.ts';
-import { BotWithCache } from '../bot.ts';
+import { bot, Command, DiscordBot, getGuildFromId } from '../bot.ts';
 
-events.interactionCreate = async (interaction) => {
-  const bot = interaction.bot as BotWithCache;
+bot.events.interactionCreate = async (interaction) => {
+  const bot = interaction.bot as DiscordBot;
 
   if (interaction.data && interaction.id) {
     let guildName = 'Direct Message';
@@ -56,31 +52,27 @@ events.interactionCreate = async (interaction) => {
       }
 
       const [modalCommand] = interaction.data.customId.split('_', 1) as [string];
-      command = commands.get(modalCommand);
+      command = bot.commands.get(modalCommand);
     } else {
-      command = commands.get(interaction.data.name);
+      command = bot.commands.get(interaction.data.name);
     }
 
     if (command !== undefined) {
       if (source) {
         try {
-          if (command) {
-            command.execute(bot, interaction);
-            log.info(
-              `[Command: ${source} - Success] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
-                guildName !== 'Direct Message' ? ` (${guild.id})` : ``
-              }`,
-            );
-          } else {
-            throw '';
-          }
+          command.execute(bot, interaction);
+          log.info(
+            `[Command: ${source} - Success] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
+              guildName !== 'Direct Message' ? ` (${guild.id})` : ``
+            }`,
+          );
         } catch (err) {
           log.error(
             `[Command: ${source} - Error] by ${interaction.user.username}#${interaction.user.discriminator} in ${guildName}${
               guildName !== 'Direct Message' ? ` (${guild.id})` : ``
             }`,
           );
-          err.length ? log.error(err) : undefined;
+          log.error(err);
         }
       } else {
         log.warn(

@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
-
-import 'dotenv/load.ts';
 
 import { BackblazeClient } from '../b2.ts';
 import { getVideoDownloadFilename } from '../utils.ts';

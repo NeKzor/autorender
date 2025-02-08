@@ -1,19 +1,13 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import {
-  ApplicationCommandOptionTypes,
-  ApplicationCommandTypes,
-  Bot,
-  Interaction,
-  InteractionResponseTypes,
-} from '@discordeno/bot';
+import { ApplicationCommandOptionTypes, ApplicationCommandTypes, InteractionResponseTypes } from '@discordeno/bot';
 import { Messages, SourceDemoParser } from '@nekz/sdp';
-import { createCommand } from './mod.ts';
 import { Server } from '../services/server.ts';
+import { createCommand, DiscordBot, DiscordInteraction } from '../bot.ts';
 
 createCommand({
   name: 'fixup',
@@ -28,7 +22,7 @@ createCommand({
       required: true,
     },
   ],
-  execute: async (bot: Bot, interaction: Interaction) => {
+  execute: async (bot: DiscordBot, interaction: DiscordInteraction) => {
     const attachment = interaction.data?.resolved?.attachments?.first()!;
     const warnFileIsTooBigForRender = attachment.size > Server.config.maxDemoFileSize;
 

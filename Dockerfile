@@ -1,4 +1,4 @@
-ARG DENO_VERSION=1.42.1
+ARG DENO_VERSION=2.1.9
 ARG ALPINE_VERSION=3.18
 
 FROM denoland/deno:bin-$DENO_VERSION AS deno
@@ -8,15 +8,13 @@ FROM denoland/deno:bin-$DENO_VERSION AS deno
 FROM frolvlad/alpine-glibc:alpine-$ALPINE_VERSION AS bot
 COPY --from=deno /deno /usr/local/bin/deno
 
-ADD src/import_map.json .
-
 WORKDIR /shared
 ADD src/shared .
 
 WORKDIR /app
 ADD src/bot .
 
-RUN deno cache --import-map=../import_map.json main.ts bot.ts worker.ts
+RUN deno install --entrypoint main.ts bot.ts worker.ts
 
 CMD ./entrypoint.sh
 
@@ -29,14 +27,12 @@ RUN apk update
 RUN apk upgrade
 RUN apk add --no-cache ffmpeg
 
-ADD src/import_map.json .
-
 WORKDIR /shared
 ADD src/shared .
 
 WORKDIR /app
 ADD src/server .
 
-RUN deno cache --import-map=../import_map.json main.ts
+RUN deno install --entrypoint main.ts tasks/stale.ts tasks/board.ts tasks/processing.ts
 
 CMD ./entrypoint.sh

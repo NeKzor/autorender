@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
@@ -134,6 +134,7 @@ const DeleteModal = () => {
               </div>
             </div>
             <button
+              type='button'
               id='delete-modal-delete-button'
               data-tooltip-trigger='none'
               className={tw`disabled:opacity-75 disabled:pointer-events-none w-full mt-2 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800`}

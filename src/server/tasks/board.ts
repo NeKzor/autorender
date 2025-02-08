@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  *
  * This checks if there are any videos to render from board.portal2.sr and mel.board.portal2.sr.
  */
 
-import 'dotenv/load.ts';
 import { db } from '../db.ts';
 import { BoardSource, PendingStatus } from '~/shared/models.ts';
 import { installLogger, logger } from '../logger.ts';

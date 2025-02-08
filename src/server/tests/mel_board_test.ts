@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import { assert } from 'testing/asserts.ts';
+import { assert } from '@std/assert';
 
 const MEL_BOARD_DOMAIN = Deno.env.get('MEL_BOARD_DOMAIN')!;
 const MEL_BOARD_API_TOKEN = Deno.env.get('MEL_BOARD_API_TOKEN')!;
 
 Deno.test('Can set autorender on board.portal2.local', async () => {
-  if (MEL_BOARD_API_TOKEN !== 'none') {
+  if (MEL_BOARD_API_TOKEN === 'none') {
     return console.log('Mel board disabled. Skipped test.');
   }
 

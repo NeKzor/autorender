@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import { dirname, join } from 'path/mod.ts';
-import { colors } from 'cliffy/ansi/colors.ts';
-import { Cell, Table } from 'cliffy/table/mod.ts';
-import { logger } from './logger.ts';
+import { dirname, join } from '@std/path';
+import * as yaml from '@std/yaml';
+import { colors } from '@cliffy/ansi/colors';
+import { Checkbox, Confirm, Input, prompt, Select } from '@cliffy/prompt';
+import { Cell, Table } from '@cliffy/table';
+import { Options } from './cli.ts';
 import {
   Config,
   configExplanation,
@@ -22,13 +24,10 @@ import {
   supportedGames,
 } from './config.ts';
 import { AutorenderVersion, ReleaseTag, UserAgent } from './constants.ts';
-import { YAMLError } from 'yaml/_error.ts';
-import { Checkbox, Confirm, Input, prompt, Select } from 'cliffy/prompt/mod.ts';
-import * as yaml from 'yaml/mod.ts';
-import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
-import { Options } from './cli.ts';
-import { getRelease } from './github.ts';
 import { GameProcess } from './game.ts';
+import { getRelease } from './github.ts';
+import { logger } from './logger.ts';
+import { gameFolder, gameModFolder, realGameModFolder } from './utils.ts';
 
 const isWindows = Deno.build.os === 'windows';
 
@@ -216,7 +215,7 @@ export const runValidate = async ({ verboseMode }: Options) => {
 
     if (err instanceof Deno.errors.NotFound) {
       console.log(colors.red(`❌️ Config file not found.`));
-    } else if (err instanceof YAMLError) {
+    } else if (err instanceof SyntaxError) {
       console.log(colors.red(`❌️ ${err.message}`));
     }
 

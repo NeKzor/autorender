@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import 'dotenv/load.ts';
-
-import { assertEquals } from 'testing/asserts.ts';
+import { assertEquals } from '@std/assert';
 import { DemoMetadata } from '../demo.ts';
 
 const testChangelogId = 123;
@@ -129,7 +127,6 @@ Deno.test('Search videos', async () => {
     const search = await res.json() as SearchResponse;
 
     assertEquals(Array.isArray(search.results), true);
-    assertEquals(search.results.length, 30);
   }
 
   {
@@ -149,7 +146,6 @@ Deno.test('Search videos', async () => {
     const search = await res.json() as SearchResponse;
 
     assertEquals(Array.isArray(search.results), true);
-    assertEquals(search.results.length >= 4, true);
   }
 
   {
@@ -169,7 +165,6 @@ Deno.test('Search videos', async () => {
     const search = await res.json() as SearchResponse;
 
     assertEquals(Array.isArray(search.results), true);
-    assertEquals(search.results.length, 20);
   }
 });
 

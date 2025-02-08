@@ -3,7 +3,7 @@ name: Release CD
 on:
   push:
     tags:
-      - "*"
+      - '*'
 
 permissions:
   contents: write
@@ -15,11 +15,11 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[cd skip]')"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: denoland/setup-deno@v1
+      - uses: denoland/setup-deno@v2
         with:
-          deno-version: v1.x
+          deno-version: v2.x
 
       - name: Format check
         run: deno fmt --check src/client

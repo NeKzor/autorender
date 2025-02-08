@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
@@ -10,10 +10,8 @@ import {
   ApplicationCommandOptionTypes,
   ApplicationCommandTypes,
   Attachment,
-  Bot,
   ButtonComponent,
   ButtonStyles,
-  Interaction,
   InteractionDataOption,
   InteractionResponseTypes,
   InteractionTypes,
@@ -23,9 +21,9 @@ import {
 import { Presets } from '../services/presets.ts';
 import { Queue } from '../services/queue.ts';
 import { escapeMaskedLink, getPublicUrl } from '../utils/helpers.ts';
-import { createCommand } from './mod.ts';
 import { Video } from '~/shared/models.ts';
 import { Server } from '../services/server.ts';
+import { createCommand, DiscordBot, DiscordInteraction } from '../bot.ts';
 
 const AUTORENDER_BASE_API = Deno.env.get('AUTORENDER_BASE_API')!;
 
@@ -92,8 +90,8 @@ const validateUrl = (urlString: string) => {
 };
 
 const render = async (
-  bot: Bot,
-  interaction: Interaction,
+  bot: DiscordBot,
+  interaction: DiscordInteraction,
   interactionData: InteractionDataOption,
   source?: { attachment?: Attachment; url?: string },
 ) => {
@@ -236,9 +234,6 @@ const render = async (
     if (!body.get('title')) {
       body.append('title', filename.slice(0, 64));
     }
-
-    // NOTE: We have to reorder the file before something else, thanks to this wonderful bug in oak.
-    //       https://github.com/oakserver/oak/issues/581
 
     body.append('files', await demo.blob(), filename);
 
@@ -443,7 +438,7 @@ createCommand({
       ],
     },
   ],
-  execute: async (bot: Bot, interaction: Interaction) => {
+  execute: async (bot: DiscordBot, interaction: DiscordInteraction) => {
     const subCommand = [...(interaction.data?.options?.values() ?? [])].at(0)!;
 
     switch (interaction.type) {

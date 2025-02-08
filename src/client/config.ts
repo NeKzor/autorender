@@ -1,23 +1,23 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import * as yaml from 'yaml/mod.ts';
-import { Checkbox, Input, prompt, Secret, Select } from 'cliffy/prompt/mod.ts';
-import { colors } from 'cliffy/ansi/colors.ts';
-import { bgCyan } from 'fmt/colors.ts';
-import { dirname, join } from 'path/mod.ts';
-import { BlobReader, Uint8ArrayWriter, ZipReader } from 'zipjs/index.js';
-import ProgressBar from 'progress/mod.ts';
-import { logger } from './logger.ts';
-import { writeAll } from 'streams/write_all.ts';
+import { bgCyan } from '@std/fmt/colors';
+import { writeAll } from '@std/io';
+import * as yaml from '@std/yaml';
+import { dirname, join } from '@std/path';
+import { colors } from '@cliffy/ansi/colors';
+import ProgressBar from '@deno-library/progress';
+import { Checkbox, Input, prompt, Secret, Select } from '@cliffy/prompt';
+import { BlobReader, Uint8ArrayWriter, ZipReader } from '@zip-js/zip-js';
 import { AutorenderBaseApi, AutorenderConnectUri, UserAgent } from './constants.ts';
-import { RenderQuality } from '~/shared/models.ts';
-import { gameFolder, getBinary, realGameModFolder } from './utils.ts';
 import { getOptions, Options } from './cli.ts';
 import { getRelease } from './github.ts';
+import { logger } from './logger.ts';
+import { gameFolder, getBinary, realGameModFolder } from './utils.ts';
+import { RenderQuality } from '~/shared/models.ts';
 
 const isWindows = Deno.build.os === 'windows';
 

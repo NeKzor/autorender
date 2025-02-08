@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
@@ -16,7 +16,7 @@ import {
   PendingStatus,
   RenderQuality,
 } from '~/shared/models.ts';
-import * as uuid from 'uuid/mod.ts';
+import * as uuid from '@std/uuid';
 import { generateShareId, getDemoFilePath, getFixedDemoFilePath } from '../utils.ts';
 import { getDemoInfo } from '../demo.ts';
 import { logger } from '../logger.ts';

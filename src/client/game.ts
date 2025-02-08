@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import { dirname, join } from 'path/mod.ts';
+import { dirname, join } from '@std/path';
 import { Config, GameConfig, gameModsWhichSupportWorkshop } from './config.ts';
 import { logger } from './logger.ts';
-import { colors } from 'cliffy/ansi/colors.ts';
+import { colors } from '@cliffy/ansi/colors';
 import { gameFolder, realGameModFolder } from './utils.ts';
 import { VideoPayload } from './protocol.ts';
 import { RenderQuality } from '~/shared/models.ts';

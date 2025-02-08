@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  */
 
-import { join } from 'path/mod.ts';
+import { join } from '@std/path';
 import { User, Video } from '~/shared/models.ts';
 
 export const Storage = {

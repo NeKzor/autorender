@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024, NeKz
+ * Copyright (c) 2023-2025, NeKz
  *
  * SPDX-License-Identifier: MIT
  *
@@ -11,7 +11,6 @@
  *  - Parse demo inputs
  */
 
-import 'dotenv/load.ts';
 import { SourceDemoParser } from '@nekz/sdp';
 import { db } from '../db.ts';
 import { PendingStatus, Video } from '~/shared/models.ts';
@@ -283,7 +282,7 @@ const processVideos = async () => {
       logger.info(`Parsing : ${video.share_id} : ${demoFile}`);
 
       const buffer = await Deno.readFile(demoFile);
-      const demo = parser.parse(buffer);
+      const demo = parser.parse(buffer.buffer);
       const inputs = getInputData(demo);
       if (inputs) {
         using inputsFile = await Deno.open(getDemoInputsFilePath(video), { create: true, write: true });
