@@ -12,8 +12,7 @@
 import * as uuid from '@std/uuid';
 import { Application, Context, CookiesSetDeleteOptions, Middleware, Router, Status } from '@oak/oak';
 import { Response as OakResponse, ResponseBody, ResponseBodyFunction } from '@oak/oak/response';
-import Session from 'oak_sessions/src/Session.ts';
-import CookieStore from 'oak_sessions/src/stores/CookieStore.ts';
+import { CookieStore, CryptoFnAES, KvStore, Session } from './session.ts';
 import { oakCors } from 'cors/mod.ts';
 import { installLogger, logger } from './logger.ts';
 import { index } from './app/index.tsx';
@@ -122,17 +121,27 @@ const AUTORENDER_SERVE_STORAGE = Deno.env.get('AUTORENDER_SERVE_STORAGE');
 })();
 
 const cookieOptions: CookiesSetDeleteOptions = {
-  expires: new Date(Date.now() + 86_400_000 * 30),
   sameSite: 'lax',
   secure: true,
   ignoreInsecure: true,
 };
 
-const store = new CookieStore(Deno.env.get('COOKIE_SECRET_KEY')!, {
-  cookieSetDeleteOptions: cookieOptions,
-});
-const useSession = Session.initMiddleware(store, {
-  cookieSetOptions: cookieOptions,
+type SessionState = { user: User | null };
+
+const useSession: Middleware<AppState> = Session.createMiddleware({
+  cookieName: 'sid',
+  cookiesSetOptions: cookieOptions,
+  cookiesGetOptions: cookieOptions,
+  expireAfterSeconds: 86_400 * 30 * 6,
+  defaultSessionValue: {
+    user: null,
+  },
+  store: new CookieStore<SessionState, Context<AppState>>({
+    dataCookieName: 'sid_data',
+    cookiesSetDeleteOptions: cookieOptions,
+    cookiesGetOptions: cookieOptions,
+    cryptoFn: await CryptoFnAES.init(Deno.env.get('COOKIE_SECRET_KEY')!),
+  }),
 });
 
 const requiresAuth: Middleware<AppState> = async (ctx, next) => {
@@ -2418,15 +2427,15 @@ router.get('/login/discord/authorize', rateLimits.authorize, useSession, async (
   }
 
   ctx.state.session.set('user', user);
+  await ctx.state.session.refresh();
+
   ctx.response.redirect('/');
 });
 // router.get("/users/@me", useSession, requiresAuth, (ctx) => {
 //   Ok(ctx, ctx.state.session.get("user"));
 // });
 router.get('/logout', useSession, async (ctx) => {
-  await ctx.state.session.deleteSession();
-  await ctx.cookies.delete('session');
-  await ctx.cookies.delete('session_data');
+  await ctx.state.session.end();
   ctx.response.redirect('/');
 });
 
@@ -2856,7 +2865,7 @@ router.post('/tokens/test', async (ctx) => {
 router.get('/(.*)', useSession, routeToApp);
 
 type AppState = {
-  session: Session & { get(key: 'user'): User | undefined };
+  session: Session<SessionState, Context>;
 };
 
 const app = new Application<AppState>({
@@ -2908,7 +2917,6 @@ await app.listen(
       hostname: SERVER_HOST,
       port: SERVER_PORT,
       secure: true,
-      // TODO: Fix this.
       cert: SERVER_SSL_CERT,
       key: SERVER_SSL_KEY,
       alpnProtocols: ['h2', 'http/1.1'],
