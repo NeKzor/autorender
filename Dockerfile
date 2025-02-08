@@ -1,4 +1,4 @@
-ARG DENO_VERSION=2.1.7
+ARG DENO_VERSION=2.1.9
 ARG ALPINE_VERSION=3.18
 
 FROM denoland/deno:bin-$DENO_VERSION AS deno
@@ -33,6 +33,6 @@ ADD src/shared .
 WORKDIR /app
 ADD src/server .
 
-RUN deno install --entrypoint main.ts
+RUN deno install --entrypoint main.ts tasks/stale.ts tasks/board.ts tasks/processing.ts
 
 CMD ./entrypoint.sh
