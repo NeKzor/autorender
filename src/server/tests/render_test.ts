@@ -68,6 +68,8 @@ Deno.test('Render video', async (t) => {
 
     video_id = video.video_id;
 
+    console.log('[QUEUED]', Deno.env.get('AUTORENDER_PUBLIC_URI') + '/queue/' + video.share_id);
+
     assert(uuid.validate(video.video_id));
     assertEquals(video.game_id, 1);
     assertEquals(video.map_id, 29);
