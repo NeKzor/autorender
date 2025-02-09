@@ -46,6 +46,7 @@ type VideoSelect = Pick<
   | 'video_preview_url'
   | 'thumbnail_url_large'
   | 'thumbnail_url_small'
+  | 'board_changelog_id'
 >;
 
 const decoder = new TextDecoder();
@@ -212,6 +213,7 @@ const processVideos = async () => {
           , video_preview_url
           , thumbnail_url_large
           , thumbnail_url_small
+          , board_changelog_id
        from videos
       where processed = 0
         and pending = ?
@@ -293,10 +295,12 @@ const processVideos = async () => {
       logger.error(err);
     }
 
-    try {
-      await Deno.remove(demoFile);
-    } catch (err) {
-      logger.error(err);
+    if (video.board_changelog_id) {
+      try {
+        await Deno.remove(demoFile);
+      } catch (err) {
+        logger.error(err);
+      }
     }
   }
 };
