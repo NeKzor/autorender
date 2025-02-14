@@ -601,7 +601,7 @@ apiV1
     const filePath = getVideoFilePath(video);
     {
       // TODO: File cleanup on error
-      using fileOut = await Deno.open(filePath, { createNew: true, write: true });
+      using fileOut = await Deno.open(filePath, { create: true, write: true, truncate: true });
       await file.stream().pipeTo(fileOut.writable);
     }
 
