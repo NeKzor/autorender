@@ -46,7 +46,7 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v1
         with:
-          name: Autorender Client ${{ github.ref_name }}
+          name: autorender-${{ github.ref_name }}
           prerelease: ${{ contains(github.ref, 'pre') }}
           body: |
             For render clients of [autorender.portal2.sr](https://autorender.portal2.sr).
