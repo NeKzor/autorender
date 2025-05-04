@@ -209,6 +209,7 @@
     "https://esm.sh/v131/react@18.2.0/jsx-runtime": "aa011b336e339e6eaacc89787e7e3d6eb726b3701d9f8ac7fcd01db1595357cb",
     "https://esm.sh/v131/style-vendorizer@2.2.3": "348a362fb81be36b2b66a404311b2bcb961e41502d5ab8c3164c995d7c404317",
     "https://esm.sh/v131/style-vendorizer@2.2.3/denonext/style-vendorizer.mjs": "121455e7b04b631ef6463ce63cdcd29febd74d88c37713c774ceca8a1561c83d",
+    "https://esm.sh/v131/style-vendorizer@2.2.3/esnext/style-vendorizer.mjs": "8143e1bff2cb717e36ee8ce0a776528091b81b5c8c70df6353eeb676555f6701",
     "https://esm.sh/v131/twind@0.16.16/X-ZS8q/denonext/sheets.js": "aff2004484fdf713c8d39492ce89ffd0d8f1fabf48fdb44e19d78948fecfa9aa",
     "https://esm.sh/v131/twind@0.16.16/X-ZS8q/denonext/twind.mjs": "4f0582908ae9600b13a7fd667db95ab68fca8460fa935f331430b2f292098232"
   },

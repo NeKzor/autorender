@@ -8,7 +8,10 @@
     "jsr:@std/fs@^1.0.11": "1.0.11",
     "jsr:@std/io@~0.225.2": "0.225.2",
     "jsr:@std/log@~0.224.13": "0.224.14",
-    "npm:@discordeno/bot@21.0.0": "21.0.0"
+    "npm:@discordeno/bot@21.0.0": "21.0.0",
+    "npm:@discordeno/gateway@21.0.0": "21.0.0",
+    "npm:@discordeno/types@21.0.0": "21.0.0",
+    "npm:@discordeno/utils@21.0.0": "21.0.0"
   },
   "jsr": {
     "@nekz/sdp@0.10.1": {
