@@ -137,6 +137,8 @@ const initFilter = (view) => {
 
   const filters = [
     'all',
+    'trending',
+    'popular',
     'wr',
     'top10',
     'sp',
@@ -165,10 +167,11 @@ const initFilter = (view) => {
         if (enabledFilters.has(filter)) {
           enabledFilters.delete(filter);
         } else {
-          if (filter === 'wr') {
-            enabledFilters.delete('top10');
-          } else if (filter === 'top10') {
-            enabledFilters.delete('wr');
+          const singleFilter = ['trending', 'popular', 'wr', 'top10'];
+          const toDisable = singleFilter.filter((x) => x !== filter);
+
+          if (toDisable.length !== singleFilter.length) {
+            toDisable.forEach((x) => enabledFilters.delete(x));
           }
 
           enabledFilters.add(filter);

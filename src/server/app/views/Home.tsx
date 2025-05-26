@@ -52,6 +52,8 @@ const getVideos = async (db: Database, filters: Filters, sortableId?: SortableId
   const sp = filters.includes('sp');
   const coop = filters.includes('coop');
   const workshop = filters.includes('workshop');
+  const trending = filters.includes('trending');
+  const popular = trending || filters.includes('popular');
   const mapType = [] as MapType[];
 
   if (sp) mapType.push(workshop ? MapType.WorkshopSinglePlayer : MapType.SinglePlayer);
@@ -78,21 +80,33 @@ const getVideos = async (db: Database, filters: Filters, sortableId?: SortableId
       ${mapType.length ? 'left join maps on maps.map_id = videos.map_id' : ''}
       where video_url is not null
         and deleted_at is null
+            ${trending ? 'and videos.rendered_at >= curdate() - interval 7 day' : ''}
             ${filters.includes('wr') ? 'and board_rank = 1' : ''}
             ${filters.includes('top10') ? 'and board_rank <= 10' : ''}
             ${mapType.length ? 'and maps.type in (' + mapType.join(',') + ')' : ''}
-            ${sortableId ? 'and (videos.rendered_at < ? or (videos.rendered_at = ? and videos.share_id > ?))' : ''}
-   order by rendered_at desc
+            ${sortableId && popular ? 'and (videos.views < ? or (videos.views = ? and videos.share_id > ?))' : ''}
+            ${
+      sortableId && !popular ? 'and (videos.rendered_at < ? or (videos.rendered_at = ? and videos.share_id > ?))' : ''
+    }
+   order by ${popular ? 'views desc' : 'rendered_at desc'}
           , share_id asc
       limit ${MAX_VIDEOS_PER_REQUEST}`,
     [
-      ...(sortableId ? [sortableId.date, sortableId.date, sortableId.shareId] : []),
+      ...(sortableId
+        ? [
+          popular ? sortableId.views : sortableId.date,
+          popular ? sortableId.views : sortableId.date,
+          sortableId.shareId,
+        ]
+        : []),
     ],
   );
 };
 
 const allowedFilters = [
   'all',
+  'trending',
+  'popular',
   'wr',
   'top10',
   'sp',
@@ -127,6 +141,28 @@ export const Home = () => {
               } focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2`}
             >
               ALL
+            </button>
+            <button
+              id='filter-trending'
+              type='button'
+              className={tw`text-gray-900 rounded-lg dark:text-white ${
+                data.filters.includes('trending')
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2`}
+            >
+              TRENDING
+            </button>
+            <button
+              id='filter-popular'
+              type='button'
+              className={tw`text-gray-900 rounded-lg dark:text-white ${
+                data.filters.includes('popular')
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2`}
+            >
+              POPULAR
             </button>
             <button
               id='filter-wr'

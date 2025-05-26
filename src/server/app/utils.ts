@@ -53,37 +53,41 @@ export const getSortableIdByCreated = (
   video?: {
     created_at: Video['created_at'];
     share_id: Video['share_id'];
+    views: Video['views'];
   },
 ) => {
-  return video ? btoa(`${video.share_id},${video.created_at.toISOString()}`) : undefined;
+  return video ? btoa(`${video.share_id},${video.created_at.toISOString()},${video.views}`) : undefined;
 };
 
 export const getSortableIdByRendered = (
   video?: {
     rendered_at: Video['rendered_at'];
     share_id: Video['share_id'];
+    views: Video['views'];
   },
 ) => {
-  return video ? btoa(`${video.share_id},${video.rendered_at.toISOString()}`) : undefined;
+  return video ? btoa(`${video.share_id},${video.rendered_at.toISOString()},${video.views}`) : undefined;
 };
 
 export type SortableId = {
   shareId: string;
   date: string;
+  views: string;
 };
 
 export const parseSortableId = (id: string): SortableId | false => {
   try {
-    const [shareId, date] = atob(id).split(',');
+    const [shareId, date, views] = atob(id).split(',');
 
     if (
       shareId === undefined || !validateShareId(shareId) ||
-      date === undefined || isNaN(Number(new Date(date)))
+      date === undefined || isNaN(Number(new Date(date))) ||
+      views === undefined || isNaN(Number(views))
     ) {
       return false;
     }
 
-    return { shareId, date };
+    return { shareId, date, views };
   } catch {
     return false;
   }
