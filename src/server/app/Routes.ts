@@ -16,8 +16,8 @@ import {
   Params,
 } from '@remix-run/router';
 import { Request as OakRequest, Status, STATUS_TEXT } from '@oak/oak';
+import { SecureCookieMap } from '@oak/commons/cookie_map';
 import { createStaticHandler } from 'react-router-dom/server';
-
 import * as Home from './views/Home.tsx';
 import * as Search from './views/Search.tsx';
 import * as NotFound from './views/NotFound.tsx';
@@ -53,6 +53,7 @@ export interface RequestContext {
   user: User | null;
   db: Database;
   url: URL;
+  cookies: SecureCookieMap;
 }
 
 // This adds type-safety for using context.

@@ -121,10 +121,79 @@ const initLoadMore = (view) => {
   observer.observe(loadMore);
 };
 
+const initFilter = (view) => {
+  const cookie = ((name) => {
+    const cookies = document.cookie.split('; ');
+
+    for (const cookie of cookies) {
+      const [key, value] = cookie.split('=');
+      if (key === name) {
+        return decodeURIComponent(value);
+      }
+    }
+
+    return null;
+  })(view + '-filter');
+
+  const filters = [
+    'all',
+    'wr',
+    'top10',
+    'sp',
+    'coop',
+    'workshop',
+  ];
+
+  const storedFiters = (cookie ?? 'home').split('-').filter((filter) => filters.includes(filter));
+
+  if (storedFiters.includes('all')) {
+    storedFiters.length = 0;
+  }
+
+  if (storedFiters.length === 0) {
+    storedFiters.push('all');
+  }
+
+  const enabledFilters = new Set(storedFiters);
+
+  for (const filter of filters) {
+    document.querySelector('#filter-' + filter)?.addEventListener('click', () => {
+      if (filter === 'all') {
+        enabledFilters.clear();
+        enabledFilters.add('all');
+      } else {
+        if (enabledFilters.has(filter)) {
+          enabledFilters.delete(filter);
+        } else {
+          if (filter === 'wr') {
+            enabledFilters.delete('top10');
+          } else if (filter === 'top10') {
+            enabledFilters.delete('wr');
+          }
+
+          enabledFilters.add(filter);
+        }
+
+        if (enabledFilters.size === 0) {
+          enabledFilters.add('all');
+        } else {
+          enabledFilters.delete('all');
+        }
+      }
+
+      const values = [...enabledFilters.values()];
+      document.cookie = view + '-filter=' + encodeURIComponent(values.join('-')) + '; path=/; max-age=31536000';
+
+      location.replace(location.href);
+    });
+  }
+};
+
 // Home
 
 if (location.pathname === '/') {
   initLoadMore('home');
+  initFilter('home');
 }
 
 // Navbar

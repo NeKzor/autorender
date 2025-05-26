@@ -6,8 +6,8 @@
 
 import * as React from 'react';
 import { renderToString } from 'react-dom/server';
-import { Video } from '~/shared/models.ts';
-import { DataLoader, PageMeta, useLoaderData } from '../Routes.ts';
+import { MapType, Video } from '~/shared/models.ts';
+import { DataLoader, PageMeta, RequestContext, useLoaderData } from '../Routes.ts';
 import { tw } from 'twind';
 import { VideoCard } from '../components/VideoCard.tsx';
 import type { Database } from '../../db.ts';
@@ -35,8 +35,11 @@ type LatestVideo =
     requested_by_discord_avatar_url: string | null;
   };
 
+type Filters = (typeof allowedFilters)[number][];
+
 type Data = {
   latestVideos: LatestVideo[];
+  filters: Filters;
 };
 
 export const meta: PageMeta<undefined> = () => {
@@ -45,7 +48,16 @@ export const meta: PageMeta<undefined> = () => {
   };
 };
 
-const getVideos = async (db: Database, sortableId?: SortableId) => {
+const getVideos = async (db: Database, filters: Filters, sortableId?: SortableId) => {
+  const sp = filters.includes('sp');
+  const coop = filters.includes('coop');
+  const workshop = filters.includes('workshop');
+  const mapType = [] as MapType[];
+
+  if (sp) mapType.push(workshop ? MapType.WorkshopSinglePlayer : MapType.SinglePlayer);
+  if (coop) mapType.push(workshop ? MapType.WorkshopCooperative : MapType.Cooperative);
+  if (workshop && !sp && !coop) mapType.push(MapType.WorkshopSinglePlayer, MapType.WorkshopCooperative);
+
   return await db.query<LatestVideo>(
     `select videos.share_id
           , videos.title
@@ -63,8 +75,12 @@ const getVideos = async (db: Database, sortableId?: SortableId) => {
        from videos
        left join users requester
             on requester.discord_id = videos.requested_by_id
+      ${mapType.length ? 'left join maps on maps.map_id = videos.map_id' : ''}
       where video_url is not null
         and deleted_at is null
+            ${filters.includes('wr') ? 'and board_rank = 1' : ''}
+            ${filters.includes('top10') ? 'and board_rank <= 10' : ''}
+            ${mapType.length ? 'and maps.type in (' + mapType.join(',') + ')' : ''}
             ${sortableId ? 'and (videos.rendered_at < ? or (videos.rendered_at = ? and videos.share_id > ?))' : ''}
    order by rendered_at desc
           , share_id asc
@@ -75,9 +91,21 @@ const getVideos = async (db: Database, sortableId?: SortableId) => {
   );
 };
 
+const allowedFilters = [
+  'all',
+  'wr',
+  'top10',
+  'sp',
+  'coop',
+  'workshop',
+] as const;
+
 export const loader: DataLoader = async ({ context }) => {
+  const filters = await getFilters(context.cookies);
+
   return {
-    latestVideos: await getVideos(context.db),
+    latestVideos: await getVideos(context.db, filters),
+    filters,
   } satisfies Data;
 };
 
@@ -88,6 +116,74 @@ export const Home = () => {
     <>
       {data !== null && (
         <>
+          <div className={tw`ml-2 mb-2 flex gap-2 overflow-x-auto whitespace-nowrap`}>
+            <button
+              id='filter-all'
+              type='button'
+              className={tw`text-gray-900 rounded-lg dark:text-white ${
+                data.filters.includes('all')
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2`}
+            >
+              ALL
+            </button>
+            <button
+              id='filter-wr'
+              type='button'
+              className={tw`text-gray-900 rounded-lg dark:text-white ${
+                data.filters.includes('wr')
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2`}
+            >
+              WR
+            </button>
+            <button
+              id='filter-top10'
+              type='button'
+              className={tw`text-gray-900 rounded-lg dark:text-white ${
+                data.filters.includes('top10')
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2`}
+            >
+              TOP 10
+            </button>
+            <button
+              id='filter-sp'
+              type='button'
+              className={tw`text-gray-900 rounded-lg dark:text-white ${
+                data.filters.includes('sp')
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2`}
+            >
+              SP
+            </button>
+            <button
+              id='filter-coop'
+              type='button'
+              className={tw`text-gray-900 rounded-lg dark:text-white ${
+                data.filters.includes('coop')
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2`}
+            >
+              COOP
+            </button>
+            <button
+              id='filter-workshop'
+              type='button'
+              className={tw`text-gray-900 rounded-lg dark:text-white ${
+                data.filters.includes('workshop')
+                  ? 'bg-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
+                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+              } focus:outline-none focus-visible:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2`}
+            >
+              WORKSHOP
+            </button>
+          </div>
           <div className={tw`flex justify-center`}>
             <div
               id='videos'
@@ -127,10 +223,12 @@ export const Home = () => {
 };
 
 export const loadMoreHome = async (
-  db: Database,
+  db: RequestContext['db'],
+  cookies: RequestContext['cookies'],
   sortableId: SortableId,
 ): Promise<[html: string, lastVideo: string | undefined]> => {
-  const videos = await getVideos(db, sortableId);
+  const filters = await getFilters(cookies);
+  const videos = await getVideos(db, filters, sortableId);
 
   return [
     renderToString(
@@ -140,4 +238,20 @@ export const loadMoreHome = async (
     ),
     getSortableIdByRendered(videos.at(-1)),
   ];
+};
+
+export const getFilters = async (cookies: RequestContext['cookies']): Promise<Filters> => {
+  const filters = (await cookies.get('home-filter') ?? 'home').split('-').filter((filter) => {
+    return allowedFilters.includes(filter as Filters['0']);
+  });
+
+  if (filters.includes('all')) {
+    filters.length = 0;
+  }
+
+  if (filters.length === 0) {
+    filters.push('all');
+  }
+
+  return filters as Filters;
 };

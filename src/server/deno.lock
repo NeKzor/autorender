@@ -5,6 +5,7 @@
     "jsr:@oak/commons@1": "1.0.0",
     "jsr:@oak/oak@^17.1.4": "17.1.4",
     "jsr:@std/assert@1": "1.0.11",
+    "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/bytes@1": "1.0.5",
     "jsr:@std/bytes@^1.0.2": "1.0.5",
     "jsr:@std/bytes@^1.0.5": "1.0.5",
@@ -16,6 +17,7 @@
     "jsr:@std/fmt@^1.0.5": "1.0.5",
     "jsr:@std/fs@^1.0.11": "1.0.11",
     "jsr:@std/http@1": "1.0.13",
+    "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/io@~0.225.1": "0.225.2",
     "jsr:@std/io@~0.225.2": "0.225.2",
     "jsr:@std/log@~0.224.13": "0.224.14",
@@ -32,7 +34,7 @@
     "@oak/commons@1.0.0": {
       "integrity": "49805b55603c3627a9d6235c0655aa2b6222d3036b3a13ff0380c16368f607ac",
       "dependencies": [
-        "jsr:@std/assert",
+        "jsr:@std/assert@1",
         "jsr:@std/bytes@1",
         "jsr:@std/crypto@1",
         "jsr:@std/encoding@1",
@@ -44,7 +46,7 @@
       "integrity": "60530b582bf276ff741e39cc664026781aa08dd5f2bc5134d756cc427bf2c13e",
       "dependencies": [
         "jsr:@oak/commons",
-        "jsr:@std/assert",
+        "jsr:@std/assert@1",
         "jsr:@std/bytes@1",
         "jsr:@std/http",
         "jsr:@std/media-types",
@@ -53,7 +55,10 @@
       ]
     },
     "@std/assert@1.0.11": {
-      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1"
+      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
     },
     "@std/bytes@1.0.5": {
       "integrity": "4465dd739d7963d964c809202ebea6d5c6b8e3829ef25c6a224290fbb8a1021e"
@@ -75,6 +80,9 @@
       "dependencies": [
         "jsr:@std/encoding@^1.0.7"
       ]
+    },
+    "@std/internal@1.0.5": {
+      "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
     },
     "@std/io@0.225.2": {
       "integrity": "3c740cd4ee4c082e6cfc86458f47e2ab7cb353dc6234d5e9b1f91a2de5f4d6c7",
@@ -198,6 +206,19 @@
     "https://esm.sh/v131/@remix-run/router@1.6.2": "de2ee904ebb61c0a8ef428aaf860f53ba42ed988373608b648817453b2a86a3e",
     "https://esm.sh/v131/@remix-run/router@1.6.2/denonext/router.mjs": "b73070a826d1b118c992d182b0de97cde4d3b7ef407ace5bd671f48009d32a70",
     "https://esm.sh/v131/csstype@3.1.2": "fabf6997a3adf11e45d11e3c4d58d0634ab98f9d72f3116f3694123818ccd457",
+    "https://esm.sh/v131/dom-serializer@1.4.1/denonext/dom-serializer.mjs": "5cbb8ab8ad3c4b22d3df2397035c80718f5929ae8157edc6058b19acf55039ff",
+    "https://esm.sh/v131/domelementtype@2.3.0/denonext/domelementtype.mjs": "371936c356d5ac797f2ce3a66b98dfc73e6fff0e095b2858b85668e6ad7d10e0",
+    "https://esm.sh/v131/domhandler@4.3.1/denonext/domhandler.mjs": "570f7a98eb49c5a7fcf1ee851e2fabf1a394364312a67f2bbd8e9a436fe00ace",
+    "https://esm.sh/v131/domutils@2.8.0/denonext/domutils.mjs": "4694989ac84cac94b777c2985c010f4f2a5b40073da7706ca6bd162d5b6abfea",
+    "https://esm.sh/v131/entities@2.2.0/denonext/entities.mjs": "af15975e7c8b5f17be658d1db80f9de7c076cb9cd53c4dcfc9dd60d460266d62",
+    "https://esm.sh/v131/entities@2.2.0/denonext/lib/decode_codepoint.js": "68b6cbd2b5c122b862e414cd9c3a01af2bff35d3d7b1dd2089f4ffcef5a2f5c2",
+    "https://esm.sh/v131/htmlparser2@6.1.0": "32869cc22d43a41a03756ccdf765930e5445d75e4cdeeed603c67b0ca7dc605c",
+    "https://esm.sh/v131/htmlparser2@6.1.0/denonext/htmlparser2.mjs": "632491a083a2e267c49d28aae6a4dc3b77046711b5d7b1c7bbaaa1f7e6d3682f",
+    "https://esm.sh/v131/js-tokens@4.0.0/denonext/js-tokens.mjs": "023e64119966814c439af6df3470f26c561a2a4fa04351ddc1f3c0a626cae467",
+    "https://esm.sh/v131/jsbi@4.3.0": "2e74e9256257ed6de8183ace98ff57ae28d8343b37a9c85a0e466d0f51133d86",
+    "https://esm.sh/v131/jsbi@4.3.0/denonext/jsbi.mjs": "322cdb63f08384a92bd0c8a105b174e88e66852577e3b3c060d905cc17eb0896",
+    "https://esm.sh/v131/loose-envify@1.4.0": "7a366a6b525c17407679b4d095f151cc4d8f2ee36d82b050542d6f1d7420909f",
+    "https://esm.sh/v131/loose-envify@1.4.0/denonext/loose-envify.mjs": "6322d010b7e860a118849ccec8242f4d821b960c34d81c96212875bd9a583089",
     "https://esm.sh/v131/rate-limiter-flexible@2.4.2": "bf103ca6d4e4d046c1c8a9211f98e1d5193bd87658f691c6daa43863d48a4c33",
     "https://esm.sh/v131/rate-limiter-flexible@2.4.2/denonext/rate-limiter-flexible.mjs": "cb72dc749e401b21944bf5f0e3fb468c45fc9ffbcfe2eb44d905eadde8b060c3",
     "https://esm.sh/v131/react-dom@18.2.0/X-ZS8q/denonext/server.js": "ff3cbbf41b45c80ccfebce181e68ef1c72537cc94c93bc041df4e7f19eed1eb7",
@@ -207,15 +228,20 @@
     "https://esm.sh/v131/react-router@6.11.2/denonext/react-router.mjs": "2e5576bf75f53998b4ea84222b6cc0b8997e68f9ffb06d29e389cde866c394c5",
     "https://esm.sh/v131/react@18.2.0": "04ad7dc6d11fa27b24c136686a334ecdd19e972fae627cd98cbdc13cdac238c2",
     "https://esm.sh/v131/react@18.2.0/jsx-runtime": "aa011b336e339e6eaacc89787e7e3d6eb726b3701d9f8ac7fcd01db1595357cb",
+    "https://esm.sh/v131/scheduler@0.23.0": "2427aa8feb26bace5ffde7bcb708cafa8a325dccb5b26e571e3f012bdd407efe",
+    "https://esm.sh/v131/scheduler@0.23.0/denonext/scheduler.mjs": "cdbc6d2823e2c6fffcb14501146ff2602a38c48d3c9dd9268f308e833ede2b49",
     "https://esm.sh/v131/style-vendorizer@2.2.3": "348a362fb81be36b2b66a404311b2bcb961e41502d5ab8c3164c995d7c404317",
     "https://esm.sh/v131/style-vendorizer@2.2.3/denonext/style-vendorizer.mjs": "121455e7b04b631ef6463ce63cdcd29febd74d88c37713c774ceca8a1561c83d",
     "https://esm.sh/v131/style-vendorizer@2.2.3/esnext/style-vendorizer.mjs": "8143e1bff2cb717e36ee8ce0a776528091b81b5c8c70df6353eeb676555f6701",
+    "https://esm.sh/v131/tslib@2.6.1": "8388d3f227a2d8076968bec640b2bd30ad44e82610cec838ce35912e1d51e268",
+    "https://esm.sh/v131/tslib@2.6.1/denonext/tslib.mjs": "4694ecbc32a05aa4a37497b65f3e55018c24b2a4e4f05462a7746fc4850b4791",
     "https://esm.sh/v131/twind@0.16.16/X-ZS8q/denonext/sheets.js": "aff2004484fdf713c8d39492ce89ffd0d8f1fabf48fdb44e19d78948fecfa9aa",
     "https://esm.sh/v131/twind@0.16.16/X-ZS8q/denonext/twind.mjs": "4f0582908ae9600b13a7fd667db95ab68fca8460fa935f331430b2f292098232"
   },
   "workspace": {
     "dependencies": [
       "jsr:@nekz/sdp@~0.10.1",
+      "jsr:@oak/commons@1",
       "jsr:@oak/oak@^17.1.4",
       "jsr:@std/assert@^1.0.11",
       "jsr:@std/encoding@^1.0.7",

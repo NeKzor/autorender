@@ -37,6 +37,7 @@
   },
   "imports": {
     "@nekz/sdp": "jsr:@nekz/sdp@^0.10.1",
+    "@oak/commons": "jsr:@oak/commons@^1.0.0",
     "@oak/oak": "jsr:@oak/oak@^17.1.4",
     "@remix-run/router": "https://esm.sh/v131/@remix-run/router@1.6.2",
     "@std/assert": "jsr:@std/assert@^1.0.11",

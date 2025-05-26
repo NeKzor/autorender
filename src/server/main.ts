@@ -1675,7 +1675,7 @@ apiV1
 
     switch (ctx.params.view) {
       case 'home': {
-        const [html, lastVideo] = await loadMoreHome(db, last);
+        const [html, lastVideo] = await loadMoreHome(db, ctx.cookies, last);
         lastVideo && ctx.response.headers.append('X-Last-Video', lastVideo);
         Ok(ctx, html, 'text/html');
         break;
@@ -2443,11 +2443,13 @@ const routeToApp = async (ctx: Context) => {
   const request = await createFetchRequest(ctx.request);
   const user = ctx.state.session?.get('user') ?? null;
   const url = new URL(ctx.request.url);
+  const cookies = ctx.cookies;
 
   const requestContext: RequestContext = {
     user,
     db,
     url,
+    cookies,
   };
 
   const context = await routeHandler.query(request, { requestContext });
